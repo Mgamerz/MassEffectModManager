@@ -84,7 +84,7 @@ Valid values for cmmver are listed below with the main highlights of that releas
 | 8.1            | OT / LE         | 2023         | Supports referencing texture mods for use in batch installer, referencing headmorphs for installation, supports mods that require the enhanced bink codec                                                                                                   |
 | 9.0            | OT / LE         | 2024         | Supports alternate conditions that depend on other DLC mod's chosen installation options, merge mod class update feature, alternates for the GAME1_EMBEDDED_TLK feature (via CUSTOMDLC header), ASI installation requests, special batch installer sorting  |
 
-If a cmmver descriptor is not set, the default 1.0 value will be used, which has almost no features. Mod Manager 8.2 did not included changes to moddesc, thus it had not cmmver associated with it.
+If a cmmver descriptor is not set, the default 1.0 value will be used, which has almost no features. Mod Manager 8.2 did not include changes to moddesc, thus it had not cmmver associated with it.
 
 ## [ModInfo] Header
 The [ModInfo] Header is used for the description, version, and other information about the mod that the user will see in Mod Manager. It also houses the ME3Tweaks Updater Service information. 
