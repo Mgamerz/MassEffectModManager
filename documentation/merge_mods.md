@@ -188,7 +188,7 @@ The format for an update to a function export. You must store your script in a p
 
 | Property Name  | Type   | Information                                                  |
 | -------------- | ------ | ------------------------------------------------------------ |
-| scriptfilename | string | The filename of a local plaintext file containing your script. File extension should be `.uc`. |
+| assetname | string | The filename of a local plaintext file containing your script. File extension should be `.uc`. |
 
 **Example:**
 
