@@ -188,7 +188,7 @@ The format for an update to a function export. You must store your script in a p
 
 | Property Name  | Type   | Information                                                  |
 | -------------- | ------ | ------------------------------------------------------------ |
-| assetname | string | The filename of a local plaintext file containing your script. File extension should be `.uc`. |
+| scriptfilename | string | The filename of a local plaintext file containing your script. File extension should be `.uc`. |
 
 **Example:**
 
@@ -269,7 +269,7 @@ The format for an update to a non-vanilla class. You must store your script in a
 
 | Property Name  | Type   | Information                                                  |
 | -------------- | ------ | ------------------------------------------------------------ |
-| scriptfilename | string | The filename of a local plaintext file containing your entire class. File extension should be `.uc`. |
+| assetname | string | The filename of a local plaintext file that contains your entire class. File extension must be `.uc`. |
 
 **Example:**
 
