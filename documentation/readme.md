@@ -33,7 +33,7 @@ ME3Tweaks Mod Manager (which will be written as M3 from now on in this document)
    - Contains information on using the Plot Manager Update system to override basegame conditionals in ME1 and ME2, OT and LE.
 - [Replacing strings in ME1/LE1 using TLK merge](game1_tlk_merge.md)
    - Contains information about how to use the GAME1_EMBEDDED_TLK header to replace strings in ME1/LE1, due to it having embedded TLK files
-- [Adding outfits to squadmates in Game 3 using Squadmate Outfit Merge](squadmate_outfit_merge.md)
+- [Adding outfits to squadmates in LE2 and Game 3 using Squadmate Outfit Merge](squadmate_outfit_merge.md)
    - Contains information about the squadmate merge feature, and how to use it so you can add outfits without replacing existing ones for Mass Effect 3 (OT + LE)
 - [Adding emails in Game 2 using Game 2 Email Merge](game2_email_merge.md)
    - Contains information on using the Game 2 email merge feature
