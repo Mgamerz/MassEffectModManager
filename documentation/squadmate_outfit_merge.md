@@ -27,6 +27,7 @@ This feature is not part of moddesc.ini specifically; rather it is a feature aut
 
 #### Package files required
 There are several packages that must be included:
+
 **Game 3**
  - Your squadmate's outfit(s), including the \_Explore version, and the localization files for each. 
     - These need to be uniquely named as BioH_\[Squadmate Base Name]\_[DLC Folder Name]\_[Number].pcc. This ensures that a developer doesn't produce a same named package as another mod might. Due to these requirements, you may want to choose a short DLC mod folder name, as it will significantly eat into the 260 character limit for filepaths Windows has by default.
@@ -50,7 +51,7 @@ The TFC your packages reference must be included in the mod.
 In your DLC mod, you must have a json file named `SquadmateMergeInfo.sqm`. This file contains the information about what to merge into `BioP_Global`.
 
 An example **LE3** file would look like this, which is explained below:
-```
+```json
 {
 	"game": "LE3",
 	"outfits":
@@ -69,7 +70,7 @@ An example **LE3** file would look like this, which is explained below:
 ```
 
 An example **LE2** file would look like this, which is explained below:
-```
+```json
 {
 	"game": "LE2",
 	"outfits":
