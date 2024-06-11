@@ -19,7 +19,7 @@ Demo mods can be downloaded and inspected for their respective games:
  - [LE2](https://www.nexusmods.com/masseffectlegendaryedition/mods/1829)
 
 Mod Manager MINIMUM requirements:
- - LE3: ME3Tweakd Mod Manager 7.0.1
+ - LE3: ME3Tweaks Mod Manager 7.0.1
  - LE2: ME3Tweaks Mod Manager 8.2 (Build 129)
     - LE2 currently only supports 9 unique outfits per squadmate. This is how many outfit slots were added to the TeamSelect SWF by naNuke/Mith.
 
