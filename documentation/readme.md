@@ -1,6 +1,6 @@
 ![Documentation Image](images/documentation_header.png)
 
-This documentation is current as of Build 126.
+This documentation is current as of Build 134.
 
 ME3Tweaks Mod Manager (which will be written as M3 from now on in this document) allows users to organize mods as well as install them into the each game of the Mass Effect Trilogy. It is designed to be friendly for users and powerful for developers - for example, as a developer, you do not need to worry about users not installing the binkw32 bypass or running AutoTOC - M3 takes care of this all in the background for users. You can focus on developing your mods and my program will take care of the user side of things.
 
@@ -39,7 +39,10 @@ ME3Tweaks Mod Manager (which will be written as M3 from now on in this document)
    - Contains information on using the Game 2 email merge feature
 - [M3 Config Delta (M3CD) - Merging config files in Legendary Edition](configdelta.md)
    - Contains information on using the M3CD feature, which allows LE1 basegame Coalesced changes, and delta changes to LE2/LE3 DLC configuration files upon installation
+- [M3 2DA Merge (M3DA) - Merging LE1 2DA tables](2damerge.md)
+   - Contains information on using the M3DA feature, which allows LE1 mods to combine their 2DA tables into the basegame, allowing them to override. This allows working around issues with how LE1 accesses 2DAs in ways that can cause buggy game behavior. It also lets other mod developers target your changes
 
+  
 Mod Manager includes a built-in moddesc editor that can be used on existing mods. Right click your mod while in developer mode and select `moddesc.ini editor`. Currently this only works on mods that are loaded, and cannot be used for creating the initial mod.
 
 ## Why use M3? Why not just use a zip or an exe installer?
