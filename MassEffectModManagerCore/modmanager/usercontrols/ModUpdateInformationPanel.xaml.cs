@@ -328,11 +328,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         /// <summary>
         /// If the download all button should be shown at all to the user
         /// </summary>
-        public bool ShowDownloadAllButton => UpdatableMods.Any(x => x.CanUpdate && (x.mod.ModClassicUpdateCode > 0 || x.mod.ModModMakerID > 0));
+        public bool ShowDownloadAllButton => UpdatableMods.Any(x => x.CanUpdate);
 
         private void DownloadAll()
         {
-            var updates = UpdatableMods.Where(x => x.CanUpdate && (x.mod.ModClassicUpdateCode > 0 || x.mod.ModModMakerID > 0)).ToList();
+            var updates = UpdatableMods.Where(x => x.CanUpdate).ToList();
             OperationInProgress = true;
             CommandManager.InvalidateRequerySuggested();
 
@@ -365,6 +365,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         {
                             Monitor.Wait(syncObj);
                         }
+                    }
+                    else if (update is M3OnlineContent.NexusModUpdateInfo nmui)
+                    {
+                        ApplyUpdateToMod(nmui);
                     }
                 }
             });
