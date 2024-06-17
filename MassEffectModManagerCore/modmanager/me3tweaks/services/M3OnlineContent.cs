@@ -252,7 +252,7 @@ namespace ME3TweaksModManager.modmanager.me3tweaks.services
         {
             using var wc = new ShortTimeoutWebClient();
             string downloadError = null;
-            string destType = destStreamOverride != null ? @"stream" : @"memory";
+            string destType = destStreamOverride?.GetType().ToString() ?? @"memory";
             Stream responseStream = destStreamOverride ?? new MemoryStream();
 
             var syncObject = new Object();

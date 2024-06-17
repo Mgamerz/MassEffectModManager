@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using ME3TweaksModManager.modmanager.objects;
 
 namespace ME3TweaksModManager.ui
 {
@@ -107,6 +108,11 @@ namespace ME3TweaksModManager.ui
         public static readonly DependencyProperty HeightFractionProperty = DependencyProperty.RegisterAttached(@"HeightFraction", typeof(double), typeof(Clipper), new PropertyMetadata(1d, OnClippingInvalidated), IsFraction);
         public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(@"Background", typeof(Brush), typeof(Clipper), new FrameworkPropertyMetadata(Brushes.Transparent, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty ConstraintProperty = DependencyProperty.Register(@"Constraint", typeof(ConstraintSource), typeof(Clipper), new PropertyMetadata(ConstraintSource.WidthAndHeight, OnClippingInvalidated), IsValidConstraintSource);
+        
+        // ME3TWEAKS EXTENSION - Property you can bind to slide open and closed with the default ME3Tweaks ClipperHelper animation.
+        public static readonly DependencyProperty VisibilityValueProperty = DependencyProperty.Register(nameof(VisibilityValue), typeof(bool), typeof(Clipper), new PropertyMetadata(false));
+
+
 
         private Size _childSize;
         private DependencyPropertySubscriber _childVerticalAlignmentSubcriber;
@@ -127,6 +133,16 @@ namespace ME3TweaksModManager.ui
         {
             get { return (ConstraintSource)GetValue(ConstraintProperty); }
             set { SetValue(ConstraintProperty, value); }
+        }
+
+        public bool VisibilityValue
+        {
+            get => (bool)GetValue(VisibilityValueProperty);
+            set
+            {
+                SetValue(VisibilityValueProperty, value);
+                ClipperHelper.ShowHideVerticalContent(this, value);
+            }
         }
 
         [AttachedPropertyBrowsableForChildren]

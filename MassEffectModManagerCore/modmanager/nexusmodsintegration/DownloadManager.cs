@@ -64,18 +64,6 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
             if (sender is ModDownload md)
             {
                 md.OnModDownloaded -= ModDownloaded;
-                //Application.Current.Dispatcher.Invoke(() =>
-                //{
-                //    if (cancellationTokenSource.IsCancellationRequested)
-                //    {
-                //        // Canceled
-                //        OnClosing(DataEventArgs.Empty);
-                //    }
-                //    else
-                //    {
-                //        OnClosing(new DataEventArgs(new List<ModDownload>(new[] { md }))); //maybe someday i'll support download queue or something.
-                //    }
-                //});
             }
         }
 
@@ -97,6 +85,7 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
 
                 if (item.DownloadState == EModDownloadState.DOWNLOADCOMPLETE && item.AutoImport)
                 {
+                    // File has completed download and is marked for automatic import
                     ModArchiveImport mai = new ModArchiveImport()
                     {
                         AutomatedMode = true,
@@ -109,11 +98,23 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
                         mai.SourceNXMLink = nmd.ProtocolLink;
                         mai.ArchiveFilePath = nmd.ModFile.FileName;
                     }
+
                     mai.ImportStateChanged += OnImportStateChange;
 
                     item.ImportFlow = mai;
                     mai.ProgressChanged += ImportProgressChanged;
                     mai.BeginScan();
+                    return;
+                }
+
+                if (item.DownloadState == EModDownloadState.FINISHED && item.AutoImport && item.ImportFlow != null)
+                {
+                    // Mod has completed import and is now updated, hopefully
+                    item.ImportFlow.ImportStateChanged -= OnImportStateChange;
+                    item.ImportFlow.ProgressChanged -= ImportProgressChanged;
+                    item.ImportFlow = null;
+                    Downloads.Remove(item.CreateDownloadKey(), out _);
+                    return;
                 }
             }
         }
@@ -126,7 +127,7 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
                 var md = Downloads.FirstOrDefault(x => x.Value.ImportFlow == mai).Value;
                 if (md != null)
                 {
-                    Debug.WriteLine($@"ImportProgress: {e.AmountCompleted}/{e.TotalAmount} IsIndeterminate: {e.IsIndeterminate}");
+                    // Debug.WriteLine($@"ImportProgress: {e.AmountCompleted}/{e.TotalAmount} IsIndeterminate: {e.IsIndeterminate}");
                     md.ProgressMaximum = e.TotalAmount;
                     md.ProgressValue = e.AmountCompleted;
                     md.ProgressIndeterminate = e.IsIndeterminate;
@@ -158,6 +159,7 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
                         break;
                     case EModArchiveImportState.COMPLETE:
                         matchingObj.Status = "Import complete";
+                        matchingObj.DownloadState = EModDownloadState.FINISHED; // Send finished events
                         break;
                 }
             }

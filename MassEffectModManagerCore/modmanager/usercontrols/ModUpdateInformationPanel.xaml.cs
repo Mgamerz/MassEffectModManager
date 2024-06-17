@@ -118,6 +118,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                     if (NexusModsUtilities.UserInfo?.IsPremium == true)
                     {
+                        nmui.UpdateInProgress = true;
                         var fileId = await NexusModsUtilities.GetMainFileForMod(domain, nmui.NexusModsId);
                         if (fileId != null)
                         {
@@ -126,6 +127,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                             DownloadManager.QueueNXMDownload(nxmlink);
                             return;
                         }
+
+                        nmui.UpdateInProgress = false;
                     }
 
                     var url = $@"https://nexusmods.com/{domain}/mods/{nmui.NexusModsId}?tab=files";

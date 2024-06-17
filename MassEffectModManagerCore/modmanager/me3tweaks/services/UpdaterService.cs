@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Xml.Linq;
@@ -19,6 +20,7 @@ using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.nexusmodsintegration;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.mod;
+using ME3TweaksModManager.ui;
 using Microsoft.AppCenter.Crashes;
 using Newtonsoft.Json;
 
@@ -928,14 +930,54 @@ namespace ME3TweaksModManager.modmanager.me3tweaks.services
             public DateTime UpdatedTime { get; internal set; }
             public ModDownload DownloadFlow { get; set; }
 
-            private void OnDownloadFlowChanged()
+            private void OnDownloadFlowChanged(ModDownload oldVal, ModDownload newVal)
             {
-                if (DownloadFlow == null)
-                    return;
+                UpdateInProgress = newVal != null;
 
-                UpdateInProgress = true;
-                DownloadFlow.StatusChanged += DFStatusChanged;
-                DownloadFlow.AutoImport = true;
+                if (newVal == null && oldVal != null)
+                {
+                    // Unsubscribe from download flow changes
+                    ClearDownloadFlow(oldVal);
+
+                    return;
+                }
+                else if (newVal != null && oldVal == null)
+                {
+                    // Subscribe to download flow changes
+                    newVal.StatusChanged += DFStatusChanged;
+                    newVal.DownloadStateChanged += DF_DownloadStateChanged;
+
+                    // Mark for auto import
+                    newVal.AutoImport = true;
+                }
+
+                // This will force button state to become accurate. Huge perf penalty, though...
+                CommandManager.InvalidateRequerySuggested();
+            }
+
+            private void DF_DownloadStateChanged(object sender, EventArgs e)
+            {
+                if (sender is ModDownload md)
+                {
+                    if (md.DownloadState == EModDownloadState.FINISHED)
+                        CanUpdate = false; // Mod can no longer update
+
+                    if (md.DownloadState == EModDownloadState.FINISHED || md.DownloadState == EModDownloadState.FAILED)
+                    {
+                        ClearDownloadFlow();
+                    }
+                }
+            }
+
+            private void ClearDownloadFlow(ModDownload val = null)
+            {
+                val ??= DownloadFlow;
+                if (val == null)
+                    Debugger.Break();
+
+                val.StatusChanged -= DFStatusChanged;
+                val.DownloadStateChanged -= DF_DownloadStateChanged;
+                DownloadFlow = null; // Nuke the variable set.
             }
 
             private void DFStatusChanged(object sender, EventArgs e)

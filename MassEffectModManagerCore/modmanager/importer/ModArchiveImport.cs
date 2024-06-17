@@ -758,7 +758,7 @@ namespace ME3TweaksModManager.modmanager.importer
 
         private void ExtractionProgressCallback(DetailedProgressEventArgs args)
         {
-            Debug.WriteLine("Extraction progress " + args.AmountCompleted + "/" + args.TotalAmount);
+            // Debug.WriteLine("Extraction progress " + args.AmountCompleted + "/" + args.TotalAmount);
             ProgressValue = (long)args.AmountCompleted;
             ProgressMaximum = (long)args.TotalAmount;
             ProgressIndeterminate = ProgressValue == 0;

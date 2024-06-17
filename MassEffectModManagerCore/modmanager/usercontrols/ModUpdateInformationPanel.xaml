@@ -5,6 +5,7 @@
     xmlns:converters="clr-namespace:ME3TweaksModManager.modmanager.converters"
     xmlns:me3Tweaks="clr-namespace:ME3TweaksModManager.modmanager.me3tweaks"
     xmlns:services="clr-namespace:ME3TweaksModManager.modmanager.me3tweaks.services"
+    xmlns:ui="clr-namespace:ME3TweaksModManager.ui"
     mc:Ignorable="d"
     d:DesignHeight="500"
     d:DesignWidth="500"
@@ -38,14 +39,14 @@
                 Visibility="{Binding ShowDownloadAllButton, Converter={StaticResource BoolToVisibilityConverter}}"
                 Padding="7,4"
                 HorizontalAlignment="Left"
-                Margin="0,5,0,5" />
+                Margin="0,5,0,0" />
             <Button
                 DockPanel.Dock="Bottom"
                 Content="{DynamicResource string_close}"
                 Command="{Binding CloseCommand}"
                 Padding="14,4"
                 HorizontalAlignment="Right"
-                Margin="5,5,0,5" />
+                Margin="5,5,0,0" />
         </DockPanel>
         <ItemsControl
             Margin="0"
@@ -315,15 +316,20 @@
                                 FontSize="10"
                                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.DisabledForegroundBrush}}" />
                         </StackPanel>
-                        <ProgressBar
+                        <ui:Clipper
+                            HeightFraction="0"
+                            Constraint="Height"
                             Grid.Column="0"
                             Grid.ColumnSpan="2"
-                            Visibility="{Binding DownloadFlow, Converter={StaticResource NullVisibilityConverter}}"
                             Grid.Row="4"
-                            Height="12"
-                            Maximum="{Binding DownloadFlow.ProgressMaximum, Mode=OneWay}"
-                            Value="{Binding DownloadFlow.ProgressValue, Mode=OneWay}"
-                            IsIndeterminate="{Binding DownloadFlow.ProgressIndeterminate, Mode=OneWay}" />
+                            VisibilityValue="{Binding DownloadFlow, Converter={StaticResource NullEnabledConverter}}">
+                            <ProgressBar
+                                Visibility="{Binding DownloadFlow, Converter={StaticResource NullVisibilityConverter}}"
+                                Height="12"
+                                Maximum="{Binding DownloadFlow.ProgressMaximum, Mode=OneWay}"
+                                Value="{Binding DownloadFlow.ProgressValue, Mode=OneWay}"
+                                IsIndeterminate="{Binding DownloadFlow.ProgressIndeterminate, Mode=OneWay}" />
+                        </ui:Clipper>
                         <TextBlock
                             Text="{Binding changelog}"
                             Grid.Row="5"
