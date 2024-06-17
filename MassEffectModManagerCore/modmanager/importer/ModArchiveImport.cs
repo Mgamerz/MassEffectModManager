@@ -18,6 +18,7 @@ using ME3TweaksModManager.modmanager.objects.mod.interfaces;
 using LegendaryExplorerCore.Helpers;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.mod;
+using ME3TweaksModManager.ui;
 using SevenZip.EventArguments;
 
 namespace ME3TweaksModManager.modmanager.importer
@@ -83,6 +84,21 @@ namespace ME3TweaksModManager.modmanager.importer
         public long ProgressMaximum { get; private set; }
         public bool ProgressIndeterminate { get; private set; }
 
+        private void OnProgressValueChanged()
+        {
+            ProgressChanged?.Invoke(this, new M3ProgressEventArgs(ProgressValue, ProgressMaximum, ProgressIndeterminate));
+        }
+
+        private void OnProgressMaximumChanged()
+        {
+            ProgressChanged?.Invoke(this, new M3ProgressEventArgs(ProgressValue, ProgressMaximum, ProgressIndeterminate));
+        }
+
+        private void OnProgressIndeterminateChanged()
+        {
+            ProgressChanged?.Invoke(this, new M3ProgressEventArgs(ProgressValue, ProgressMaximum, ProgressIndeterminate));
+        }
+
         // OT uses these.
         public int CompressionProgressValue { get; set; }
         public int CompressionProgressMaximum { get; set; } = 100;
@@ -111,6 +127,7 @@ namespace ME3TweaksModManager.modmanager.importer
         /// </summary>
         public Action<Mod> OnModFailedToLoad;
 
+        // Todo: Change to vars for caller to access
         /// <summary>
         /// Invoked when the CurrentState value changes
         /// </summary>
@@ -120,6 +137,12 @@ namespace ME3TweaksModManager.modmanager.importer
         /// Invoked when the importer needs to set results on this panel
         /// </summary>
         public Func<PanelResult> GetPanelResult;
+
+
+        /// <summary>
+        /// Invoked when progress has changed
+        /// </summary>
+        public event EventHandler<M3ProgressEventArgs> ProgressChanged;
         #endregion
 
         #region DATA
@@ -184,6 +207,7 @@ namespace ME3TweaksModManager.modmanager.importer
         /// Result of import
         /// </summary>
         public EModImportResult ImportResult { get; private set; }
+
 
         #endregion
 
@@ -292,14 +316,14 @@ namespace ME3TweaksModManager.modmanager.importer
                         M3L.GetString(M3L.string_improperlyDeployedMod),
                         M3L.GetString(M3L.string_dialog_improperlyDeployedMod),
                         MessageBoxButton.OK,
-                        MessageBoxImage.Warning, 
+                        MessageBoxImage.Warning,
                         MessageBoxResult.OK);
                 }
             }
 
             // This will fire off listeners for this object
             CurrentState = EModArchiveImportState.SCANCOMPLETED;
-            
+
             if (AutomatedMode)
                 BeginImporting();
         }
@@ -603,7 +627,7 @@ namespace ME3TweaksModManager.modmanager.importer
                         var result = ShowDialogCallback?.Invoke(
                             M3L.GetString(M3L.string_modAlreadyExists),
                             M3L.GetString(M3L.string_interp_dialogImportingModWillDeleteExistingMod, sanitizedPath),
-                            MessageBoxButton.YesNo, 
+                            MessageBoxButton.YesNo,
                             MessageBoxImage.Warning,
                             MessageBoxResult.No);
                         if (result == MessageBoxResult.No)
@@ -734,7 +758,7 @@ namespace ME3TweaksModManager.modmanager.importer
 
         private void ExtractionProgressCallback(DetailedProgressEventArgs args)
         {
-            //Debug.WriteLine("Extraction progress " + args.AmountCompleted + "/" + args.TotalAmount);
+            Debug.WriteLine("Extraction progress " + args.AmountCompleted + "/" + args.TotalAmount);
             ProgressValue = (long)args.AmountCompleted;
             ProgressMaximum = (long)args.TotalAmount;
             ProgressIndeterminate = ProgressValue == 0;

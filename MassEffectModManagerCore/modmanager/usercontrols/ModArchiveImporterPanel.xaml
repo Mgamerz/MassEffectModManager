@@ -10,10 +10,14 @@
     xmlns:mod="clr-namespace:ME3TweaksModManager.modmanager.objects.mod"
     xmlns:texture="clr-namespace:ME3TweaksModManager.modmanager.objects.mod.texture"
     xmlns:batch="clr-namespace:ME3TweaksModManager.modmanager.objects.batch"
+    xmlns:converters="clr-namespace:ME3TweaksModManager.modmanager.converters"
     mc:Ignorable="d"
     MinWidth="700"
     MinHeight="550"
     DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    <usercontrols:MMBusyPanelBase.Resources>
+        <converters:ImportStateToVisibilityConverter x:Key="ImportStateToVisibilityConverter"/>
+    </usercontrols:MMBusyPanelBase.Resources>
     <DockPanel
         Margin="0,0">
         <TextBlock
@@ -25,7 +29,7 @@
         <TextBlock
             DockPanel.Dock="Top"
             FontSize="14"
-            Text="{Binding ScanningFile}"
+            Text="{Binding MAI.ScanningFile}"
             TextAlignment="Center" />
         <DockPanel
             DockPanel.Dock="Bottom">
@@ -53,14 +57,14 @@
                     Padding="8,3"
                     Command="{Binding ImportModsCommand}"
                     ToolTip="{DynamicResource string_tooltip_importMods}"
-                    Visibility="{Binding ArchiveScanned, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    Visibility="{Binding MAI.CurrentState, Converter={StaticResource ImportStateToVisibilityConverter}, ConverterParameter='Min_SCANCOMPLETED'}" />
                 <Button
                     DockPanel.Dock="Right"
                     Content="{Binding InstallModText}"
                     Padding="8,3"
                     Margin="5,0"
                     Command="{Binding InstallModCommand}"
-                    Visibility="{Binding ArchiveScanned, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Visibility="{Binding MAI.CurrentState, Converter={StaticResource ImportStateToVisibilityConverter}, ConverterParameter='Min_SCANCOMPLETED'}"
                     ToolTip="{DynamicResource string_tooltip_installModArchiveWindow}" />
                 <Button
                     DockPanel.Dock="Right"

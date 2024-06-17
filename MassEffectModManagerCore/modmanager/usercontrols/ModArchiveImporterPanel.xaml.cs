@@ -1,9 +1,5 @@
-﻿using System.Windows;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using System.Windows.Media.Animation;
-using LegendaryExplorerCore.Gammtek.Paths;
-using LegendaryExplorerCore.Misc;
-using ME3TweaksCore.Services.FileSource;
 using ME3TweaksCoreWPF.UI;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.importer;
@@ -44,9 +40,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
 
         public IImportableMod SelectedMod { get; set; }
-
-
-        public string ScanningFile { get; private set; } = M3L.GetString(M3L.string_pleaseWait);
 
 
         // Must be ME2 or ME3, cannot have a transform, we allow it, archive has been scanned, we haven't started an operation
@@ -94,10 +87,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 else if (MAI.CompressedMods.Count > 0)
                 {
                     MAI.ActionText = M3L.GetString(M3L.string_selectModsToImportIntoModManagerLibrary);
-                    //if (CompressedMods.Count == 1)
-                    //{
-                    //    CompressedMods_ListBox.SelectedIndex = 0; //Select the only item
-                    //}
+                    if (MAI.CompressedMods.Count == 1)
+                    {
+                        CompressedMods_ListBox.SelectedIndex = 0; //Select the only item
+                    }
 
                     // Todo: Change to link, maybe via NTFS streams?
                     // To support other providers
@@ -115,7 +108,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 {
                     CancelButtonText = M3L.GetString(M3L.string_close);
                     NoModSelectedText = M3L.GetString(M3L.string_interp_dialogImportedALOTMainToTextureLibrary,
-                        ScanningFile, M3Utilities.GetALOTInstallerTextureLibraryDirectory());
+                        MAI.ScanningFile, M3Utilities.GetALOTInstallerTextureLibraryDirectory());
                     MAI.ActionText = M3L.GetString(M3L.string_importCompleted);
                 }
                 else

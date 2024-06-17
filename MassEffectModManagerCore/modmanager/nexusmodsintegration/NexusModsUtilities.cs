@@ -315,6 +315,23 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
             return await GetDownloadLinkForFile(link.Domain, link.ModId, link.FileId, link.Key, link.KeyExpiry);
         }
 
+        /// <summary>
+        /// Gets the download link (PREMIUM ONLY) for a mod if it has only one file in the main category. Returns null otherwise.
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <param name="modid"></param>
+        /// <returns></returns>
+        public static async Task<ModFileDownloadLink[]> GetDownloadLinkForMod(string domain, int modid)
+        {
+            var mf =  await NexusModsUtilities.GetClient().ModFiles.GetModFiles(domain, modid, FileCategory.Main);
+            if (mf != null && mf.Files.Length == 1)
+            {
+                return await GetDownloadLinkForFile(domain, modid, mf.Files[0].FileID);
+            }
+
+            return null;
+        }
+
         public static void SetupNXMHandling()
         {
             // Register app
@@ -485,6 +502,17 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
             if (game == MEGame.ME3) return @"masseffect3";
             if (game == MEGame.LELauncher || game.IsLEGame()) return @"masseffectlegendaryedition";
             throw new Exception($@"Unsupported game: {game}");
+        }
+
+        public static async Task<int?> GetMainFileForMod(string domain, int modid)
+        {
+            var mf = await NexusModsUtilities.GetClient().ModFiles.GetModFiles(domain, modid, FileCategory.Main);
+            if (mf != null && mf.Files.Length == 1)
+            {
+                return mf.Files[0].FileID;
+            }
+
+            return null;
         }
     }
 }

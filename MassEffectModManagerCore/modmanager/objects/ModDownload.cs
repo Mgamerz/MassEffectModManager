@@ -76,9 +76,9 @@ namespace ME3TweaksModManager.modmanager.objects
         public event EventHandler<EventArgs> DownloadStateChanged;
 
 
-        public long ProgressValue { get; private protected set; }
-        public long ProgressMaximum { get; private protected set; }
-        public bool ProgressIndeterminate { get; protected set; } = true;
+        public long ProgressValue { get; protected internal set; }
+        public long ProgressMaximum { get; protected internal set; }
+        public bool ProgressIndeterminate { get; protected internal set; } = true;
 
         /// <summary>
         /// UI string to display. Should be short.

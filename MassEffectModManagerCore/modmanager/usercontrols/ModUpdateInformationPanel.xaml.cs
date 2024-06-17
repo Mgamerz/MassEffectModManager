@@ -85,7 +85,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             return false;
         }
 
-        private void ApplyUpdateToMod(object obj)
+        private async void ApplyUpdateToMod(object obj)
         {
             if (obj is M3OnlineContent.ModMakerModUpdateInfo mui)
             {
@@ -99,6 +99,9 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 }
                 else if (ui is M3OnlineContent.NexusModUpdateInfo nmui)
                 {
+                    
+
+
                     var domain = @"masseffectlegendaryedition";
                     switch (nmui.GameId)
                     {
@@ -111,6 +114,18 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         case 3:
                             domain = @"masseffect3";
                             break;
+                    }
+
+                    if (NexusModsUtilities.UserInfo?.IsPremium == true)
+                    {
+                        var fileId = await NexusModsUtilities.GetMainFileForMod(domain, nmui.NexusModsId);
+                        if (fileId != null)
+                        {
+                            // Fire as nxm link
+                            string nxmlink = $@"nxm://{domain}/mods/{nmui.NexusModsId}/files/{fileId}";
+                            DownloadManager.QueueNXMDownload(nxmlink);
+                            return;
+                        }
                     }
 
                     var url = $@"https://nexusmods.com/{domain}/mods/{nmui.NexusModsId}?tab=files";

@@ -1,8 +1,10 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using ME3TweaksModManager.modmanager.importer;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.ui;
+using SevenZip.EventArguments;
 
 namespace ME3TweaksModManager.modmanager.nexusmodsintegration
 {
@@ -99,18 +101,35 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
                     {
                         AutomatedMode = true,
                         ArchiveStream = item.DownloadedStream,
-                        GetPanelResult = () => new PanelResult(), // TEMPORARY DO NOT RELY ON THIS
-                        ArchiveFilePath = "Test.7z",
+                        GetPanelResult = () => new PanelResult(), // TEMPORARY, DO NOT RELY ON THIS
+                        ArchiveFilePath = @"Placeholder.7z",
                     };
                     if (item is NexusModDownload nmd)
                     {
                         mai.SourceNXMLink = nmd.ProtocolLink;
+                        mai.ArchiveFilePath = nmd.ModFile.FileName;
                     }
                     mai.ImportStateChanged += OnImportStateChange;
 
                     item.ImportFlow = mai;
-
+                    mai.ProgressChanged += ImportProgressChanged;
                     mai.BeginScan();
+                }
+            }
+        }
+
+        private static void ImportProgressChanged(object sender, M3ProgressEventArgs e)
+        {
+            if (sender is ModArchiveImport mai)
+            {
+                // Poor performance for how much progress will be called. We should probably use a lookup or simply cache the variable.
+                var md = Downloads.FirstOrDefault(x => x.Value.ImportFlow == mai).Value;
+                if (md != null)
+                {
+                    Debug.WriteLine($@"ImportProgress: {e.AmountCompleted}/{e.TotalAmount} IsIndeterminate: {e.IsIndeterminate}");
+                    md.ProgressMaximum = e.TotalAmount;
+                    md.ProgressValue = e.AmountCompleted;
+                    md.ProgressIndeterminate = e.IsIndeterminate;
                 }
             }
         }
