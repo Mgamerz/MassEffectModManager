@@ -250,7 +250,7 @@ The format for a full asset update. This format will fully replace the basegame 
 
 ### `disableconfigupdate` JSON format
 
-The format for disabling the 'config' flag on a property export. This is useful when working on LE1 as it doesn't have the ability for us to ship ini updates in DLC mods. As such, the only options are shipping an entire coalesced file or making the changes to the file itself. Shipping an entire coalesced file is undesirable so turning off the ability for the property to read from Coalesced, and then changing the property in the package file is preferable.
+The format for disabling the 'config' flag on a property export. This merge type is obsolete and should no longer be used now that we have the LE1 Config Merge feature.
 
 **Example:**
 
@@ -261,6 +261,27 @@ The format for disabling the 'config' flag on a property export. This is useful 
 }
 ```
 
+### `classupdate` JSON format
+
+**Supported by moddesc 9.0 and above**
+
+The format for an update to a non-vanilla class. You must store your script in a plaintext .uc file, which will be embedded into your .m3m file. Your class file must be in the same folder as your manifest file. If you attempt to merge to a vanilla class name, Mod Manager will throw an error.
+
+| Property Name  | Type   | Information                                                  |
+| -------------- | ------ | ------------------------------------------------------------ |
+| assetname | string | The filename of a local plaintext file that contains your entire class. File extension must be `.uc`. |
+
+**Example:**
+
+```json
+{
+    "entryname": "MyNonVanillaClass",
+    "classupdate": {
+        "assetname":"MyNonVanillaClass.uc"
+    }
+}
+```
+When this update is applied, the entire class will be recompiled. You will need to coordinate with other developers if your mod works in conjunction with theirs.
 
 ## Compiling a .m3m file
 

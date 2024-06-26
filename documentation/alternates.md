@@ -1,17 +1,17 @@
 # Alternates - conditional file installation both manual and automatic
-Alternates are a feature of M3 that allow developers to provide alternative installation options for a mod. Examples of this would be to reconfigure what files are installed based on other installed mods, or providing the user with options on what to install (or not install), all while being in a supported configuration by the developer.
+Alternates are a feature of M3 that allow developers to provide alternative installation options for a mod. Examples of this would be to reconfigure what files are installed based on other installed mods, or providing the user with options on what to install (or not install), all while being in a supported configuration by the developer. This is also known as the `autos` system, as it can automatically configure the mod for the user.
 
-![Autoconfig Dialog](https://i.imgur.com/yGEOgaj.png)
+![Autoconfig Dialog](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/ad2b9653-1419-4cd7-ad0b-b73788a2aed7)
 
 **Note that these only take place at install time. So installation order for automatic configuration can matter! If a conditional DLC is installed after your mod, it may make the mod install differently than if it was installed before.**
 
-Note that there are two alternate systems: Alternate Files (altfile), and AlternateDLC (altdlc). Alternate Files were developed first, which were expanded on for the CUSTOMDLC job.
+Note that there are two alternate systems: Alternate Files (`altfile`), and AlternateDLC (`altdlc`). Alternate Files were developed first, which were expanded on for the CUSTOMDLC job with Alternate DLC.
 
 When to use altfiles:
   - When you're creating alternates for any header but CUSTOMDLC (it works on all directory headers - BASEGAME, Official DLC, CUSTOMDLC)
 
 When to use altdlc:
- - When you are creating alternates for the CUSTOMDLC header (this descriptor only works on CUSTOMDLC)
+ - When you are creating alternates for the CUSTOMDLC header (this descriptor only works on CUSTOMDLC). It has far more features than altfiles
 
 
 ## Variables common to both altfiles and altdlc
