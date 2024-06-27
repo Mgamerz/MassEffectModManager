@@ -88,6 +88,32 @@ The altdlc descriptor only works on the CUSTOMDLC job.
 | Hidden | Boolean | Hides an option in the options selector. This is used in conjunction with the DependsOn system to allow you to depend on DLC being present or not present, by using the autos system that uses `ConditionalDLC` attributes. On options set to hidden, you typically use `OP_NOTHING` as it is only used to pivot. | No |  8.0+ |
 
 ### DLCRequirement structs
+Starting with cmmver 9, you can now use `DLCRequirement` structs to define DLC requirements. This is used on `ConditionalDLC`, `DLCRequirements`, and `requireddlc (ModInfo)`. This does not work if your cmmver is less than 9.
+
+DLCRequirement structs follow this format:
+`<blank>/+/-``DLC_Folder_Name``[Parameter1=Value1, Parameter2=Value2,...]`
+
+The list of available parameters are:
+| Descriptor | Value type              | Purpose                                                                                                                                                                                           | Min supported cmmver |
+|------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------|
+| minversion | Semantic version number | Specifies the minimum version of the mod that will validate this requirement                                                                                                                      | 9                    |
+| maxversion | Semantic version number | Specifies the maximum version of the mod that will validate this requirement. It is not recommended to use this unless there is a very specific reason a user would use an older version of a mod | 9                    |
+| optionkey  | DLCOptionKey struct     | List of option keys to validate. See the (#DLCOptionKey-structs)[DLCOptionKey struct documentation] for how to format these                                                                                                | 9                    |
+
+### DLCOptionKey structs
+DLC option keys for DLCRequirements are specified as follows. You can have multiple `optionkey` values in a `DLCRequirement`, they all must meet their requirement in order for the condition to evaluate to true.
+
+`DLCOptionKey [option=<PlusMinusKey>, uistring=what to show the user]`
+
+A `PlusMinusKey` is defined as:
+`<+/-/(blank)>OptionKeyValue`
+
+For DLCOptionKey structs, the PlusMinus values mean different things:
+`-` means the option was NOT chosen
+`+` means the option WAS chosen
+`<blank>` means 'any installed'. If you provide 4 options with blank values, any one of them being chosen will cause the condition to match. There is no opposite version of this, e.g. any option not chosen
+
+Examples FORTHCOMING
 
 ### altdlc DependsOn system
 In ModDesc 8.0, the `DependsOn` system was added. This allows options to depend on one or more other options, either checked or unchecked (or a mix). When the conditons are _all_ met, the met action is performed; when not all dependent options are not in a matching state, the not met action is run. 
