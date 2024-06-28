@@ -7,9 +7,10 @@ The following actions are modified when holding the shift key and performing the
 
 ### Main Interface
  - Clicking on a game filter above the mod library list: Turns off all other games, activates the clicked game filter
+ - Clicking on the X button will immediately close the window without waiting for any tasks to complete
 
 ### Installation Information Panel (Manage Target)
-The follow behavior changes in each of the specified tabs.
+The following behavior changes in each of the specified tabs.
 
 #### Installed DLC mods
  - Clicking 'Delete': Skips the prompt and immediately deletes the DLC folder
@@ -32,26 +33,28 @@ Only .7z files are fully supported. Older original trilogy mods that were shippe
 - .7z
 - .rar
 - .zip
-- .exe (only specific ones)
+- .exe (only specific ones[)
 - .me2mod
 
 ### Texture mod files
-Dropping the following file formats onto the interface will redirect you to install the files with ALOT Installer, as ME3Tweaks Mod Manager does not install textures. At the time of writing this documentation (December 2021), ALOT Installer does not support Legendary Edition.
+Dropping the following file formats onto the interface will redirect you to install the files with ALOT Installer (if for ME1/ME2/ME3)
  - .tpf
  - .mod
  - .mem
+If dropping a .mem, and Mod Manager detects it is for an LE game, it will offer to import it into the texture library or directly install them.
 
 ### Compiling and decompiling features for developers
-Mod Manager for nearly a decade has supported drag and drop for Coalesced and TLK formats to make it easy to generate these files.
+Mod Manager supports compiling and decompiling files via drag/drop.
  - .bin (ME3, LE Coalesced files) -> Decompiled to their formats
  - .tlk (ME2, ME3, LE) -> Decompiled to XML files
  - .extractedbin (LE) -> Recompiled to Coalesced of the same name
- - ME3 XML Coalesced manifest -> Recompiled to Coalesced of the same name
+ - .m3za -> Decompiled to the source files of the TLK merge data
+ - Game3 XML Coalesced manifest -> Recompiled to Coalesced of the same name
  - Sideload ModMaker XML mod definition files
  - DEBUG BUILDS ONLY: .bin (TOC file): Dumps TOC information to the debug console
 
 ### MergeMod Files
 Compilation and decompilation of merge mods is done via drag and drop onto the interface.
  - .json -> Compiles mergemod to .m3m file
- - .m3m -> Decompiles the file to its .json and support asset files (if any)
+ - .m3m -> Decompiles the file to its .json and asset files (if any)
 
