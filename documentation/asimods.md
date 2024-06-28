@@ -21,7 +21,7 @@ asimodstoinstall = ((GroupID=33))
 The `M3ASIVersion` struct is uses the following parameters:
 | Descriptor | Value type | Purpose                                                                                                                                   | Required | Min supported cmmver |
 |------------|------------|-------------------------------------------------------------------------------------------------------------------------------------------|----------|----------------------|
-| GroupID    | integer    | Specifies the ASI group to install. ASIs are grouped so that old versions can be tracked.                                                 | Yes      | 9                    |
+| GroupID    | integer    | Specifies the ASI group to install. ASIs are grouped so that old versions can be tracked. Ensure your GroupID is for your game.           | Yes      | 9                    |
 | Version    | integer    | Specifies a specific version to install. If not defined, the latest one at time of install is used instead. Versions are always integers. | No       | 9                    |
 
 GroupIDs can be found in the [ASI manifest file](https://me3tweaks.com/mods/asi/getmanifest?AllGames=1) that Mod Manager automatically downloads as part of the combined services fetch every few hours.
