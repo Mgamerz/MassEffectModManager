@@ -1,6 +1,6 @@
 ![Documentation Image](images/documentation_header.png)
 
-Mod Manager includes several power user features that are not documented in the interface due to their ability to mess up your game without warning. These features should _only_ be used by users who know what they are doing.
+Mod Manager includes several power user features that are not documented in the interface due to their ability to mess up your game without warning. These features should _only_ be used by users who know what they are doing. Being in Beta and Developer modes at the same time will enable the most power-user features.
 
 ## Shift Key
 The following actions are modified when holding the shift key and performing the action:
