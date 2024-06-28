@@ -41,6 +41,8 @@ ME3Tweaks Mod Manager (which will be written as M3 from now on in this document)
    - Contains information on using the M3CD feature, which allows LE1 basegame Coalesced changes, and delta changes to LE2/LE3 DLC configuration files upon installation
 - [M3 2DA Merge (M3DA) - Merging LE1 2DA tables](2damerge.md)
    - Contains information on using the M3DA feature, which allows LE1 mods to combine their 2DA tables into the basegame, allowing them to override. This allows working around issues with how LE1 accesses 2DAs in ways that can cause buggy game behavior. It also lets other mod developers target your changes
+- [ASI Mods - Native code mods](asimods.md)
+   - Contains information about ASI mods
 
   
 Mod Manager includes a built-in moddesc editor that can be used on existing mods. Right click your mod while in developer mode and select `moddesc.ini editor`. Currently this only works on mods that are loaded, and cannot be used for creating the initial mod.
