@@ -1,6 +1,6 @@
 ![Documentation Image](images/documentation_header.png)
 
-# ASI Mods - Native Code mods
+# ASI Mods - Native code mods
 ASI mods are highly technical, very advanced features that are effectively dlls that are injected into the game at runtime. These enable advanced features, such as enabling the autoload system for LE1, making screenshots in PNG format, and enabling various developer debugging tools.
 ![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/db5ae3b7-843f-41f7-8b0f-2fcc0a257478)
 
