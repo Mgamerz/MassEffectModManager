@@ -91,7 +91,7 @@ The altdlc descriptor only works on the CUSTOMDLC job.
 Starting with cmmver 9, you can now use `DLCRequirement` structs to define DLC requirements. This is used on `ConditionalDLC`, `DLCRequirements`, and `requireddlc (ModInfo)`. This does not work if your cmmver is less than 9.
 
 DLCRequirement structs follow this format:
-`<blank>/+/-``DLC_Folder_Name``[Parameter1=Value1, Parameter2=Value2,...]`
+`<blank>/+/-` `DLC_Folder_Name` `[Parameter1=Value1, Parameter2=Value2,...]`
 
 The list of available parameters are:
 | Descriptor | Value type              | Purpose                                                                                                                                                                                           | Min supported cmmver |
