@@ -93,6 +93,8 @@ Starting with cmmver 9, you can now use `DLCRequirement` structs to define DLC r
 DLCRequirement structs follow this format:
 `<blank>/+/-` `DLC_Folder_Name` `[Parameter1=Value1, Parameter2=Value2,...]`
 
+The prefix to the DLC foldername indicates if the DLC is installed or not. Blank and + mean it requires it to be installed. Minus means it must not be installed. In the event of -, none of the parameters will be evaluated.
+
 The list of available parameters are:
 | Descriptor | Value type              | Purpose                                                                                                                                                                                           | Min supported cmmver |
 |------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------|
@@ -103,7 +105,7 @@ The list of available parameters are:
 ### DLCOptionKey structs
 DLC option keys for DLCRequirements are specified as follows. You can have multiple `optionkey` values in a `DLCRequirement`, they all must meet their requirement in order for the condition to evaluate to true.
 
-`DLCOptionKey [option=<PlusMinusKey>, uistring=what to show the user]`
+`optionkey=[option=<PlusMinusKey>, uistring=what to show the user]`
 
 A `PlusMinusKey` is defined as:
 `<+/-/(blank)>OptionKeyValue`
@@ -112,6 +114,13 @@ For DLCOptionKey structs, the PlusMinus values mean different things:
 `-` means the option was NOT chosen
 `+` means the option WAS chosen
 `<blank>` means 'any installed'. If you provide 4 options with blank values, any one of them being chosen will cause the condition to match. There is no opposite version of this, e.g. any option not chosen
+
+Paramters for DLCOptionKey are defined below.
+
+| Descriptor | Value type              | Purpose                                                                                                                                                                                           | Min supported cmmver |
+|------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------|
+| option | string | Specifies the option key that is defined by a mod                                                                                                               | 9                    |
+| uistring | string | The UI string to display that describes this option. It is wise to make this as close to the original mods' option name as possible. | 9                    |
 
 #### Examples
 Miranda Mod (LE3) depending on Normandy Module from EGM with a minimum version of 0.99:
