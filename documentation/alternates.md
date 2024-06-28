@@ -1,3 +1,5 @@
+![Documentation Image](images/documentation_header.png)
+
 # Alternates - conditional file installation both manual and automatic
 Alternates are a feature of M3 that allow developers to provide alternative installation options for a mod. Examples of this would be to reconfigure what files are installed based on other installed mods, or providing the user with options on what to install (or not install), all while being in a supported configuration by the developer. This is also known as the `autos` system, as it can automatically configure the mod for the user.
 
