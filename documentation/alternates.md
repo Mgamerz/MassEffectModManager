@@ -113,7 +113,23 @@ For DLCOptionKey structs, the PlusMinus values mean different things:
 `+` means the option WAS chosen
 `<blank>` means 'any installed'. If you provide 4 options with blank values, any one of them being chosen will cause the condition to match. There is no opposite version of this, e.g. any option not chosen
 
-Examples FORTHCOMING
+#### Examples
+Miranda Mod (LE3) depending on Normandy Module from EGM with a minimum version of 0.99:
+`DLC_MOD_EGM[minversion=0.99,optionkey=[option=EGMEverything,uistring='Everything'],optionkey=[option=EGM_NOR_VIS,uistring='Normandy Overhaul + Visitors Core'],optionkey=[option=EGM_NOR,uistring='Normandy Overhaul Core']]`
+
+Split into linebreaks for readability:
+```
+DLC_MOD_EGM[
+minversion=0.99
+optionkey=[option=EGMEverything,uistring='Everything'],
+optionkey=[option=EGM_NOR_VIS,uistring='Normandy Overhaul + Visitors Core'],
+optionkey=[option=EGM_NOR,uistring='Normandy Overhaul Core']]
+```
+
+You can get option keys a mod uses by right clicking the mod and selecting List DLC Alternate OptionKeys.
+![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/e51bd78b-15c3-44a6-8a68-3fc67f66a871)
+
+It is important you do NOT change optionkeys once you release your mod, or you will break other mods that reference them!
 
 ### altdlc DependsOn system
 In ModDesc 8.0, the `DependsOn` system was added. This allows options to depend on one or more other options, either checked or unchecked (or a mix). When the conditons are _all_ met, the met action is performed; when not all dependent options are not in a matching state, the not met action is run. 
