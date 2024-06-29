@@ -68,7 +68,7 @@ For example, this is Pinnacle Station DLC's 1.0.5 2DA merge file. In this mod, I
 ![2024-06-28_19h45_06](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/f4fa45c9-5274-4841-ba92-b85a0b0ac0fa)
 
 >[!CAUTION]
->These tables should ONLY contain modified rows. If you ship an entire table, you will completely override mods that mount below yours. DO NOT DO THIS or your mod may be blacklisted. Take the time, do it right!
+>These tables should __ONLY__ contain modified rows. If you ship an entire table with just a few row changes and the rest are vanilla, you will completely override mods that mount below yours. DO NOT DO THIS: Your mod may end up being blacklisted. Take the time, do it right!
 
 ## M3DA json format
 The json format for `.m3da` files is as follows:
