@@ -72,7 +72,13 @@ The json format for `.m3da` files is as follows:
 | mergepackagefile | String(Filename)                               | The name of the package file in your DLC folder that contains the 2DA tables to merge                                                                                                                                | Yes      |
 | mergetables      | List&lt;string&gt;(Export instanced full paths) | List of tables to merge in mergepackagefile. They must all have their object name end in `_part` and have the same basename as the target table, just like normal autoload 2DAs did. Your 2DA packages should not be referenced by autoload when using this feature. | Yes      |
 
-The values of `mergetables` is the instanced  object name - NOT InstancedFullPath or MemoryPath. This means that each package file you are merging can have, at most, one export that updates the target 2DA. If you need more, you will need to create additional files.
+The values of `mergetables` are the Instanced Full Path of your source table in your package file. This means you can have duplicates of tables that can be referenced by different m3da files - for example, putting different alternate tables for merging under different package exports with a clear package name of what that table contains. For example:
+
+```
+HardMode.LevelUp_Experience_part_0
+LudicrousMode.LevelUp_Experience_part_0
+EasyMode.LevelUp_Experience_part_0
+```
 
 The following files are allowed to be merged into:
  - Engine.pcc
