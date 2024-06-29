@@ -12,7 +12,7 @@ The LE1 2DA Merge feature is on by default, so that mods that use it will work. 
 ME3Tweaks Mod Manager will automatically scan DLC mods for `.m3da` files, and merge them in mount-order, then alphabetically per DLC. `.m3da` files are `.json` files that describe changes to make; you can ship multiple `.m3da` files in your DLC folder using the alternates system to provide customizable 2DA overrides, similar to LE1 Config Merge.
 
 In the below picture, it outlines the two files needed for at least one 2DA merge.
-![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/a5111211-f029-46b4-910d-b8b4b178dd44)
+![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/68a9e7df-a3cb-496d-9483-2308ad2c4a19)
 
 The only restriction on the `.m3da` filename(s) are that they must start with your DLC foldername, followed by a dash, and at least one more character.
 Some examples with the mod folder name of `DLC_MOD_2DAMERGE`:
@@ -25,7 +25,8 @@ Some examples with the mod folder name of `DLC_MOD_2DAMERGE`:
 
 Your 2DA package files are referenced by these `.m3da` files and can have any name. They are not actually used by the game.
 
-For example, this is Pinnacle Station DLC's 1.0.5 2DA merge file:
+For example, this is Pinnacle Station DLC's 1.0.5 2DA merge file. In this mod, I keep the base filenames the same, so they appear next to each other in the folder.
+
 `DLC_MOD_Vegas-2DAs.m3da`:
 ```json
 [
@@ -61,9 +62,7 @@ For example, this is Pinnacle Station DLC's 1.0.5 2DA merge file:
 ```
 
 `DLC_MOD_Vegas-Pinnacle2DAs.pcc`:
-![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/68a9e7df-a3cb-496d-9483-2308ad2c4a19)
-
-
+![2024-06-28_19h45_06](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/f4fa45c9-5274-4841-ba92-b85a0b0ac0fa)
 
 ## M3DA json format
 The json format for `.m3da` files is as follows:
@@ -75,13 +74,9 @@ The json format for `.m3da` files is as follows:
 | mergepackagefile | String(Filename)                               | The name of the package file in your DLC folder that contains the 2DA tables to merge                                                                                                                                | Yes      |
 | mergetables      | List&lt;string&gt;(Export instanced full paths) | List of tables to merge in mergepackagefile. They must all have their object name end in `_part` and have the same basename as the target table, just like normal autoload 2DAs did. Your 2DA packages should not be referenced by autoload when using this feature. | Yes      |
 
-The values of `mergetables` are the Instanced Full Path of your source table in your package file. This means you can have duplicates of tables that can be referenced by different m3da files - for example, putting different alternate tables for merging under different package exports with a clear package name of what that table contains. For example:
+The values of `mergetables` are the Instanced Full Path of your source table in your package file. This means you can have duplicates of tables that can be referenced by different m3da files - for example, putting different alternate tables for merging under different package exports with a clear package name of what that table contains. For example, the HardMode option below could be referenced in a separate m3da that is only added by an alternate option the user picks:
 
-```
-HardMode.LevelUp_Experience_part_0
-LudicrousMode.LevelUp_Experience_part_0
-EasyMode.LevelUp_Experience_part_0
-```
+![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/45e39199-e2d4-4719-84eb-355954f3c403)
 
 The following files are allowed to be merged into:
  - Engine.pcc
