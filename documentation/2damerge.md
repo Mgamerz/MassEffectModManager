@@ -32,7 +32,7 @@ For example, this is Pinnacle Station DLC's 1.0.5 2DA merge file:
     {
         "comment": "Merges Pinnacle Station's 2DA tables - Engine",
         "packagefile": "Engine.pcc",
-        "mergepackagefile": "Pinnacle2DAs.pcc",
+        "mergepackagefile": "DLC_MOD_Vegas-Pinnacle2DAs.pcc",
         "mergetables": [
             "BIOG_2DA_Vegas_AreaMap_X.Areamap_AreaMap_part_5",
             "BIOG_2DA_Vegas_Equipment_X.Items_Items_part_10",
@@ -60,8 +60,9 @@ For example, this is Pinnacle Station DLC's 1.0.5 2DA merge file:
 
 ```
 
-`Pinnacle2DAs.pcc`:
-![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/fb9f1910-14cd-44bb-9dc4-70f54412ca5b)
+`DLC_MOD_Vegas-Pinnacle2DAs.pcc`:
+![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/68a9e7df-a3cb-496d-9483-2308ad2c4a19)
+
 
 
 ## M3DA json format
