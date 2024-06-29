@@ -9,9 +9,12 @@ The LE1 2DA Merge feature is on by default, so that mods that use it will work. 
 
 
 ## How to use 2DA merge
-ME3Tweaks Mod Manager will automatically scan DLC mods for `.m3da` files, and merge them in mount-order, then alphabetically per DLC. `.m3da` files are `.json` files that describe changes to make; you can ship multiple `.m3da` files in your DLC folder using the alternates system to provide customizable 2DA overrides, similar to LE1 Config Merge.
+ME3Tweaks Mod Manager will automatically scan DLC mods for `.m3da` files, and merge them in mount-order, then alphabetically per DLC. `.m3da` files are just renamed `.json` files that describe changes to make; you can ship multiple `.m3da` files in your DLC folder using the alternates system to provide customizable 2DA overrides, similar to LE1 Config Merge. This merge takes place within the `Target Merge` feature of Mod Manager, which occurs as necessary, such as after a mod install, after enabling/disabling/removing DLC mods, etc. You can manually trigger it in the Tools menu during development.
 
-In the below picture, it outlines the two files needed for at least one 2DA merge.
+![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/097bf9c9-181f-4a1d-9706-4aa611703b3c)
+
+
+There are at minimum two files required for the LE1 2DA Merge feature to work; a `package file` containing tables with your customized rows, and a `m3da` file that descibes what to install.
 ![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/68a9e7df-a3cb-496d-9483-2308ad2c4a19)
 
 The only restriction on the `.m3da` filename(s) are that they must start with your DLC foldername, followed by a dash, and at least one more character.
@@ -63,6 +66,9 @@ For example, this is Pinnacle Station DLC's 1.0.5 2DA merge file. In this mod, I
 
 `DLC_MOD_Vegas-Pinnacle2DAs.pcc`:
 ![2024-06-28_19h45_06](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/f4fa45c9-5274-4841-ba92-b85a0b0ac0fa)
+
+>[!CAUTION]
+>These tables should ONLY contain modified rows. If you ship an entire table, you will completely override mods that mount below yours. DO NOT DO THIS or your mod may be blacklisted. Take the time, do it right!
 
 ## M3DA json format
 The json format for `.m3da` files is as follows:
