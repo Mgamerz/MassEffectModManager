@@ -17,14 +17,16 @@ In the below picture, it outlines the two files needed for at least one 2DA merg
 The only restriction on the `.m3da` filename(s) are that they must start with your DLC foldername, followed by a dash, and at least one more character.
 Some examples with the mod folder name of `DLC_MOD_2DAMERGE`:
  - `DLC_MOD_2DAMERGE-My2DAs.m3da` - OK
+ - `DLC_MOD_2DAMERGE-HardModeTables.m3da` - OK
  - `DLC_MOD_2DAMERGE-.m3da` - BAD
+ - `DLC_MOD_2DAMERGE.m3da` - BAD
  - `My2DAs.m3da` - BAD
 
 
 Your 2DA package files are referenced by these `.m3da` files and can have any name. They are not actually used by the game.
 
 For example, this is Pinnacle Station DLC's 1.0.5 2DA merge file:
-`Pinnacle2DAs.m3da`:
+`DLC_MOD_Vegas-2DAs.m3da`:
 ```json
 [
     {
