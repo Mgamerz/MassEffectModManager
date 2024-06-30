@@ -13,7 +13,15 @@ The 'Game 1 TLK Merge' feature that is part of ME3Tweaks Mod Manager 7.0 can wor
 
 ### Setting up TLK merge
 
-Your mod must target `cmmver 7.0` or higher for this feature to work. In your moddesc.ini file, you must add the following section:
+Your mod must target `cmmver 7.0` or higher for this feature to work. The feature level for different cmmver values are described below.
+
+| cmmver | Features                                                                                                             |
+|--------|----------------------------------------------------------------------------------------------------------------------|
+| 7      | Initial feature release                                                                                              |
+| 8      | Supports merging all .xml files into a single .m3za file on deployment, which is much faster to decompress for users |
+| 9      | Supports optionkey folders that can be enabled through the alternate DLC system of moddesc                           |
+
+In your moddesc.ini file, you must add the following section:
 
 ```
 [GAME1_EMBEDDED_TLK]
@@ -53,3 +61,8 @@ Files must have the following naming system or it will not work:
 To get a dump of files that are already in the correct naming format, you can use my TLK dump experiment in Legendary Explorer. Go to Package Editor and make sure experiments are on in the `Debugging` menu. A new menu named `Experiments` will show up, and you can go to `Mgamerz's Programming Circus > Dump LE1 TLK to XML` to dump the entire game's TLK to properly named files. You can also filter it by localization, such as INT, DE, etc, the same ones that appear as suffixes to game files.
 
 The xml files can contain just a few strings to update, all of the strings to update, or even add more strings.
+
+### Using option keys
+Option keys, in the context of `GAME1_EMBEDDED_TLK`, are not the same as DLCOptionKeys from `DLCRequirement`. An option key is something that can be switched on via an operating in an `alternatedlc` object. TLK xmls that are under a folder will be considered gated behind an `optionkey` of the folders name. Unless the key is switched on via alternates, it will not install.
+
+TODO: Example.
