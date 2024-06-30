@@ -301,7 +301,7 @@ You can also compile a mergemod on the command line:
 
 ## Deploying a mergemod with moddesc.ini
 
-All .m3m files will reside in the MergeMods folder of your mod. Mod Manager 7.0 adds the `mergemods` descriptor under the `BASEGAME`header. It accepts an unquoted semicolon separated list of .m3m files. You must also specify a moddir, though you may not have one if you are only installing an .m3m mergemod. In this case, you can set your moddir to '.'.
+All .m3m files will reside in the MergeMods folder of your mod. Mod Manager 7.0 adds the `mergemods` descriptor under the `BASEGAME`header. It accepts an unquoted semicolon separated list of .m3m files. You must also specify a moddir, though you may not have one if you are only installing an .m3m mergemod. In this case, you can set your moddir to simply `.`.
 
 ##### **Example moddesc.ini section with mergemods:**
 
