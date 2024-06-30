@@ -2,11 +2,11 @@
 
 
 
-# Merge mods - Creating an .m3m file
+# Mergemods - Creating an .m3m file
 
-Merge mods, or .m3m mods, are a modding format unique to M3 that allow direct property updates to basegame package files. Rather than shipping, for example, an entire SFXGame.pcc file with your edits, with merge mods you can ship a small .m3m file that contain only the values you want to change. This way, a user can install several different mods that target different parts of SFXGame.pcc and other basegame files without the need for patches or other compatibility problems.
+Mergemods, or .m3m mods, are a modding format unique to M3 that allow direct property updates to basegame package files. Rather than shipping, for example, an entire SFXGame.pcc file with your edits, with mergemods you can ship a small .m3m file that contain only the values you want to change. This way, a user can install several different mods that target different parts of SFXGame.pcc and other basegame files without the need for patches or other compatibility problems. Merge
 
-The merge mod system is interwoven into the moddesc.ini system, and can take full advantage of the alternates system.
+The mergemod system is interwoven into the moddesc.ini system, and can take full advantage of the alternates system.
 
 An .m3m mod is created by M3 from a user-created .JSON file. This .JSON file, hereafter referred to as the manifest file, contains information on which game, which file, and which properties will be updated. The manifest file may also contain references to other assets or scripts you would like to have included in your mod. Your manifest file is compiled with all referenced assets to create a binary .m3m file, which is what you distribute to users in your mod. This page outlines the .JSON file format to create an .m3m mod.
 
@@ -28,6 +28,7 @@ An .m3m mod is created by M3 from a user-created .JSON file. This .JSON file, he
           ]
         },
         {
+          "comment": "Turns off screenshake during running", ; This only works on feature level 2 or higher! See below
           "entryname": "Default__SFXCameraMode_CombatStorm",
           "propertyupdates": [
             {
@@ -43,9 +44,14 @@ An .m3m mod is created by M3 from a user-created .JSON file. This .JSON file, he
 }
 ```
 
-*An example merge mod .JSON manifest file*
+*An example mergemod .JSON manifest file*
 
+Mergemods have different feature levels that are used when compiled. A feature level is chosen when compiling the merge mod; if compiled in the MergeMods folder, it will look for the mod's moddesc.ini file and read its `cmmver` value. The highest supported feature level for that  value will be used. If not found, Mod Manager will ask you what `cmmver` your mod is targeting, and base the feature level off that. The following table describes the different feature levels.
 
+| Feature level | Minimum cmmver | Features                                                                                                                                                                                                      |
+|---------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1             | 7              | All standard features up through Mod Manager 8.2. Assets are not compressed.                                                                                                                                  |
+| 2             | 9              | Assets now support being compressed internally, which significantly reduces m3m size. Features from Mod Manager 9.0 and forward are supported. Comments are now supported on every level of the m3m manifest. |
 
 ## .JSON File Format
 
@@ -62,7 +68,7 @@ These properties should exist within the outermost set of curly braces in your m
 | Property Name | Type         | Information                                                  |
 | ------------- | ------------ | ------------------------------------------------------------ |
 | game          | string       | The game you are targeting. Options: ME1, ME2, ME3, LE1, LE2, LE3 |
-| files         | array[files] | A list of files your merge mod targets. See the file JSON format below |
+| files         | array[files] | A list of files your mergemod targets. See the file JSON format below |
 
 **Example:**
 
@@ -79,12 +85,12 @@ These properties should exist within the outermost set of curly braces in your m
 
 ### `files` JSON format
 
-The JSON format for a file update in a merge mod. The files property is an array of file update objects. You may update more than one file in a single manifest.
+The JSON format for a file update in a mergemod. The files property is an array of file update objects. You may update more than one file in a single manifest.
 
 | Property Name           | Type          | Information                                                  |
 | ----------------------- | ------------- | ------------------------------------------------------------ |
 | filename                | string        | The full name of the file you are targeting.                 |
-| applytoalllocalizations | boolean       | Optional. Whether your merge mod should apply to all localized versions. For example, if you are updating Startup_INT, this would apply the merge to all other Startup localizations. The target file can have a localization on it (Such as Startup_INT.pcc), or just be the basename, such as Startup.pcc |
+| applytoalllocalizations | boolean       | Optional. Whether your mergemod should apply to all localized versions. For example, if you are updating Startup_INT, this would apply the merge to all other Startup localizations. The target file can have a localization on it (Such as Startup_INT.pcc), or just be the basename, such as Startup.pcc |
 | changes                 | array[change] | An array of desired export changes. See the change JSON format below. |
 
 **Example:**
@@ -289,13 +295,15 @@ Once you have your manifest file and all of your assets created, it is time to c
 
 To compile, drag your manifest JSON file onto the M3 interface. M3 will first validate your manifest, and then create your .m3m file. It will output the .m3m file to the same folder as the manifest, with the same filename.
 
+You can also compile a mergemod on the command line:
 
+`ME3TweaksModManager.exe --compilemergemod <path to json> --featurelevel <cmmver>`
 
-## Deploying a merge mod with moddesc.ini
+## Deploying a mergemod with moddesc.ini
 
-All .m3m files will reside in the MergeMods folder of your mod. Mod Manager 7.0 adds the `mergemods` descriptor under the `BASEGAME`header. It accepts an unquoted semicolon separated list of .m3m files. You must also specify a moddir, though you may not have one if you are only installing an .m3m merge mod. In this case, you can set your moddir to '.'.
+All .m3m files will reside in the MergeMods folder of your mod. Mod Manager 7.0 adds the `mergemods` descriptor under the `BASEGAME`header. It accepts an unquoted semicolon separated list of .m3m files. You must also specify a moddir, though you may not have one if you are only installing an .m3m mergemod. In this case, you can set your moddir to '.'.
 
-##### **Example moddesc.ini section with merge mods:**
+##### **Example moddesc.ini section with mergemods:**
 
 ```ini
 [BASEGAME]
@@ -303,9 +311,9 @@ moddir = .
 mergemods = NoScreenShake.m3m;NoMinigames.m3m
 ```
 
-##### **Using merge mods with alternates:**
+##### **Using mergemods with alternates:**
 
-You can use the alternates system to install merge mods. Merge mods use the altfiles system, which can be [read about here](alternates.md). To apply a merge mod from an alternate, you need to use the `OP_APPLY_MERGEMODS` operation, and then specify the filenames of the merge mods you would like to apply with the MergeFiles variable. The MergeFiles variable accepts a semicolon separated list of .m3m files that can be installed for that alternate. 
+You can use the alternates system to install mergemods. Mergemods use the altfiles system, which can be [read about here](alternates.md). To apply a mergemod from an alternate, you need to use the `OP_APPLY_MERGEMODS` operation, and then specify the filenames of the mergemods you would like to apply with the MergeFiles variable. The MergeFiles variable accepts a semicolon separated list of .m3m files that can be installed for that alternate. 
 
 All .m3m files still need to be in the MergeMods folder of your mod. If you are applying an .m3m file via alternates, you should not list it under the `mergemods` descriptor under the [BASEGAME] header.
 
