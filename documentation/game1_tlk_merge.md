@@ -66,10 +66,8 @@ The xml files can contain just a few strings to update, all of the strings to up
 Option keys, in the context of `GAME1_EMBEDDED_TLK`, are not the same as DLCOptionKeys from `DLCRequirement`. An option key is something that can be switched on via an operating in an `alternatedlc` object. TLK xmls that are under a folder will be considered gated behind an `optionkey` of the folders name. Unless the key is switched on via alternates, it will not install. Option keys only can be used if your mod targets moddesc 9.0 or higher.
 
 To set them up, move your .xml files you want conditionally installed into a subfolder.
-
-![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/745c02cc-5330-4c9f-80aa-ddddccd188a3)
-
-And then in your moddesc, set up an alternate DLC object with ModOperation `OP_ENABLE_TLKMERGE_OPTIONKEY` that has the foldername for the `LE1TLKOptionKey` value.
 ![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/a877fb98-9da3-41c2-8628-1fdd5ea78874)
 
+And then in your moddesc, set up an alternate DLC object with ModOperation `OP_ENABLE_TLKMERGE_OPTIONKEY` that has the foldername for the `LE1TLKOptionKey` value.
+![image](https://github.com/ME3Tweaks/ME3TweaksModManager/assets/2738836/745c02cc-5330-4c9f-80aa-ddddccd188a3)
 When the option is selected, the xml files in that folder will install. In the event of multiple same-named xmls, they go in order of always installed -> order of alternates.
