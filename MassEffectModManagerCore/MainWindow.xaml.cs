@@ -36,6 +36,7 @@ using ME3TweaksCore.Localization;
 using ME3TweaksCore.ME3Tweaks.M3Merge;
 using ME3TweaksCore.ME3Tweaks.M3Merge.Bio2DATable;
 using ME3TweaksCore.ME3Tweaks.M3Merge.Game2Email;
+using ME3TweaksCore.ME3Tweaks.M3Merge.GlobalShader;
 using ME3TweaksCore.NativeMods;
 using ME3TweaksCore.Services;
 using ME3TweaksCore.Services.ThirdPartyModIdentification;
@@ -2133,6 +2134,11 @@ namespace ME3TweaksModManager
                     MergeLE1CoalescedForTarget(v);
                     MergeLE12DAsForTarget(v);
                 }
+
+                foreach (var v in result.TargetsToGlobalShaderMerge)
+                {
+                    RunShaderMergeForTarget(v);
+                }
             }
 
             // MERGE DLC
@@ -3886,20 +3892,9 @@ namespace ME3TweaksModManager
                     {
                         // Need standard entry to merge DLC
                         // Todo: This might need to be put into a run and done to ensure it executes in-order
-                        var result = new PanelResult()
-                        {
-                            TargetsToEmailMergeSync = { t },
-                            TargetsToLE1Merge = { t },
-                            TargetsToSquadmateMergeSync = { t },
-                            TargetsToPlotManagerSync = { t },
-                            TargetsToAutoTOC = { t },
-                        };
-
-                        if (t.Game != MEGame.LE1)
-                        {
-                            result.TargetsToLE1Merge.Clear(); // Don't do it on non-LE1 games
-                        }
-
+                        var result = new PanelResult();
+                        result.AddTargetMerges(t);
+                        
                         // Handle the panel result
                         HandlePanelResult(result);
                         CommandLinePending.PendingMergeDLCCreation = false;
@@ -4842,6 +4837,19 @@ namespace ME3TweaksModManager
                 {
                     if (x != null)
                         M3L.ShowDialog(this, M3L.GetString(M3L.string_interp_errorMerging2DAX, x.Message), M3L.GetString(M3L.string_error), MessageBoxButton.OK, MessageBoxImage.Error);
+                });
+        }
+
+        private void RunShaderMergeForTarget(GameTarget target)
+        {
+            ShowRunAndDone((updateUIString) => GlobalShaderMerge.RunShaderMerge(target, true),
+                "Merging global shaders",
+                "Merged global shaders",
+                null,
+                x =>
+                {
+                    if (x != null)
+                        M3L.ShowDialog(this, $"Error merging global shaders: {x.Message}", M3L.GetString(M3L.string_error), MessageBoxButton.OK, MessageBoxImage.Error);
                 });
         }
 

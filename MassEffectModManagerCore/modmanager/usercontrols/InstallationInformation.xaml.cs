@@ -5,6 +5,7 @@ using LegendaryExplorerCore.Gammtek.Extensions;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
 using ME3TweaksCore.Helpers;
+using ME3TweaksCore.ME3Tweaks.M3Merge.Game2Email;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksCoreWPF.UI;
 using ME3TweaksModManager.modmanager.localizations;
@@ -343,6 +344,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     {
                         Result.TargetsToSquadmateMergeSync.Add(selectedTarget);
                     }
+
+                    if (selectedTarget.Game.IsLEGame())
+                    {
+                        Result.TargetsToGlobalShaderMerge.Add(selectedTarget);
+                    }
                     selectedTarget.PopulateDLCMods(true, deleteConfirmationCallback, notifyDLCModDeleted, notifyToggled);
                 }
 
@@ -366,6 +372,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     if (selectedTarget.Game.IsGame3() || selectedTarget.Game == MEGame.LE2) // ME2 is not supported for merge due to having to edit the SWF
                     {
                         Result.TargetsToSquadmateMergeSync.Add(selectedTarget);
+                    }
+
+                    if (selectedTarget.Game.IsLEGame())
+                    {
+                        Result.TargetsToGlobalShaderMerge.Add(selectedTarget);
                     }
                 }
 

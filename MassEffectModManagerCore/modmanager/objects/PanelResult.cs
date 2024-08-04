@@ -54,6 +54,11 @@ namespace ME3TweaksModManager.modmanager.objects
         public ConcurrentHashSet<GameTarget> TargetsToAutoTOC { get; } = new();
 
         /// <summary>
+        /// Targets to run GlobalShaderMerge on after this panel has closed
+        /// </summary>
+        public ConcurrentHashSet<GameTarget> TargetsToGlobalShaderMerge { get; } = new();
+
+        /// <summary>
         /// Mods that should have updates checked for when the panel result is handled
         /// </summary>
         public ConcurrentHashSet<Mod> ModsToCheckForUpdates { get; } = new();
@@ -103,6 +108,7 @@ namespace ME3TweaksModManager.modmanager.objects
             batchPanelResult.TargetsToPlotManagerSync.AddRange(TargetsToPlotManagerSync);
             batchPanelResult.TargetsToLE1Merge.AddRange(TargetsToLE1Merge);
             batchPanelResult.TargetsToAutoTOC.AddRange(TargetsToAutoTOC);
+            batchPanelResult.TargetsToGlobalShaderMerge.AddRange(TargetsToGlobalShaderMerge);
             batchPanelResult.ModsToCheckForUpdates.AddRange(ModsToCheckForUpdates);
             if (SelectedTarget != null) batchPanelResult.SelectedTarget = SelectedTarget;
             if (Error != null) batchPanelResult.Error = Error;
@@ -145,6 +151,7 @@ namespace ME3TweaksModManager.modmanager.objects
             if (TargetsToLE1Merge.Any()) return true;
             if (TargetsToPlotManagerSync.Any()) return true;
             if (TargetsToSquadmateMergeSync.Any()) return true;
+            if (TargetsToGlobalShaderMerge.Any()) return true;
             return false;
         }
 
@@ -177,6 +184,11 @@ namespace ME3TweaksModManager.modmanager.objects
             if (target.Game.SupportsEmailMerge())
             {
                 TargetsToEmailMergeSync.Add(target);
+            }
+
+            if (target.Game.IsLEGame())
+            {
+                TargetsToGlobalShaderMerge.Add(target);
             }
         }
     }
