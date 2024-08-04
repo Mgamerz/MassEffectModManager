@@ -645,6 +645,28 @@ namespace ME3TweaksModManager.modmanager.me3tweaks.services
                 DownloadButtonText = M3L.GetString(M3L.string_openNexusModsPage);
                 changelog ??= M3L.GetString(M3L.string_nexusModsUpdateInstructions);
             }
+
+            public void OnDownloadStateChanged(object sender, EventArgs e)
+            {
+                // This makes progress bar disappear, as we have no associated download anymore
+                if (DownloadFlow != null && DownloadFlow.DownloadState is EModDownloadState.FAILED or EModDownloadState.FINISHED)
+                {
+                    // Locks out further update attempts
+                    UpdateInProgress = false;
+                    if (DownloadFlow.DownloadState == EModDownloadState.FINISHED)
+                    {
+                        CanUpdate = false;
+                        DownloadButtonText = M3L.GetString(M3L.string_updated);
+                    }
+                    else
+                    {
+                        CanUpdate = true;
+                    }
+                    DownloadFlow.DownloadStateChanged -= OnDownloadStateChanged;
+                    DownloadFlow = null;
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
         }
 
         [Localizable(true)]

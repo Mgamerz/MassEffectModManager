@@ -266,6 +266,7 @@
                 <DataTemplate
                     DataType="{x:Type services:M3OnlineContent+NexusModUpdateInfo}">
                     <Grid
+                        Opacity="{Binding CanUpdate, Converter={StaticResource BoolToDimmedOpacityConverter}}"
                         Margin="0,5,5,5"
                         HorizontalAlignment="Stretch">
                         <Grid.RowDefinitions>

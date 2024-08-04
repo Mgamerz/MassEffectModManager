@@ -102,6 +102,9 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
                     {
                         AutomatedMode = true,
                         ArchiveStream = item.DownloadedStream,
+#if !DEBUG
+            YOU DIDN'T FIX THIS!!
+#endif
                         GetPanelResult = () => new PanelResult(), // TEMPORARY, DO NOT RELY ON THIS
                         ArchiveFilePath = @"Placeholder.7z",
                     };
@@ -146,19 +149,34 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
                 switch (mai.CurrentState)
                 {
                     case EModArchiveImportState.FAILED:
-                        matchingObj.Status = M3L.GetString(M3L.string_importFailed);
+                        {
+                            matchingObj.DownloadState = EModDownloadState.FAILED;
+                            matchingObj.Status = M3L.GetString(M3L.string_importFailed);
+                        }
                         break;
                     case EModArchiveImportState.SCANNING:
-                        matchingObj.Status = M3L.GetString(M3L.string_scanning);
+                        {
+                            matchingObj.DownloadState = EModDownloadState.IMPORTING;
+                            matchingObj.Status = M3L.GetString(M3L.string_scanning);
+                        }
                         break;
                     case EModArchiveImportState.SCANCOMPLETED:
-                        matchingObj.Status = M3L.GetString(M3L.string_importQueued);
+                        {
+                            matchingObj.DownloadState = EModDownloadState.IMPORTING;
+                            matchingObj.Status = M3L.GetString(M3L.string_importQueued);
+                        }
                         break;
                     case EModArchiveImportState.IMPORTING:
-                        matchingObj.Status = M3L.GetString(M3L.string_importingMods);
+                        {
+                            matchingObj.DownloadState = EModDownloadState.IMPORTING;
+                            matchingObj.Status = M3L.GetString(M3L.string_importingMods);
+                        }
                         break;
                     case EModArchiveImportState.COMPLETE:
-                        matchingObj.Status = M3L.GetString(M3L.string_importComplete);
+                        {
+                            matchingObj.DownloadState = EModDownloadState.FINISHED;
+                            matchingObj.Status = M3L.GetString(M3L.string_importComplete);
+                        }
                         break;
                 }
             }

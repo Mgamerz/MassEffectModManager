@@ -1,14 +1,21 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using LegendaryExplorerCore.Helpers;
 using ME3TweaksCoreWPF.UI;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.alternates;
+using ME3TweaksModManager.modmanager.objects.mod.editor;
 using PropertyChanged;
 
 namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternates
 {
+    public class AlternateEventArgs : EventArgs
+    {
+        public AlternateOption Option { get; set; }
+    }
+
     /// <summary>
     /// User control that allows editing a list of AlternateOptions.
     /// </summary>
@@ -46,6 +53,27 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternate
 
                 if (clonedAlt != null)
                 {
+                    // Find new name we can use
+
+                    int i = 2;
+                    string testName = clonedAlt.FriendlyName;
+                    if (testName.Length > 1 && int.TryParse(testName[^1].ToString(), out var endDigit) && testName[^2] == ' ')
+                    {
+                        testName = testName[..^2]; // Cut off the ' X' number suffix
+                        i = endDigit;
+                    }
+
+                    while (true)
+                    {
+                        var testNameSuffixed = $@"{testName} {i}";
+                        if (!baseControl.Alternates.Any(x => x.FriendlyName.CaseInsensitiveEquals(testNameSuffixed)))
+                        {
+                            clonedAlt.FriendlyName = testNameSuffixed;
+                            break;
+                        }
+
+                        i++;
+                    }
                     baseControl.Alternates.Insert(baseControl.Alternates.IndexOf(option) + 1, clonedAlt);
                 }
             }
@@ -114,6 +142,24 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternate
                 eventArg.Source = sender;
                 var parent = (((Control)sender).TemplatedParent ?? ((Control)sender).Parent) as UIElement;
                 parent.RaiseEvent(eventArg);
+            }
+        }
+
+        private void DescriptorPropertyChanged(object sender, EventArgs e)
+        {
+            if (IsLoaded)
+            {
+                if (sender is TextBox tb && tb.DataContext is MDParameter mdp && tb.Tag is AlternateOption o)
+                {
+                    if (mdp.Key == AlternateKeys.ALTSHARED_KEY_FRIENDLYNAME)
+                    {
+                        o.FriendlyName = tb.Text;
+                    }
+                    else if (mdp.Key == AlternateKeys.ALTSHARED_KEY_OPTIONGROUP)
+                    {
+                        o.GroupName = tb.Text;
+                    }
+                }
             }
         }
     }

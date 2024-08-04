@@ -2018,13 +2018,16 @@ namespace ME3TweaksModManager
                     if (BusyContentM3 is SingleItemPanel2 spi && spi.Content is MMBusyPanelBase mmbpb)
                     {
                         rebuildQueue.Enqueue(mmbpb); // Add the current panel
+                        mmbpb.Result.MergeInto(control.Result); // 07/18/2024 - Merge the panel result into the one we are showing now for consistency
                     }
 
+                    // Queue the remaining items
                     while (queuedUserControls.TryDequeue(out var item))
                     {
                         rebuildQueue.Enqueue(item);
                     }
 
+                    // Show the immediately requested panel
                     BusyContentM3 = new SingleItemPanel2(control);
 
                     // Now rebuild the queue after we have shown our item
@@ -2035,17 +2038,15 @@ namespace ME3TweaksModManager
                 }
                 else
                 {
-                    M3Log.Information(@$"Queueing panel {control}");
+                    M3Log.Information(@$"Queueing panel {control.GetType().Name}");
                     queuedUserControls.Enqueue(control);
                 }
             }
         }
 
         /// <summary>
-        /// Shows or queues the specified control
+        /// Removes the currently shown busy control and shows the next queued one, if any, additionally handling batch panel results.
         /// </summary>
-        /// <param name="control">Control to show or queue</param>
-        /// <returns>True if a new control was queued up, false if it wasn't</returns>
         internal void ReleaseBusyControl()
         {
             if (BusyContentM3 is SingleItemPanel2 singleItemPanel)
@@ -4744,6 +4745,7 @@ namespace ME3TweaksModManager
             };
 
             // 05/29/2024 - Change to null-only assignment as it would wipe out an existing BatchPanelResult, such as from the Mod Update list.
+            // This only is used 
             BatchPanelResult ??= new PanelResult();
             HandleBatchPanelResult = false;
             ShowBusyControl(modInspector, priority);

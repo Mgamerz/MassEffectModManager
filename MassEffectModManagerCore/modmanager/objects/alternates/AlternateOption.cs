@@ -256,7 +256,7 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
             IsHidden = other.IsHidden;
             GroupName = other.GroupName;
             CheckedByDefault = other.CheckedByDefault;
-            
+
         }
 
         /// <summary>
@@ -745,14 +745,14 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
         }
 
         /// <summary>
-        /// Checks if this alternate meets the conditional DLC requirements for option keys in other mods.
+        /// Checks if this alternate meets extra conditions on its ConditionalDLC structs
         /// </summary>
         /// <param name="metaInfo"></param>
         /// <returns></returns>
-        public bool CheckConditionalDLCOptionKeys(CaseInsensitiveDictionary<MetaCMM> metaInfo)
+        public bool CheckExtraConditions(CaseInsensitiveDictionary<MetaCMM> metaInfo)
         {
             // We also check for option keys in the metacmms
-            foreach (var condDLC in ConditionalDLC.Where(x => x.DLCOptionKeys != null && x.DLCOptionKeys.Any()))
+            foreach (var condDLC in ConditionalDLC.Where(x => x.HasConditions()))
             {
                 if (!condDLC.IsRequirementMet(null, metaInfo))
                 {
@@ -789,7 +789,11 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
             target.GroupName = GroupName;
 
             // Used for map
-            target.ParameterMap.ReplaceAll(ParameterMap);
+            // Must make copy
+            foreach (var p in ParameterMap)
+            {
+                target.ParameterMap.Add(p.CopyForEditor());
+            }
         }
     }
 }

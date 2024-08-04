@@ -10,6 +10,7 @@
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:alternates1="clr-namespace:ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternates"
     mc:Ignorable="d"
+    x:Name="AIC"
     d:DesignHeight="450"
     d:DesignWidth="800">
     <ItemsControl
@@ -108,13 +109,15 @@
                                 Margin="5,0,0,0">
                                 <TextBlock
                                     Text="{Binding GroupName, StringFormat='{}{0}: '}"
-                                    Visibility="{Binding GroupName, Converter={StaticResource NullVisibilityConverter}}" />
+                                    Visibility="{Binding GroupName, Converter={StaticResource NullOrEmptyVisibilityConverter}}" />
                                 <TextBlock
                                     Text="{Binding FriendlyName}" />
                             </StackPanel>
                         </Grid>
                     </Expander.Header>
                     <moddescinieditor:DescriptorEditorItemsControl
+                        Tag="{Binding}"
+                        OnMDValueChanged="DescriptorPropertyChanged"
                         ItemsSource="{Binding ParameterMap}"
                         Visibility="{Binding ElementName=altExpander, Path=IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </Expander>

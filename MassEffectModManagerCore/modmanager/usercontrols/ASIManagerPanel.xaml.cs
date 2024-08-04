@@ -93,7 +93,16 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 //Unknown ASI
                 if (instASI is IKnownInstalledASIMod kam && kam.Outdated)
                 {
-                    internalInstallASI(kam.AssociatedManifestItem.OwningMod.LatestVersion);
+                    if (kam.AssociatedManifestItem.OwningMod.LatestVersion == null)
+                    {
+                        // Can only uninstall. Mod Manager does not support installing this from the app, only command line
+                        kam.Uninstall();
+                        RefreshASIStates(instASI.Game);
+                    }
+                    else
+                    {
+                        internalInstallASI(kam.AssociatedManifestItem.OwningMod.LatestVersionIncludingHidden);
+                    }
                 }
                 else
                 {
@@ -209,8 +218,17 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 subtext += Environment.NewLine;
                 if (kaim.Outdated)
                 {
-                    subtext += M3L.GetString(M3L.string_installedOutdated);
-                    InstallButtonText = M3L.GetString(M3L.string_updateASI);
+                    if (kaim.AssociatedManifestItem.OwningMod.LatestVersion != null)
+                    {
+                        subtext += M3L.GetString(M3L.string_installedOutdated);
+                        InstallButtonText = M3L.GetString(M3L.string_updateASI);
+                    }
+                    else
+                    { 
+                        // Not managed by M3 UI
+                        subtext += M3L.GetString(M3L.string_installedOutdated);
+                        InstallButtonText = M3L.GetString(M3L.string_uninstallASI);
+                    }
                 }
                 else
                 {
@@ -265,7 +283,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                     if (preselectedTarget != null && preselectedTarget.Game == game)
                     {
-                        asiGame.CurrentGameTargetWPF = (GameTargetWPF) preselectedTarget;
+                        asiGame.CurrentGameTargetWPF = (GameTargetWPF)preselectedTarget;
                         SelectedTabIndex = index;
                     }
                     else

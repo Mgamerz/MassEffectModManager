@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using LegendaryExplorerCore.GameFilesystem;
+using LegendaryExplorerCore.Misc;
+using ME3TweaksCore.GameFilesystem;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Objects;
 using ME3TweaksCoreWPF.Targets;
@@ -86,8 +88,14 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
 
         public AlternateDLC(string alternateDLCText, Mod modForValidating, ModJob job)
         {
+#if !DEBUG
             var properties = StringStructParser.GetCommaSplitValues(alternateDLCText);
-
+#else
+            // 08/01/2024 - ModDesc 9.1 (Mod Manager 9.0.1's parser) uses the new method that better handles value splitting
+            var properties = modForValidating.ModDescTargetVersion >= 9.1 ?
+                StringStructParser.GetSplitMapValues(alternateDLCText, false, '(', ')', '[', ']')
+                : StringStructParser.GetCommaSplitValues(alternateDLCText);
+#endif
             //todo: if statements to check these.
             if (properties.TryGetValue(AlternateKeys.ALTSHARED_KEY_FRIENDLYNAME, out string friendlyName))
             {
@@ -502,7 +510,6 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
         /// <summary>
         /// Copy constructor
         /// </summary>
-        /// <param name="other">Item to copy</param>
         internal AlternateDLC CopyForEditor()
         {
             AlternateDLC dlc = new AlternateDLC();
@@ -520,7 +527,7 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
             return AlternateDLCFolder != null || MultiListSourceFiles != null;
         }
 
-        public void SetupInitialSelection(GameTargetWPF target, Mod mod)
+        public void SetupInitialSelection(GameTargetWPF target, Mod mod, CaseInsensitiveDictionary<MetaCMM> metaInfo)
         {
             UIIsSelectable = false; //Reset
             UIIsSelected = false; //Reset
@@ -531,7 +538,7 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
                 return;
             }
 
-            var metaInfo = target.GetMetaMappedInstalledDLC();
+            metaInfo ??= target.GetMetaMappedInstalledDLC();
             switch (Condition)
             {
                 case AltDLCCondition.COND_DLC_NOT_PRESENT:
@@ -543,7 +550,7 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
                     UIIsSelected = ConditionalDLC.Any(i => metaInfo.ContainsKey(i.DLCFolderName.Key));
                     if (UIIsSelected && mod.ModDescTargetVersion >= 9.0)
                     {
-                        UIIsSelected = CheckConditionalDLCOptionKeys(metaInfo);
+                        UIIsSelected = CheckExtraConditions(metaInfo);
                     }
                     break;
                 case AltDLCCondition.COND_ALL_DLC_NOT_PRESENT:
@@ -553,7 +560,7 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
                     UIIsSelected = ConditionalDLC.All(i => metaInfo.ContainsKey(i.DLCFolderName.Key));
                     if (UIIsSelected && mod.ModDescTargetVersion >= 9.0)
                     {
-                        UIIsSelected = CheckConditionalDLCOptionKeys(metaInfo);
+                        UIIsSelected = CheckExtraConditions(metaInfo);
                     }
                     break;
                 case AltDLCCondition.COND_SPECIFIC_SIZED_FILES:
@@ -584,7 +591,7 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
                                     if (selected && mod.ModDescTargetVersion >= 9.0)
                                     {
                                         // Can only check for option keys for mods that are installed.
-                                        selected = CheckConditionalDLCOptionKeys(metaInfo);
+                                        selected = CheckExtraConditions(metaInfo);
                                     }
                                 }
                                 else

@@ -68,6 +68,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     if (up.NexusModsId == md.ProtocolLink.ModId)
                     {
                         up.DownloadFlow = md;
+                        up.DownloadFlow.DownloadStateChanged += up.OnDownloadStateChanged;
                         break;
                     }
                 }
@@ -121,6 +122,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 #if DEBUG
                     if (NexusModsUtilities.UserInfo?.IsPremium == true)
                     {
+                        nmui.UpdateInProgress = true;
                         var fileId = await NexusModsUtilities.GetMainFileForMod(domain, nmui.NexusModsId);
                         if (fileId != null)
                         {
@@ -129,7 +131,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                             DownloadManager.QueueNXMDownload(nxmlink);
                             return;
                         }
+
+                        // Could not find file. We are not in progress.
+                        nmui.UpdateInProgress = false;
                     }
+
 #endif
 
                     var url = $@"https://nexusmods.com/{domain}/mods/{nmui.NexusModsId}?tab=files";
@@ -331,7 +337,19 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
 
         public ICommand CloseCommand { get; set; }
-        private bool TaskNotRunning() => UpdatableMods.All(x => !x.UpdateInProgress);
+
+        private bool TaskNotRunning()
+        {
+            // Not linqed for debugging
+            foreach (var um in UpdatableMods)
+            {
+                if (um.UpdateInProgress)
+                    return false;
+            }
+
+            return true;
+
+        }
         private void LoadCommands()
         {
             CloseCommand = new GenericCommand(CloseDialog, TaskNotRunning);

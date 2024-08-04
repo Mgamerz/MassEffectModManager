@@ -687,6 +687,7 @@ namespace ME3TweaksModManager.modmanager.objects
                     scopes.DisallowedSilos.Add($@"Binaries{Path.DirectorySeparatorChar}Win64"); //You are not allowed to install files into the game executable directory or subdirectories
                     scopes.DisallowedSilos.Add($@"BioGame{Path.DirectorySeparatorChar}Config"); // You are not allowed to overwrite ini files or anything in config
                     scopes.DisallowedFileSilos.Add($@"BioGame{Path.DirectorySeparatorChar}CookedPCConsole{Path.DirectorySeparatorChar}PlotManager.pcc"); // You must use PMU feature for this
+                    scopes.DisallowedFileSilos.Add($@"BioGame{Path.DirectorySeparatorChar}CookedPCConsole{Path.DirectorySeparatorChar}GlobalShaderCache-PC-D3D-SM5.bin"); // You must use global shader merge feature for this (Mod Manager 10)
 
                     if (game == MEGame.LE3)
                     {

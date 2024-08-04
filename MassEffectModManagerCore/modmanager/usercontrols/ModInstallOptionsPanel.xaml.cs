@@ -381,17 +381,18 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         void internalSetupInitialSelection(AlternateGroup o)
         {
+            var metaInfo = SelectedGameTarget.GetMetaMappedInstalledDLC();
             foreach (var option in o.AlternateOptions)
             {
                 // Suboptions.
                 if (option is AlternateDLC altdlc)
                 {
-                    altdlc.SetupInitialSelection(SelectedGameTarget, ModBeingInstalled);
+                    altdlc.SetupInitialSelection(SelectedGameTarget, ModBeingInstalled, metaInfo);
                     if (altdlc.IsManual) AllOptionsAreAutomatic = false;
                 }
                 else if (option is AlternateFile altfile)
                 {
-                    altfile.SetupInitialSelection(SelectedGameTarget, ModBeingInstalled);
+                    altfile.SetupInitialSelection(SelectedGameTarget, ModBeingInstalled, metaInfo);
                     if (altfile.IsManual) AllOptionsAreAutomatic = false;
                 }
             }

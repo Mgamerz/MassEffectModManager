@@ -52,6 +52,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
             control?.OnItemsSourceChanged((ICollection)e.OldValue, (ICollection)e.NewValue);
         }
 
+        /// <summary>
+        /// Invoked when the value of a property changes, after loading.
+        /// </summary>
+        public event EventHandler OnMDValueChanged;
+
         [SuppressPropertyChangedWarnings]
         private void OnItemsSourceChanged(ICollection oldValue, ICollection newValue)
         {
@@ -98,6 +103,17 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
                 // Repopulate
                 md.AllowedValues.ReplaceAll(md.AllowedValuesPopulationFunc.Invoke());
             }
+        }
+
+        /// <summary>
+        /// Routes a property changing event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnValueChanged(object sender, TextChangedEventArgs e)
+        {
+            // Caller can access it on the sender.
+            OnMDValueChanged?.Invoke(sender, EventArgs.Empty);
         }
     }
 }

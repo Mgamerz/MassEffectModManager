@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using LegendaryExplorerCore.Misc;
+using ME3TweaksCore.GameFilesystem;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksModManager.modmanager.localizations;
@@ -517,7 +519,7 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
         }
 
 
-        public void SetupInitialSelection(GameTargetWPF target, Mod mod)
+        public void SetupInitialSelection(GameTargetWPF target, Mod mod, CaseInsensitiveDictionary<MetaCMM> metaInfo)
         {
             UIIsSelected = CheckedByDefault; //Reset
             if (IsAlways)
@@ -531,21 +533,21 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
                 UIIsSelected = CheckedByDefault;
                 return;
             }
-            var metaInfo = target.GetMetaMappedInstalledDLC();
+            metaInfo ??= target.GetMetaMappedInstalledDLC();
             switch (Condition)
             {
                 case AltFileCondition.COND_DLC_NOT_PRESENT:
                     UIIsSelected = !ConditionalDLC.Any(i => metaInfo.ContainsKey(i.DLCFolderName.Key));
                     if (UIIsSelected && mod.ModDescTargetVersion >= 9.0)
                     {
-                        UIIsSelected = CheckConditionalDLCOptionKeys(metaInfo);
+                        UIIsSelected = CheckExtraConditions(metaInfo);
                     }
                     break;
                 case AltFileCondition.COND_DLC_PRESENT:
                     UIIsSelected = ConditionalDLC.Any(i => metaInfo.ContainsKey(i.DLCFolderName.Key));
                     if (UIIsSelected && mod.ModDescTargetVersion >= 9.0)
                     {
-                        UIIsSelected = CheckConditionalDLCOptionKeys(metaInfo);
+                        UIIsSelected = CheckExtraConditions(metaInfo);
                     }
                     break;
                     //The following conditions don't exist right now

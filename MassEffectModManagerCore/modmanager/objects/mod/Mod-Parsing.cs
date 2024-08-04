@@ -280,14 +280,13 @@ namespace ME3TweaksModManager.modmanager.objects.mod
                 }
 
 
-                SortedSet<string> autoConfigs = GetAutoConfigs();
+                SortedSet<string> autoConfigs = GetUIAutoConfigs();
                 if (autoConfigs.Count > 0)
                 {
                     sb.AppendLine(M3L.GetString(M3L.string_modparsing_configCanChangeIfOtherDLCFound));
                     foreach (var autoConfigDLC in autoConfigs)
                     {
-                        string name = TPMIService.GetThirdPartyModInfo(autoConfigDLC, Game)?.modname ?? autoConfigDLC;
-                        sb.AppendLine($@" - {name}");
+                        sb.AppendLine($@" - {autoConfigDLC}");
                     }
                 }
 
@@ -2388,10 +2387,10 @@ namespace ME3TweaksModManager.modmanager.objects.mod
         }
 
         /// <summary>
-        /// Returns a list of DLC foldernames that the mod can depend on being present (or not present!) for it's alternates
+        /// Returns a list of strings to display, detailing what mod can change configuration on. Not a list of DLC foldernames.
         /// </summary>
         /// <returns></returns>
-        public SortedSet<string> GetAutoConfigs()
+        public SortedSet<string> GetUIAutoConfigs()
         {
             var autoConfigs = new SortedSet<string>(StringComparer.InvariantCultureIgnoreCase);
             foreach (var InstallationJob in InstallationJobs)
@@ -2402,14 +2401,16 @@ namespace ME3TweaksModManager.modmanager.objects.mod
                     {
                         foreach (var conditionaldlc in altdlc.ConditionalDLC) // Conditional DLC are not available for COND_MANUAL
                         {
-                            autoConfigs.Add(conditionaldlc.DLCFolderName.Key);
+                            var info = TPMIService.GetThirdPartyModInfo(conditionaldlc.DLCFolderName.Key, Game);
+                            autoConfigs.Add(conditionaldlc.ToUIString(info));
                         }
                     }
                     else if (altdlc.Condition == AlternateDLC.AltDLCCondition.COND_MANUAL && altdlc.DLCRequirementsForManual != null && altdlc.DLCRequirementsForManual.Any())
                     {
                         foreach (var manualTrigger in altdlc.DLCRequirementsForManual)
                         {
-                            autoConfigs.Add(manualTrigger.DLCFolderName.Key);
+                            var info = TPMIService.GetThirdPartyModInfo(manualTrigger.DLCFolderName.Key, Game);
+                            autoConfigs.Add(manualTrigger.ToUIString(info));
                         }
                     }
                 }
@@ -2417,7 +2418,8 @@ namespace ME3TweaksModManager.modmanager.objects.mod
                 {
                     foreach (var conditionaldlc in altfile.ConditionalDLC)
                     {
-                        autoConfigs.Add(conditionaldlc.DLCFolderName.Key);
+                        var info = TPMIService.GetThirdPartyModInfo(conditionaldlc.DLCFolderName.Key, Game);
+                        autoConfigs.Add(conditionaldlc.ToUIString(info));
                     }
                 }
             }

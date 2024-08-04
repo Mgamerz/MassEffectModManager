@@ -83,11 +83,14 @@ namespace ME3TweaksModManager
         public static bool SingleInstanceExit = false;
 
         /// <summary>
-        /// The highest version of ModDesc that this version of Mod Manager can support.
+        /// The highest version of ModDesc that this version of Mod Manager can support. The maximum precision allowed is tenths, the rest will be truncated.
         /// </summary>
+#if DEBUG
+        public const double HighestSupportedModDesc = 9.1;
+#else
         public const double HighestSupportedModDesc = 9.0;
+#endif
 
-        //Windows 10 1909
         public static readonly Version MIN_SUPPORTED_OS = new Version(@"10.0.19045"); // Windows 10 22H2
 
         internal static readonly string[] SupportedOperatingSystemVersions =

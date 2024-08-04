@@ -40,6 +40,7 @@
     <converters1:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
     <converters1:EnumToEnabledConverter x:Key="EnumToEnabledConverter"/>
     <converters1:MEGameToGameNameConverter x:Key="MEGameToGameNameConverter"/>
+    <converters1:BoolToDimmedOpacityConverter x:Key="BoolToDimmedOpacityConverter"/>
 
     <Style x:Key="TargetSelectorContainerStyle" TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

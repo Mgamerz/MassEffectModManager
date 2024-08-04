@@ -85,6 +85,8 @@ namespace ME3TweaksModManager.modmanager.objects.mod.editor
         /// The value of this parameter
         /// </summary>
         public string Value { get; set; }
+
+        // Unsure if actually used.
         /// <summary>
         /// The human name of this parameter
         /// </summary>
@@ -191,6 +193,29 @@ namespace ME3TweaksModManager.modmanager.objects.mod.editor
             {
                 return keyValuePair.Value?.ToString();
             }
+        }
+
+        /// <summary>
+        /// Creates a copy of this object for the editor
+        /// </summary>
+        /// <returns></returns>
+        public MDParameter CopyForEditor()
+        {
+            MDParameter m = new MDParameter()
+            {
+                ValueType = ValueType,
+                Key = Key,
+                Value = Value,
+                HumanName = HumanName,
+                UsesSetValuesList = UsesSetValuesList,
+                UnsetValueItem = UnsetValueItem,
+                Header = Header,
+                ReadOnly = ReadOnly,
+                AllowedValuesPopulationFunc = AllowedValuesPopulationFunc
+            };
+
+            m.AllowedValues.ReplaceAll(AllowedValues);
+            return m;
         }
     }
 }

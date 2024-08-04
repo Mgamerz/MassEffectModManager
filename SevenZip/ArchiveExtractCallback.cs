@@ -254,7 +254,7 @@ namespace SevenZip
         /// <param name="completeValue">Amount of work that has been completed (in bytes)</param>
         public void SetCompleted(ref ulong completeValue)
         {
-            if (completeValue < (ulong)_bytesCount && completeValue >= 0)
+            if (completeValue <= (ulong)_bytesCount && completeValue >= 0)
             {
                 OnProgressing(new DetailedProgressEventArgs(completeValue, (ulong) _bytesCount));
             }
