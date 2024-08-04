@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using LegendaryExplorerCore.Helpers;
 
 namespace ME3TweaksModManager.modmanager.converters
 {
@@ -19,6 +20,45 @@ namespace ME3TweaksModManager.modmanager.converters
                 }
             }
             return value == null ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return false; //don't need this
+        }
+    }
+
+    [Localizable(false)]
+    public class NullOrEmptyVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool reversed = false;
+            if (parameter != null && parameter is string str)
+            {
+                reversed = str.CaseInsensitiveEquals("Reversed");
+            }
+
+            if (value is string vStr)
+            {
+                if (reversed)
+                {
+                    return string.IsNullOrWhiteSpace(vStr) ? Visibility.Visible : Visibility.Collapsed;
+                }
+                else
+                {
+                    return !string.IsNullOrWhiteSpace(vStr) ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
+
+            if (reversed)
+            {
+                return value == null ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else
+            {
+                return value == null ? Visibility.Collapsed : Visibility.Visible;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

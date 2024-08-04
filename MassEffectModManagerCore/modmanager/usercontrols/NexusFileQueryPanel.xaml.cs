@@ -21,7 +21,6 @@ using ME3TweaksModManager.modmanager.objects.nexusfiledb;
 using ME3TweaksModManager.modmanager.windows;
 using ME3TweaksModManager.ui;
 using Pathoschild.FluentNexus.Models;
-using WinCopies.Util;
 using Mod = ME3TweaksModManager.modmanager.objects.mod.Mod;
 
 namespace ME3TweaksModManager.modmanager.usercontrols

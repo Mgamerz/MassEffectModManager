@@ -1,5 +1,4 @@
 ﻿using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.Services.ThirdPartyModIdentification;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksCoreWPF.UI;
@@ -8,21 +7,14 @@ using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.alternates;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.ui;
-using PropertyChanged;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
-using CommandLine;
-using ME3TweaksModManager.modmanager.diagnostics;
+using ME3TweaksCore.Objects;
+using ME3TweaksModManager.modmanager.installer;
 using ME3TweaksModManager.modmanager.objects.exceptions;
 using ME3TweaksModManager.modmanager.objects.installer;
 using ME3TweaksModManager.modmanager.objects.batch;
-using Serilog.Filters;
 
 namespace ME3TweaksModManager.modmanager.usercontrols
 {
@@ -64,7 +56,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         public bool InstallationCancelled { get; private set; }
 
         /// <summary>
-        /// The associated batch mode mode. If this is not a batch install, this will be null.
+        /// The associated batch mode mod. If this is not a batch install, this will be null.
         /// </summary>
         public BatchMod BatchMod { get; private set; }
 
@@ -101,9 +93,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             InstallCommand = new GenericCommand(BeginInstallingMod, CanInstall);
         }
 
-
-
-
         /// <summary>
         /// Weave-called when SelectedGameTarget changes
         /// </summary>
@@ -121,6 +110,21 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private void SetupOptions(bool initialSetup)
         {
+            var canInstall = SharedInstaller.ValidateModCanInstall(window, ModBeingInstalled, SelectedGameTarget);
+            if (!canInstall)
+            {
+                PreventInstallUntilTargetChange = true;
+                if (InstallationTargets.Count == 1)
+                {
+                    // There are no other options
+                    OnClosing(DataEventArgs.Empty);
+                }
+
+                return;
+            }
+
+            // Installation can continue
+
             AlternateGroups.ClearEx();
 
             //Write check
@@ -365,6 +369,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             {
                 // ME1 and LE can't compress. If user has elected to compress packages, and there are no alternates/additional targets, just begin installation
                 CompressInstalledPackages = Settings.PreferCompressingPackages && ModBeingInstalled.Game > MEGame.ME1;
+                AllOptionsAreAutomatic = true;
                 BeginInstallingMod();
             }
             else
@@ -390,19 +395,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     if (altfile.IsManual) AllOptionsAreAutomatic = false;
                 }
             }
-
-
-
-
-            //if (o.AlternateOptions.Count == 1)
-            //{
-            //    // Single mode
-            //}
-            //else
-            //{
-            //    // Multi mode
-            //}
-
         }
 
         private void SortOptions()
@@ -576,6 +568,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private bool CanInstall()
         {
+            if (PreventInstallUntilTargetChange) return false;
             foreach (var group in AlternateGroups)
             {
                 if (group.IsMultiSelector)
@@ -600,7 +593,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private void BeginInstallingMod()
         {
-            if (IsInstallingMod) // Prevents double calls to this method
+            // Do not install if double clicked or if install is disabled
+            if (PreventInstallUntilTargetChange || IsInstallingMod) // Prevents double calls to this method
                 return;
             IsInstallingMod = true;
 
@@ -645,10 +639,13 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
             ModInstallOptionsPackage moip = new ModInstallOptionsPackage()
             {
+                SkipPrerequesitesCheck = AllOptionsAreAutomatic,
                 CompressInstalledPackages = CompressInstalledPackages,
                 InstallTarget = SelectedGameTarget,
                 ModBeingInstalled = ModBeingInstalled,
                 SelectedOptions = optionsMap,
+                BatchMode = BatchMod != null,
+                IsFirstBatchMod = BatchMod?.IsFirstBatchMod ?? false,
                 SetME1ReadOnlyConfigFiles = AlternateGroups.SelectMany(x => x.AlternateOptions).OfType<ReadOnlyOption>().Any(x => x.UIIsSelected) // ME1 Read only option
             };
 
@@ -742,36 +739,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 return;
             }
 
-            // 8.0.1 beta 1 version
-            /*   if (false)
-               {
-                   // 3. Set our selected options
-                   foreach (var group in AlternateGroups) // For every group...
-                   {
-                       if (group.IsMultiSelector)
-                       {
-                           // We only need to select one from multi
-                           var chosenOption =
-                               group.AlternateOptions.FirstOrDefault(option =>
-                                   BatchMod.UserChosenOptions.Contains(option.OptionKey));
-                           if (chosenOption == null)
-                           {
-                               Debugger.Break();
-                           }
-
-                           group.SelectNewOption(chosenOption);
-                       }
-                       else
-                       {
-                           // Single mode
-                           group.SelectedOption.UIIsSelected =
-                               BatchMod.UserChosenOptions.Any(oKey => oKey == group.SelectedOption.OptionKey);
-                       }
-                   }
-
-            */
-
-
             // 4. Validate that the selected options match the ones we know about in the batchmod object
             if (!isReverting)
             {
@@ -795,6 +762,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 else
                 {
                     M3Log.Information(@"Batch mod options are valid, beginning install");
+                    AllOptionsAreAutomatic = true;
                     BeginInstallingMod();
                 }
             }

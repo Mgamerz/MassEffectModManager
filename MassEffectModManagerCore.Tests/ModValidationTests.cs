@@ -4,15 +4,19 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using LegendaryExplorerCore.Packages;
+using ME3TweaksCore.Helpers;
 using ME3TweaksCore.ME3Tweaks.Online;
 using ME3TweaksCore.Services.ThirdPartyModIdentification;
 using ME3TweaksModManager.modmanager.importer;
+using ME3TweaksModManager.modmanager.loaders;
 using ME3TweaksModManager.modmanager.me3tweaks;
 using ME3TweaksModManager.modmanager.me3tweaks.online;
 using ME3TweaksModManager.modmanager.me3tweaks.services;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.batch;
+using ME3TweaksModManager.modmanager.objects.mod.merge;
 using ME3TweaksModManager.modmanager.objects.mod.texture;
 using ME3TweaksModManager.modmanager.usercontrols;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -82,6 +86,8 @@ namespace ME3TweaksModManager.Tests
 
         }
 
+        private static object ValidateImportFlowSyncObj = new object();
+
         [TestMethod]
         public void ValidateArchiveModLoading()
         {
@@ -91,6 +97,7 @@ namespace ME3TweaksModManager.Tests
 #endif
 
             GlobalTest.Init();
+            M3LoadedMods.ModsReloaded += ModLibraryFinishedReloading;
 
             Console.WriteLine("Fetching third party services");
             TPIService.LoadService(GlobalTest.CombinedServiceData[M3ServiceLoader.TPI_SERVICE_KEY]);
@@ -129,31 +136,125 @@ namespace ME3TweaksModManager.Tests
             }
             foreach (var archive in Directory.GetFiles(compressedModsDirectory))
             {
+                M3LoadedMods.EnsureModDirectories();
+
+                //if (archive != @"C:\Users\mgame\source\repos\ME3Tweaks\ModTestingData\testdata\compressedmods\ashleybattlepackv2-2-217787396-013f1c80681e1075a78dc8dd8e8ed624.zip")
+                //    continue;
                 modsFoundInArchive.Clear();
                 var realArchiveInfo = GlobalTest.ParseRealArchiveAttributes(archive);
                 Console.WriteLine($"Inspecting archive: {archive}");
-                ModArchiveInspector.FindModsInArchive(archive, addModCallback, failedModCallback, addTextureMod, addBatchQueue, logMessageCallback, forcedMD5: realArchiveInfo.md5, forcedSize: realArchiveInfo.size);
-                Assert.AreEqual(realArchiveInfo.nummodsexpected, modsFoundInArchive.Count(x => x.ValidMod), $"{archive} did not parse correct amount of mods.");
+                ModArchiveImport mai = new ModArchiveImport()
+                {
+                    ArchiveFilePath = archive,
+                    AutomatedMode = true,
+                    GetPanelResult = () => new PanelResult(),
+                    ForcedMD5 = realArchiveInfo.md5,
+                    ForcedSize = realArchiveInfo.size
+                };
+
+                // Is async
+                mai.ImportStateChanged += ValidateImportFlow_StateChanged;
+                lock (ValidateImportFlowSyncObj)
+                {
+                    mai.BeginScan();
+                    Debug.WriteLine($"ImportState LOCK {Path.GetFileName(mai.ArchiveFilePath)}");
+                    Monitor.Wait(ValidateImportFlowSyncObj);
+                }
+
+                // Extraction has completed
+                // Validate count
+                Assert.AreEqual(realArchiveInfo.nummodsexpected, mai.CompressedMods.Count(x => x.ValidMod), $"{archive} did not parse correct amount of mods.");
 
                 foreach (var v in modsFoundInArchive)
                 {
-                    var cookedName = v.Game == MEGame.ME3 ? @"CookedPCConsole" : "CookedPC";
-                    // Check nothing has FilesToInstall containing two 'CookedPCConsole' items in the string. 
-                    // This is fun edge case due to TESTPATCH having two names DLC_TestPatch and TESTPATCH
-
-                    foreach (var mj in v.InstallationJobs)
+                    if (v.Game.IsOTGame())
                     {
-                        foreach (var fti in mj.FilesToInstall)
+                        var cookedName = v.Game.CookedDirName();
+                        // Check nothing has FilesToInstall containing two 'CookedPCConsole' items in the string. 
+                        // This is fun edge case due to TESTPATCH having two names DLC_TestPatch and TESTPATCH
+
+                        foreach (var mj in v.InstallationJobs)
                         {
-                            var numAppearances = Regex.Matches(fti.Key, cookedName).Count;
-                            if (numAppearances > 1)
+                            foreach (var fti in mj.FilesToInstall)
                             {
-                                Assert.Fail($@"Found more than 1 instance of {cookedName} in FilesToInstall targetpath item {fti.Key}! This indicates queue building was wrong. Mod: {v.ModName}, file {archive}");
+                                var numAppearances = Regex.Matches(fti.Key, cookedName).Count;
+                                if (numAppearances > 1)
+                                {
+                                    Assert.Fail(
+                                        $@"Found more than 1 instance of {cookedName} in FilesToInstall targetpath item {fti.Key}! This indicates queue building was wrong. Mod: {v.ModName}, file {archive}");
+                                }
                             }
                         }
                     }
+
+                    // Test extraction.
+                    M3LoadedMods.Instance.LoadMods();
+                    lock (ValidateImportFlowSyncObj)
+                    {
+                        Debug.WriteLine("LibraryReloaded LOCK");
+                        Monitor.Wait(ValidateImportFlowSyncObj);
+                    }
+                    Assert.AreEqual(mai.CompressedMods.Count(x => x.ValidMod), M3LoadedMods.Instance.NumModsLoaded, "Extracted mod count did not equal the amount of mods loaded.");
                 }
             }
+
+            M3LoadedMods.ModsReloaded -= ModLibraryFinishedReloading;
+        }
+
+        private void ModLibraryFinishedReloading(object sender, EventArgs e)
+        {
+            lock (ValidateImportFlowSyncObj)
+            {
+                Debug.WriteLine("LibraryReloaded UNLOCK");
+                Monitor.Pulse(ValidateImportFlowSyncObj);
+            }
+        }
+
+        private void ValidateImportFlow_StateChanged(object sender, EventArgs e)
+        {
+            if (sender is ModArchiveImport mai && mai.CurrentState is EModArchiveImportState.FAILED or EModArchiveImportState.COMPLETE)
+            {
+                lock (ValidateImportFlowSyncObj)
+                {
+                    Debug.WriteLine($"StateChange UNLOCK: {mai.CurrentState} {Path.GetFileName(mai.ArchiveFilePath)}");
+                    Monitor.Pulse(ValidateImportFlowSyncObj);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ValidateMergeModSerialization()
+        {
+            GlobalTest.Init();
+            var mmFolder = GlobalTest.GetTestingDataDirectoryFor(@"mergemods");
+
+            var mergeMods = Directory.GetFiles(mmFolder, "*.m3m", SearchOption.AllDirectories);
+            foreach (var mm in mergeMods)
+            {
+                var startMd5 = MUtilities.CalculateHash(mm);
+
+                // Decomp
+                GlobalTest.DeleteScratchDir();
+                var scratchDir = GlobalTest.CreateScratchDir();
+                MergeModLoader.DecompileM3M(mm, scratchDir);
+
+                int version = 1;
+                using (var fs = File.OpenRead(mm))
+                {
+                    var loadedMod = MergeModLoader.LoadMergeMod(fs, mm, false);
+                    version = loadedMod.MergeModVersion;
+                }
+
+                // Recomp
+                var manifest = Path.Combine(scratchDir, $"{Path.GetFileNameWithoutExtension(mm)}.json");
+                MergeModLoader.SerializeManifest(manifest, version);
+                var finalFile = Path.Combine(scratchDir, Path.GetFileName(mm));
+                var endMd5 = MUtilities.CalculateHash(finalFile);
+
+                Assert.AreEqual(startMd5, endMd5, "Mergemod recompilation yielded a different hash");
+            }
+
+            GlobalTest.DeleteScratchDir();
         }
     }
 }

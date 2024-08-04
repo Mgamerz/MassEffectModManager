@@ -48,6 +48,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 {
                     // Logging is handled in nbw
                     Result.Error = b.Error;
+                    TelemetryInterposer.TrackError(b.Error);
                 }
                 else if (b.Result is string finalStatus && BGTask != null)
                 {

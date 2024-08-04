@@ -337,7 +337,7 @@ namespace SevenZip
                         _archive.GetProperty(index, ItemPropId.IsDirectory, ref data);
                         try
                         {
-                            fileName = ValidateFileName(fileName);
+                            ValidateFileNameAndCreateDirectory(fileName);
                         }
                         catch (Exception e)
                         {
@@ -573,57 +573,35 @@ namespace SevenZip
         /// </summary>
         /// <param name="fileName">File name</param>
         /// <returns>The valid file name</returns>
-        private static string ValidateFileName(string fileName)
+        private static void ValidateFileNameAndCreateDirectory(string fileName)
         {
-            if (String.IsNullOrEmpty(fileName))
+            if (string.IsNullOrEmpty(fileName))
             {
-                throw new SevenZipArchiveException("some archive name is null or empty.");
+                throw new SevenZipArchiveException("Some archive name is null or empty.");
             }
 
-            var splittedFileName = new List<string>(fileName.Split(Path.DirectorySeparatorChar));
+            var splitFileName = new List<string>(fileName.Split(Path.DirectorySeparatorChar));
 
-            foreach (char chr in Path.GetInvalidFileNameChars())
+            if (splitFileName.Count > 2)
             {
-                for (int i = 0; i < splittedFileName.Count; i++)
+                var tempFileName = splitFileName[0];
+
+                for (var i = 1; i < splitFileName.Count - 1; i++)
                 {
-                    if (chr == ':' && i == 0)
+                    tempFileName += Path.DirectorySeparatorChar + splitFileName[i];
+
+                    if (!Directory.Exists(tempFileName))
                     {
-                        continue;
-                    }
-                    if (String.IsNullOrEmpty(splittedFileName[i]))
-                    {
-                        continue;
-                    }
-                    while (splittedFileName[i].IndexOf(chr) > -1)
-                    {
-                        splittedFileName[i] = splittedFileName[i].Replace(chr, '_');
+                        // Don't try to create a UNC share root, eg "\\localhost\".
+                        if (i == 2 && tempFileName.StartsWith($"{Path.DirectorySeparatorChar}{Path.DirectorySeparatorChar}") && tempFileName.LastIndexOf(Path.DirectorySeparatorChar) != 1)
+                        {
+                            continue;
+                        }
+
+                        Directory.CreateDirectory(tempFileName);
                     }
                 }
             }
-
-            if (fileName.StartsWith(new string(Path.DirectorySeparatorChar, 2),
-                                    StringComparison.CurrentCultureIgnoreCase))
-            {
-                splittedFileName.RemoveAt(0);
-                splittedFileName.RemoveAt(0);
-                splittedFileName[0] = new string(Path.DirectorySeparatorChar, 2) + splittedFileName[0];
-            }
-
-            if (splittedFileName.Count > 2)
-            {
-                string tfn = splittedFileName[0];
-                for (int i = 1; i < splittedFileName.Count - 1; i++)
-                {
-                    tfn += Path.DirectorySeparatorChar + splittedFileName[i];
-                    if (!Directory.Exists(tfn))
-                    {
-                        Directory.CreateDirectory(tfn);
-                    }
-                }
-            }
-
-            return String.Join(new string(Path.DirectorySeparatorChar, 1), splittedFileName.ToArray());
         }
     }
-
 }

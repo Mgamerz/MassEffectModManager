@@ -12,7 +12,8 @@
                     xmlns:batch="clr-namespace:ME3TweaksModManager.modmanager.objects.batch"
                     xmlns:texture="clr-namespace:ME3TweaksModManager.modmanager.objects.mod.texture"
                     xmlns:objects="clr-namespace:ME3TweaksModManager.modmanager.objects"
-                    xmlns:headmorph="clr-namespace:ME3TweaksModManager.modmanager.objects.mod.headmorph">
+                    xmlns:headmorph="clr-namespace:ME3TweaksModManager.modmanager.objects.mod.headmorph"
+                    xmlns:windows="clr-namespace:ME3TweaksModManager.modmanager.windows">
     <converters1:GameToImageIconConverter x:Key="GameToImageIconConverter"/>
     <converters1:BootTargetSourceVisibilityConverter x:Key="BootTargetSourceVisibilityConverter"/>
     <converters1:GameIconVisibilityConverter x:Key="GameIconVisibilityConverter"/>
@@ -20,6 +21,7 @@
     <converters1:BoolToHiddenVisibleConverter x:Key="BoolToHiddenVisibleConverter"/>
     <converters1:BoolEnabledConverter x:Key="BoolEnabledConverter"/>
     <converters1:NullVisibilityConverter x:Key="NullVisibilityConverter"/>
+    <converters1:NullOrEmptyVisibilityConverter x:Key="NullOrEmptyVisibilityConverter"/>
     <converters1:NullHiddenConverter x:Key="NullHiddenConverter"/>
     <converters1:EqualIntVisibilityConverter x:Key="EqualIntVisibilityConverter"/>
     <converters1:NonEqualIntVisibilityConverter x:Key="NonEqualIntVisibilityConverter"/>
@@ -34,6 +36,10 @@
     <converters1:LanguageSupportedVisibilityConverter x:Key="LanguageSupportedVisibilityConverter"/>
     <converters1:GameToTextureModdedIconConverter x:Key="GameToTextureModdedIconConverter"/>
     <converters1:ImageTooltipVerticalOffsetConverter x:Key="ImageTooltipVerticalOffsetConverter" />
+    <converters1:MultiBoolToVisibilityConverter x:Key="MultiBoolToVisibilityConverter"/>
+    <converters1:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+    <converters1:EnumToEnabledConverter x:Key="EnumToEnabledConverter"/>
+    <converters1:MEGameToGameNameConverter x:Key="MEGameToGameNameConverter"/>
 
     <Style x:Key="TargetSelectorContainerStyle" TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -189,6 +195,12 @@
             <TextBlock Grid.Row="1" Grid.Column="1" Text="{DynamicResource string_notInstalled}"/>
         </Grid>
     </DataTemplate>
+    <DataTemplate DataType="{x:Type windows:BatchGameRestore}">
+        <DockPanel HorizontalAlignment="Stretch">
+            <fa5:ImageAwesome Icon="Solid_Redo" DockPanel.Dock="Left"  Width="16" Height="16" Margin="0,0,5,0" VerticalAlignment="Center" Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"/>
+            <TextBlock  Text="{DynamicResource string_gameRestore}" FontStyle="Italic"/>
+        </DockPanel>
+    </DataTemplate>
     <DataTemplate DataType="{x:Type batch:BatchASIMod}">
         <DockPanel HorizontalAlignment="Stretch">
             <Image DockPanel.Dock="Left" Source="/images/asi.png" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,0,5,0" VerticalAlignment="Bottom"/>
@@ -303,8 +315,8 @@
                     Opacity="0.75"
                     VerticalAlignment="Center"
                     Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
-                    <TextBlock DockPanel.Dock="Top" Text="{Binding Path=Title}" TextWrapping="Wrap" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding Path=Description}" TextWrapping="Wrap"/>
+                <TextBlock DockPanel.Dock="Top" Text="{Binding Path=Title}" TextWrapping="Wrap" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Path=Description}" TextWrapping="Wrap"/>
             </DockPanel>
 
             <DockPanel.ToolTip>

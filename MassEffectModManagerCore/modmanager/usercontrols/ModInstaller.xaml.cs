@@ -1,50 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Flurl.Http;
 using LegendaryExplorerCore.Compression;
 using LegendaryExplorerCore.GameFilesystem;
 using LegendaryExplorerCore.Gammtek.Extensions;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using LegendaryExplorerCore.Unreal;
 using ME3TweaksCore.Config;
 using ME3TweaksCore.GameFilesystem;
 using ME3TweaksCore.Helpers;
+using ME3TweaksCore.ME3Tweaks.M3Merge;
+using ME3TweaksCore.ME3Tweaks.M3Merge.PlotManager;
 using ME3TweaksCore.NativeMods;
 using ME3TweaksCore.Objects;
-using ME3TweaksCore.Services.Backup;
-using ME3TweaksCore.Services.BasegameFileIdentification;
+using ME3TweaksCore.Services.Shared.BasegameFileIdentification;
 using ME3TweaksCore.Services.ThirdPartyModIdentification;
-using ME3TweaksCoreWPF;
 using ME3TweaksCoreWPF.Targets;
-using ME3TweaksCoreWPF.UI;
 using ME3TweaksModManager.me3tweakscoreextended;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.gameini;
 using ME3TweaksModManager.modmanager.helpers;
+using ME3TweaksModManager.modmanager.installer;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.memoryanalyzer;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.alternates;
+using ME3TweaksModManager.modmanager.objects.gametarget;
 using ME3TweaksModManager.modmanager.objects.installer;
+using ME3TweaksModManager.modmanager.objects.mod.merge;
+using ME3TweaksModManager.modmanager.objects.mod.merge.v1;
 using ME3TweaksModManager.modmanager.objects.tlk;
-using ME3TweaksModManager.modmanager.usercontrols.interfaces;
 using ME3TweaksModManager.ui;
-using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
-using Newtonsoft.Json;
+using Microsoft.VisualBasic.Devices;
 using SevenZip;
-using Extensions = WinCopies.Util.Extensions;
 using Mod = ME3TweaksModManager.modmanager.objects.mod.Mod;
 
 namespace ME3TweaksModManager.modmanager.usercontrols
@@ -89,7 +82,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             InstallOptionsPackage = package;
             LoadCommands();
             lastPercentUpdateTime = DateTime.Now;
-            package.InstallTarget.ReloadGameTarget(false); //Reload so we can have consistent state with ALOT on disk
+            if (!package.BatchMode)
+            {
+                // Don't reload between batch installs to improve performance.
+                package.InstallTarget.ReloadGameTarget(false); //Reload so we can have consistent state with disk
+            }
+
             Action = M3L.GetString(M3L.string_preparingToInstall);
         }
 
@@ -144,35 +142,51 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private void BeginInstallingMod()
         {
+            SystemSleepManager.PreventSleep(@"ModInstaller");
             ModIsInstalling = true;
-            if (CheckForGameBackup())
-            {
-                if (InstallOptionsPackage.InstallTarget.Game.IsLEGame())
-                {
-                    if (!OodleHelper.EnsureOodleDll(InstallOptionsPackage.InstallTarget.TargetPath, M3Filesystem.GetDllDirectory()))
-                    {
-                        M3Log.Error($@"Oodle dll could not be sourced from game: {InstallOptionsPackage.InstallTarget.TargetPath}. Installation cannot proceed");
-                        InstallationSucceeded = false;
-                        InstallationCancelled = true;
-                        M3L.ShowDialog(mainwindow, @"The compression library for opening and saving Legendary Edition packages could not be located. Ensure your game is properly installed. If you continue to have issues, please come to the ME3Tweaks Discord.", M3L.GetString(M3L.string_cannotInstallMod), MessageBoxButton.OK, MessageBoxImage.Error);
-                        OnClosing(DataEventArgs.Empty);
-                        return;
-                    }
-                }
-                M3Log.Information($@"BeginInstallingMod(): {InstallOptionsPackage.ModBeingInstalled.ModName}");
-                NamedBackgroundWorker bw = new NamedBackgroundWorker($@"ModInstaller-{InstallOptionsPackage.ModBeingInstalled.ModName}");
-                bw.WorkerReportsProgress = true;
-                bw.DoWork += InstallModBackgroundThread;
-                bw.RunWorkerCompleted += ModInstallationCompleted;
-                bw.RunWorkerAsync();
-            }
-            else
+            if (!CheckForGameBackup())
             {
                 M3Log.Error(@"User aborted installation because they did not have a backup available");
                 InstallationSucceeded = false;
                 InstallationCancelled = true;
                 OnClosing(DataEventArgs.Empty);
+                return;
             }
+
+            // Allow skipping if previous dialog was automatically gone through.
+            if (!InstallOptionsPackage.SkipPrerequesitesCheck && !SharedInstaller.ValidateModCanInstall(window, InstallOptionsPackage.ModBeingInstalled, InstallOptionsPackage.InstallTarget))
+            {
+                M3Log.Error(@"Mod could not install - aborting");
+                InstallationSucceeded = false;
+                InstallationCancelled = true;
+                OnClosing(DataEventArgs.Empty);
+                return;
+            }
+
+            if (InstallOptionsPackage.InstallTarget.Game.IsLEGame())
+            {
+                if (!OodleHelper.EnsureOodleDll(InstallOptionsPackage.InstallTarget.TargetPath, M3Filesystem.GetDllDirectory()))
+                {
+                    M3Log.Error($@"Oodle dll could not be sourced from game: {InstallOptionsPackage.InstallTarget.TargetPath}. Installation cannot proceed");
+                    InstallationSucceeded = false;
+                    InstallationCancelled = true;
+                    var message = M3L.GetString(M3L.string_oodleNotFound);
+                    if (InstallOptionsPackage.InstallTarget.Supported)
+                    {
+                        message += " " + M3L.GetString(M3L.string_ensureGameIsValidDiscord);
+                    }
+                    M3L.ShowDialog(mainwindow, message, M3L.GetString(M3L.string_cannotInstallMod), MessageBoxButton.OK, MessageBoxImage.Error);
+                    OnClosing(DataEventArgs.Empty);
+                    return;
+                }
+            }
+
+            M3Log.Information($@"BeginInstallingMod(): {InstallOptionsPackage.ModBeingInstalled.ModName}");
+            NamedBackgroundWorker bw = new NamedBackgroundWorker($@"ModInstaller-{InstallOptionsPackage.ModBeingInstalled.ModName}");
+            bw.WorkerReportsProgress = true;
+            bw.DoWork += InstallModBackgroundThread;
+            bw.RunWorkerCompleted += ModInstallationCompleted;
+            bw.RunWorkerAsync();
         }
 
         private bool CheckForGameBackup()
@@ -186,7 +200,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 var custDlcJob = InstallOptionsPackage.ModBeingInstalled.GetJob(ModJob.JobHeader.CUSTOMDLC);
                 if (custDlcJob != null)
                 {
-                    hasAnyGameModificationJobs |= InstallOptionsPackage.ModBeingInstalled.GetAllInstallableFiles().Any(x => Path.GetFileName(x).Equals(PlotManagerUpdatePanel.PLOT_MANAGER_UPDATE_FILENAME, StringComparison.CurrentCultureIgnoreCase));
+                    hasAnyGameModificationJobs |= InstallOptionsPackage.ModBeingInstalled.GetAllInstallableFiles().Any(x => Path.GetFileName(x).Equals(PlotManagerMerge.PLOT_MANAGER_UPDATE_FILENAME, StringComparison.CurrentCultureIgnoreCase));
                 }
             }
 
@@ -201,6 +215,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             return true; //has backup
         }
 
+
+
         private void InstallModBackgroundThread(object sender, DoWorkEventArgs e)
         {
             var sw = Stopwatch.StartNew();
@@ -214,94 +230,71 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             InstallOptionsPackage.ModBeingInstalled.ReOpenArchiveIfNecessary();
 
             var installationJobs = InstallOptionsPackage.ModBeingInstalled.InstallationJobs;
-            var gameDLCPath = M3Directories.GetDLCPath(InstallOptionsPackage.InstallTarget);
+            var gameDLCPath = InstallOptionsPackage.InstallTarget.GetDLCPath();
             if (gameDLCPath != null)
             {
                 Directory.CreateDirectory(gameDLCPath); //me1/me2 missing dlc might not have this folder
             }
 
-            //Check we can install
-            // Todo: Also put this in ModOptions dialog. Maybe with a SharedModInstaller.cs?
-            var missingRequiredDLC = InstallOptionsPackage.ModBeingInstalled.ValidateRequiredModulesAreInstalled(InstallOptionsPackage.InstallTarget);
-            if (missingRequiredDLC.Count > 0)
+            // Bink only needs installed once in a batch install
+            if (!InstallOptionsPackage.BatchMode || InstallOptionsPackage.IsFirstBatchMod)
             {
-                M3Log.Error(@"Required DLC is missing for installation: " + string.Join(@", ", missingRequiredDLC));
-                e.Result = (ModInstallCompletedStatus.INSTALL_FAILED_REQUIRED_DLC_MISSING, missingRequiredDLC);
-                M3Log.Information(@"<<<<<<< Finishing modinstaller");
-                return;
-            }
-
-            // Check optional DLCs
-            if (!InstallOptionsPackage.ModBeingInstalled.ValidateSingleOptionalRequiredDLCInstalled(InstallOptionsPackage.InstallTarget))
-            {
-                M3Log.Error($@"Mod requires installation of at least one of the following DLC, none of which are installed: {String.Join(',', InstallOptionsPackage.ModBeingInstalled.OptionalSingleRequiredDLC)}");
-                e.Result = (ModInstallCompletedStatus.INSTALL_FAILED_SINGLEREQUIRED_DLC_MISSING, InstallOptionsPackage.ModBeingInstalled.OptionalSingleRequiredDLC);
-                M3Log.Information(@"<<<<<<< Finishing modinstaller");
-                return;
-            }
-
-            //Check/warn on official headers
-            if (!PrecheckHeaders(installationJobs))
-            {
-                //logs handled in precheck
-                e.Result = ModInstallCompletedStatus.INSTALL_FAILED_USER_CANCELED_MISSING_MODULES;
-                M3Log.Information(@"<<<<<<< Exiting modinstaller");
-                return;
-            }
-
-            if (InstallOptionsPackage.ModBeingInstalled.RequiresAMD && !App.IsRunningOnAMD)
-            {
-                e.Result = ModInstallCompletedStatus.INSTALL_FAILED_AMD_PROCESSOR_REQUIRED;
-                M3Log.Error(@"This mod can only be installed on AMD processors, as it does nothing for Intel users.");
-                M3Log.Information(@"<<<<<<< Exiting modinstaller");
-                return;
-            }
-
-            var needsBinkInstalled = !InstallOptionsPackage.InstallTarget.IsBinkBypassInstalled();
-            if (!needsBinkInstalled && InstallOptionsPackage.ModBeingInstalled.RequiresEnhancedBink &&
-                !InstallOptionsPackage.InstallTarget.IsEnhancedBinkInstalled())
-            {
-                needsBinkInstalled = true;
-            }
-
-            if (needsBinkInstalled)
-            {
-                try
+                var needsBinkInstalled = !InstallOptionsPackage.InstallTarget.IsBinkBypassInstalled();
+                if (!needsBinkInstalled && InstallOptionsPackage.ModBeingInstalled.RequiresEnhancedBink &&
+                    !InstallOptionsPackage.InstallTarget.IsEnhancedBinkInstalled())
                 {
-                    InstallOptionsPackage.InstallTarget.InstallBinkBypass(true);
+                    needsBinkInstalled = true;
                 }
-                catch (Exception be)
+
+                if (needsBinkInstalled)
                 {
-                    e.Result = ModInstallCompletedStatus.INSTALL_FAILED_EXCEPTION_IN_MOD_INSTALLER;
-                    if (Application.Current != null)
+                    try
                     {
-                        Application.Current.Dispatcher.Invoke(() => M3L.ShowDialog(mainwindow, M3L.GetString(M3L.string_interp_errorInstallingBinkBypassX, be.Message), M3L.GetString(M3L.string_title_errorInstallingBinkBypass), MessageBoxButton.OK, MessageBoxImage.Error));
+                        InstallOptionsPackage.InstallTarget.InstallBinkBypass(true);
                     }
-                    M3Log.Information(@"<<<<<<< Exiting modinstaller");
-                    return;
+                    catch (Exception be)
+                    {
+                        e.Result = ModInstallCompletedStatus.INSTALL_FAILED_EXCEPTION_IN_MOD_INSTALLER;
+                        if (Application.Current != null)
+                        {
+                            Application.Current.Dispatcher.Invoke(() => M3L.ShowDialog(mainwindow,
+                                M3L.GetString(M3L.string_interp_errorInstallingBinkBypassX, be.Message),
+                                M3L.GetString(M3L.string_title_errorInstallingBinkBypass), MessageBoxButton.OK,
+                                MessageBoxImage.Error));
+                        }
+
+                        M3Log.Information(@"<<<<<<< Exiting modinstaller");
+                        return;
+                    }
                 }
             }
 
             // 06/06/2022 - Change to only install for Launcher if autoboot is on since bink 2007 fixes launcher dir for every game.
-            if (Settings.SkipLELauncher && InstallOptionsPackage.ModBeingInstalled.Game.IsLEGame())
+            if (!InstallOptionsPackage.BatchMode || InstallOptionsPackage.IsFirstBatchMod)
             {
-                GameTargetWPF gt = new GameTargetWPF(MEGame.LELauncher, Path.Combine(Directory.GetParent(InstallOptionsPackage.InstallTarget.TargetPath).FullName, @"Launcher"), false, skipInit: true);
-                if (gt.IsValid && !gt.IsBinkBypassInstalled())
+                if (Settings.SkipLELauncher && InstallOptionsPackage.ModBeingInstalled.Game.IsLEGame())
                 {
-                    // Bink isn't installed and it needs autoboot
-                    if (MUtilities.IsGameRunning(MEGame.LELauncher))
+                    GameTargetWPF gt = new GameTargetWPF(MEGame.LELauncher,
+                        Path.Combine(Directory.GetParent(InstallOptionsPackage.InstallTarget.TargetPath).FullName,
+                            @"Launcher"), false, skipInit: true);
+                    if (gt.IsValid && !gt.IsBinkBypassInstalled())
                     {
-                        M3Log.Warning(@"LE Launcher bink bypass needs installed for autoboot but launcher is running - skipping install");
+                        // Bink isn't installed and it needs autoboot
+                        if (MUtilities.IsGameRunning(MEGame.LELauncher))
+                        {
+                            M3Log.Warning(
+                                @"LE Launcher bink bypass needs installed for autoboot but launcher is running - skipping install");
+                        }
+                        else
+                        {
+                            // If it fails to install we don't really care
+                            gt.InstallBinkBypass(false);
+                        }
                     }
                     else
                     {
-                        // If it fails to install we don't really care
-                        gt.InstallBinkBypass(false);
+                        M3Log.Information(@"LE Launcher bink bypass is already installed - not installing for autoboot");
                     }
-                }
-                else
-                {
-                    M3Log.Information(@"LE Launcher bink bypass is already installed - not installing for autoboot");
                 }
             }
 
@@ -470,7 +463,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         var destFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"BioWare", @"Mass Effect", @"Config", originalMapping.Key);
                         if (InstallOptionsPackage.ModBeingInstalled.IsInArchive)
                         {
-                            int archiveIndex = InstallOptionsPackage.ModBeingInstalled.Archive.ArchiveFileNames.IndexOf(sourceFile, StringComparer.InvariantCultureIgnoreCase);
+                            int archiveIndex = Extensions.IndexOf(InstallOptionsPackage.ModBeingInstalled.Archive.ArchiveFileNames, sourceFile, StringComparer.InvariantCultureIgnoreCase);
                             fullPathMappingArchive[archiveIndex] = destFile; //used for extraction indexing
                             if (archiveIndex == -1)
                             {
@@ -487,7 +480,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     else
                     {
 
-                        var destFile = Path.Combine(unpackedQueue.Key.Header == ModJob.JobHeader.CUSTOMDLC ? M3Directories.GetDLCPath(InstallOptionsPackage.InstallTarget) : InstallOptionsPackage.InstallTarget.TargetPath, originalMapping.Key); //official
+                        var destFile = Path.Combine(unpackedQueue.Key.Header == ModJob.JobHeader.CUSTOMDLC ? InstallOptionsPackage.InstallTarget.GetDLCPath() : InstallOptionsPackage.InstallTarget.TargetPath, originalMapping.Key); //official
 
                         //Extract Custom DLC name
                         if (unpackedQueue.Key.Header == ModJob.JobHeader.CUSTOMDLC)
@@ -504,7 +497,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                         if (InstallOptionsPackage.ModBeingInstalled.IsInArchive)
                         {
-                            int archiveIndex = InstallOptionsPackage.ModBeingInstalled.Archive.ArchiveFileNames.IndexOf(sourceFile, StringComparer.InvariantCultureIgnoreCase);
+                            int archiveIndex = Extensions.IndexOf(InstallOptionsPackage.ModBeingInstalled.Archive.ArchiveFileNames, sourceFile, StringComparer.InvariantCultureIgnoreCase);
                             fullPathMappingArchive[archiveIndex] = destFile; //used for extraction indexing
                             if (archiveIndex == -1)
                             {
@@ -524,7 +517,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             }
 
             //Substage: Add SFAR staging targets
-            string sfarStagingDirectory = (InstallOptionsPackage.ModBeingInstalled.IsInArchive && installationQueues.SFARJobs.Count > 0) ? Directory.CreateDirectory(Path.Combine(M3Filesystem.GetTempPath(), @"SFARJobStaging")).FullName : null; //don't make directory if we don't need one
+            string sfarStagingDirectory = (InstallOptionsPackage.ModBeingInstalled.IsInArchive && installationQueues.SFARJobs.Count > 0) ? Directory.CreateDirectory(Path.Combine(MCoreFilesystem.GetTempDirectory(), @"SFARJobStaging")).FullName : null; //don't make directory if we don't need one
             if (sfarStagingDirectory != null)
             {
                 M3Log.Information(@"Building list of SFAR staging targets");
@@ -541,7 +534,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         {
                             sourceFile = FilesystemInterposer.PathCombine(InstallOptionsPackage.ModBeingInstalled.IsInArchive, InstallOptionsPackage.ModBeingInstalled.ModPath, sfarJob.Job.JobDirectory, fileToInstall.Value.FilePath);
                         }
-                        int archiveIndex = InstallOptionsPackage.ModBeingInstalled.Archive.ArchiveFileNames.IndexOf(sourceFile, StringComparer.InvariantCultureIgnoreCase);
+                        int archiveIndex = Extensions.IndexOf(InstallOptionsPackage.ModBeingInstalled.Archive.ArchiveFileNames, sourceFile, StringComparer.InvariantCultureIgnoreCase);
                         if (archiveIndex == -1)
                         {
                             M3Log.Error($@"Archive Index is -1 for file {sourceFile}. This will probably throw an exception!");
@@ -607,7 +600,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
             //Delete existing custom DLC mods with same name
             // 05/08/2023: Restore ME3CMM feature that also removed DLCs that began with 'x' - disabled DLCs
-            foreach (var cdbi in customDLCsBeingInstalled.Concat(customDLCsBeingInstalled.Select(x => 'x' + x))) 
+            foreach (var cdbi in customDLCsBeingInstalled.Concat(customDLCsBeingInstalled.Select(x => 'x' + x)))
             {
                 var path = Path.Combine(gameDLCPath, cdbi);
                 if (Directory.Exists(path))
@@ -615,7 +608,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     M3Log.Information($@"Deleting existing DLC directory: {path}");
                     try
                     {
-                        M3Utilities.DeleteFilesAndFoldersRecursively(path, true);
+                        MUtilities.DeleteFilesAndFoldersRecursively(path, true);
                     }
                     catch (UnauthorizedAccessException)
                     {
@@ -624,7 +617,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                             // for some reason we don't have permission to do this.
                             M3Log.Warning(@"Unauthorized access exception deleting the existing DLC mod folder. Perhaps permissions aren't being inherited? Prompting for admin to grant writes to folder, which will then be deleted.");
                             M3Utilities.CreateDirectoryWithWritePermission(path, true);
-                            M3Utilities.DeleteFilesAndFoldersRecursively(path);
+                            MUtilities.DeleteFilesAndFoldersRecursively(path);
                         }
                         catch (Exception finalException)
                         {
@@ -645,9 +638,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             }
 
             var basegameFilesInstalled = new List<string>();
-            var basegameCloudDBUpdates = new List<BasegameFileRecord>();
+            var basegameIdentificationServiceRecords = new CaseInsensitiveDictionary<BasegameFileRecord>();
             void FileInstalledIntoSFARCallback(Dictionary<string, Mod.InstallSourceFile> sfarMapping, string targetPath)
             {
+                SystemSleepManager.PreventSleep(@"ModInstaller");
+
                 numdone++;
                 targetPath = targetPath.Replace('/', '\\').TrimStart('\\');
                 var fileMapping = sfarMapping.FirstOrDefault(x => x.Key == targetPath);
@@ -666,6 +661,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
             void FileInstalledCallback(string targetPath)
             {
+                SystemSleepManager.PreventSleep(@"ModInstaller");
                 numdone++;
                 var fileMapping = fullPathMappingDisk.FirstOrDefault(x => x.Value == targetPath);
                 M3Log.Information($@"[{numdone}/{numFilesToInstall}] Installed: {fileMapping.Key} -> {targetPath}", Settings.LogModInstallation);
@@ -818,6 +814,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             {
                 addedDLCFolders.AddRange(v.Value.DLCFoldersBeingInstalled);
             }
+
+            var installedMetaCmms = new CaseInsensitiveDictionary<MetaCMM>();
             foreach (var addedDLCFolder in addedDLCFolders)
             {
                 // Write metacmm files
@@ -825,23 +823,26 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                 // Collect data for meta cmm
                 InstallOptionsPackage.ModBeingInstalled.HumanReadableCustomDLCNames.TryGetValue(Path.GetFileName(addedDLCFolder), out var assignedDLCName);
-                var alternates = InstallOptionsPackage.SelectedOptions.SelectMany(x => x.Value);
-                IEnumerable<string> optionsChosen = alternates.Where(x => !string.IsNullOrWhiteSpace(x.FriendlyName)).Select(x =>
+                var alternates = InstallOptionsPackage.SelectedOptions.SelectMany(x => x.Value).ToList();
+                IEnumerable<string> optionsChosen = alternates.Where(x => !string.IsNullOrWhiteSpace(x.FriendlyName) && (Settings.DeveloperMode || !x.IsHidden)).Select(x =>
                 {
                     if (x.GroupName != null) return $@"{x.GroupName}: {x.FriendlyName}";
                     return x.FriendlyName;
                 });
+
 
                 // Build meta cmm
                 var metacmmPath = Path.Combine(addedDLCFolder, @"_metacmm.txt");
 
                 MetaCMM metacmm = new MetaCMM()
                 {
-                    ModdescSourcePath = InstallOptionsPackage.ModBeingInstalled.ModDescPath,
+                    ModdescSourcePath = M3LoadedMods.GetRelativeModdescPath(InstallOptionsPackage.ModBeingInstalled),
+                    ModdescSourceHash = InstallOptionsPackage.ModBeingInstalled.ModDescHash,
                     ModName = assignedDLCName ?? InstallOptionsPackage.ModBeingInstalled.ModName,
                     Version = InstallOptionsPackage.ModBeingInstalled.ModVersionString,
                     InstallTime = DateTime.Now,
                     NexusUpdateCode = InstallOptionsPackage.ModBeingInstalled.NexusModID,
+                    OptionKeysSelectedAtInstallTime = alternates.Select(x => x.OptionKey).ToList()
                 };
 
                 // Metacmm uses observable collections because in some apps it's binded to the interface
@@ -852,91 +853,164 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                 // Write it out to disk
                 metacmm.WriteMetaCMM(metacmmPath, App.BuildNumber.ToString());
+
+                installedMetaCmms[addedDLCFolder] = metacmm;
             }
 
             //Stage: SFAR Installation
             foreach (var sfarJob in installationQueues.SFARJobs)
             {
+                SystemSleepManager.PreventSleep(@"ModInstaller");
                 InstallIntoSFAR(sfarJob, InstallOptionsPackage.ModBeingInstalled, FileInstalledIntoSFARCallback, InstallOptionsPackage.ModBeingInstalled.IsInArchive ? sfarStagingDirectory : null);
             }
 
             //Stage: Merge Mods
             var allMMs = installationJobs.SelectMany(x => x.MergeMods).ToList();
             allMMs.AddRange(installationJobs.SelectMany(x => x.AlternateFiles.Where(y => y.UIIsSelected && y.MergeMods != null).SelectMany(y => y.MergeMods)));
-            var totalWeight = allMMs.Sum(x => x.GetMergeWeight());
-            var doneWeight = 0;
-            if (totalWeight == 0)
-            {
-                Debug.WriteLine(@"Total weight is ZERO!");
-                totalWeight = 1;
-            }
 
-            void mergeWeightCompleted(int newWeightDone)
+            if (allMMs.Count > 0)
             {
-                doneWeight += newWeightDone;
-                Percent = (int)(doneWeight * 100.0 / totalWeight);
-#if DEBUG
-                if (Percent > 100)
+                var totalWeight = allMMs.Sum(x => x.GetMergeWeight());
+                var doneWeight = 0;
+                if (totalWeight == 0)
                 {
-                    Debug.WriteLine(@"Percent calculation is wrong!");
-                    Debugger.Break();
+                    Debug.WriteLine(@"Total weight is ZERO!");
+                    totalWeight = 1;
                 }
-#endif
-            }
 
-            void addBasegameTrackedFile(string originalmd5, string file)
-            {
-                if (file != null)
+                void mergeWeightCompleted(int newWeightDone)
                 {
-                    if (file.Contains(@"BioGame\CookedPC", StringComparison.InvariantCultureIgnoreCase))
+                    SystemSleepManager.PreventSleep(@"ModInstaller");
+                    doneWeight += newWeightDone;
+                    Percent = (int)(doneWeight * 100.0 / totalWeight);
+#if DEBUG
+                    if (Percent > 100)
                     {
-                        // It's basegame
-                        var mm = new M3BasegameFileRecord(file, (int)new FileInfo(file).Length, InstallOptionsPackage.InstallTarget, InstallOptionsPackage.ModBeingInstalled);
-                        var existingInfo = BasegameFileIdentificationService.GetBasegameFileSource(InstallOptionsPackage.InstallTarget, file, originalmd5);
-                        var newTextToAppend = $@"{InstallOptionsPackage.ModBeingInstalled.ModName} {InstallOptionsPackage.ModBeingInstalled.ModVersionString}";
-                        if (existingInfo != null && !existingInfo.source.Contains(newTextToAppend))
+                        Debug.WriteLine(@"Percent calculation is wrong!");
+                        Debugger.Break();
+                    }
+#endif
+                }
+
+                void addBasegameTrackedFile(string originalmd5, string file, string finalMD5 = null)
+                {
+                    if (file != null)
+                    {
+                        if (file.Contains(@"BioGame\CookedPC", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            mm.source = $@"{existingInfo.source} + {newTextToAppend}";
+                            // It's basegame
+                            var mm = new M3BasegameFileRecord(file, (int)new FileInfo(file).Length,
+                                InstallOptionsPackage.InstallTarget, InstallOptionsPackage.ModBeingInstalled, finalMD5);
+                            var existingInfo =
+                                BasegameFileIdentificationService.GetBasegameFileSource(
+                                    InstallOptionsPackage.InstallTarget, file, originalmd5);
+                            var newTextToAppend =
+                                $@"{InstallOptionsPackage.ModBeingInstalled.ModName} {InstallOptionsPackage.ModBeingInstalled.ModVersionString}";
+                            mm.moddeschashes ??= new();
+                            if (existingInfo != null)
+                            {
+                                if (!existingInfo.source.Contains(newTextToAppend))
+                                {
+                                    mm.source = $"{existingInfo.source}\n{newTextToAppend}"; // do not localize
+                                }
+
+                                mm.moddeschashes.AddRange(existingInfo.moddeschashes);
+                            }
+
+                            mm.moddeschashes.Add(InstallOptionsPackage.ModBeingInstalled.ModDescHash);
+                            basegameIdentificationServiceRecords[
+                                Path.GetRelativePath(InstallOptionsPackage.InstallTarget.TargetPath, file)] = mm;
                         }
-                        basegameCloudDBUpdates.Add(mm);
                     }
                 }
-            }
 
-            // We must have a list of records we use as initial lookups
-            // It is mapped filepath -> record
-            // This is so if we apply multiple m3m's to a single file 
-            // it does not wipe it out when it does the hash transition across
-            // two files but is not yet in the database
-            var originalRecords = new CaseInsensitiveConcurrentDictionary<string>();
-            Percent = 0;
-            foreach (var mergeMod in allMMs)
-            {
-                try
+                var mmp = new MergeModPackage()
+                {
+                    Target = InstallOptionsPackage.InstallTarget,
+                    AssociatedMod = InstallOptionsPackage.ModBeingInstalled,
+                    OpenedBasegameCache = new PackageCache()
+                };
+
+                if (allMMs.Count == 1)
+                {
+                    mmp.OpenedBasegameCache.CacheMaxSize = 1; // This should effectively not cache anything
+                }
+                else if (allMMs.OfType<MergeMod1>().Any(x => x.FilesToMergeInto.Any(x => x.ApplyToAllLocalizations)) &&
+                         (new ComputerInfo().AvailablePhysicalMemory / (ulong)FileSize.GibiByte < 8))
+                {
+                    // If not a lot of free memory cap it at 4 files, about 1GB for LE1 startups
+                    mmp.OpenedBasegameCache.CacheMaxSize = 4;
+                }
+                else
+                {
+                    // Cache is uncapped. We can further optimize install time by not saving until the end.
+                    mmp.MergeModToSavePackageWith = new CaseInsensitiveDictionary<IMergeMod>();
+                    for (int i = allMMs.Count - 1; i >= 0; i--)
+                    {
+                        var mm = allMMs[i];
+                        var allFiles = mm.GetMergeFileTargetFiles();
+                        foreach (var af in allFiles)
+                        {
+                            if (!mmp.MergeModToSavePackageWith.TryGetValue(af, out _))
+                            {
+                                mmp.MergeModToSavePackageWith[af] =
+                                    mm; // This merge mod should be the one to save the package.
+                            }
+                        }
+                    }
+                }
+
+
+                // Run at the end of all merge mods so we get the final hash.
+                void convertMergeModRecordsToFileIdentificationRecords()
+                {
+                    Action = M3L.GetString(M3L.string_trackingMergemodChanges);
+                    mmp.FinalizeFileTransitionMap();
+                    foreach (var f in mmp.FileTransitionMap.Where(x => x.Value.WasSavedOnce))
+                    {
+                        addBasegameTrackedFile(f.Value.OriginalMD5, f.Key, f.Value.FinalMD5);
+                    }
+                }
+
+                if (allMMs.Any())
                 {
                     Action = M3L.GetString(M3L.string_applyingMergemods);
-                    mergeMod.ApplyMergeMod(InstallOptionsPackage.ModBeingInstalled, InstallOptionsPackage.InstallTarget, mergeWeightCompleted, addBasegameTrackedFile, originalRecords);
+                    Percent = 0;
                 }
-                catch (Exception ex)
-                {
-                    // Error applying merge mod!
-                    InstallationSucceeded = false;
-                    M3Log.Exception(ex, $@"An error occurred installing mergemod {mergeMod.MergeModFilename}: ");
-                    e.Result = ModInstallCompletedStatus.INSTALL_FAILED_EXCEPTION_APPLYING_MERGE_MOD;
-                    if (Application.Current != null)
-                    {
-                        Application.Current.Dispatcher.Invoke(() => M3L.ShowDialog(mainwindow, M3L.GetString(M3L.string_interp_errorApplyingMergeModXY, mergeMod.MergeModFilename, ex.Message), M3L.GetString(M3L.string_errorInstallingMod), MessageBoxButton.OK, MessageBoxImage.Error));
-                    }
 
-                    M3Log.Warning(@"<<<<<<< Aborting modinstaller");
-                    return;
+                foreach (var mergeMod in allMMs)
+                {
+                    try
+                    {
+                        mergeMod.ApplyMergeMod(mmp, mergeWeightCompleted);
+                    }
+                    catch (Exception ex)
+                    {
+                        convertMergeModRecordsToFileIdentificationRecords(); // Run conversion now
+
+                        // Error applying merge mod!
+                        InstallationSucceeded = false;
+                        M3Log.Exception(ex, $@"An error occurred installing mergemod {mergeMod.MergeModFilename}: ");
+                        e.Result = ModInstallCompletedStatus.INSTALL_FAILED_EXCEPTION_APPLYING_MERGE_MOD;
+                        if (Application.Current != null)
+                        {
+                            Application.Current.Dispatcher.Invoke(() => M3L.ShowDialog(mainwindow,
+                                M3L.GetString(M3L.string_interp_errorApplyingMergeModXY, mergeMod.MergeModFilename,
+                                    ex.Message), M3L.GetString(M3L.string_errorInstallingMod), MessageBoxButton.OK,
+                                MessageBoxImage.Error));
+                        }
+
+                        M3Log.Warning(@"<<<<<<< Aborting modinstaller");
+                        return;
+                    }
                 }
+
+                convertMergeModRecordsToFileIdentificationRecords(); // Run conversion
             }
 
             // Stage: TLK merge (Game 1)
             if (InstallOptionsPackage.ModBeingInstalled.GetJob(ModJob.JobHeader.GAME1_EMBEDDED_TLK) != null)
             {
-                PackageCache pc = new PackageCache();
                 Percent = 0;
                 Action = M3L.GetString(M3L.string_updatingTLKFiles);
 
@@ -945,7 +1019,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 var gameMap = MELoadedFiles.GetFilesLoadedInGame(InstallOptionsPackage.InstallTarget.Game, gameRootOverride: InstallOptionsPackage.InstallTarget.TargetPath);
                 int doneMerges = 0;
                 int totalTlkMerges = mergeFiles.Count;
-                PackageCache cache = new PackageCache();
+                PackageCache cache = new PackageCache() { CacheMaxSize = 12 };
 
                 // 06/05/2022 Change to parallel
                 Exception parallelException = null;
@@ -956,6 +1030,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     if (parallelException != null)
                         return;
 
+                    SystemSleepManager.PreventSleep(@"ModInstaller");
+
                     for (int i = 0; i < tlkFileMap.Value.Count; i++)
                     {
                         if (parallelException == null)
@@ -963,7 +1039,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                             try
                             {
                                 var tlkXmlFile = tlkFileMap.Value[i];
-                                InstallOptionsPackage.ModBeingInstalled.InstallTLKMerge(tlkXmlFile, compressedTlkData, gameMap, i == tlkFileMap.Value.Count - 1, cache, InstallOptionsPackage.InstallTarget, InstallOptionsPackage.ModBeingInstalled, x => basegameCloudDBUpdates.Add(x));
+                                InstallOptionsPackage.ModBeingInstalled.InstallTLKMerge(tlkXmlFile, compressedTlkData, gameMap, i == tlkFileMap.Value.Count - 1, cache, InstallOptionsPackage.InstallTarget, InstallOptionsPackage.ModBeingInstalled, x => basegameIdentificationServiceRecords[x.file] = x);
                             }
                             catch (Exception e)
                             {
@@ -993,11 +1069,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             }
 
             // Stage: M3CD for LE2, LE3
-            if (InstallOptionsPackage.ModBeingInstalled.Game is MEGame.LE2 or MEGame.LE3)
+            if (InstallOptionsPackage.ModBeingInstalled.Game.IsGame2() || InstallOptionsPackage.ModBeingInstalled.Game.IsGame3())
             {
                 foreach (var dlcFolderInstalled in addedDLCFolders)
                 {
-                    ConfigMerge.PerformDLCMerge(InstallOptionsPackage.ModBeingInstalled.Game, M3Directories.GetDLCPath(InstallOptionsPackage.InstallTarget), Path.GetFileName(dlcFolderInstalled));
+                    M3CConfigMerge.PerformDLCMerge(InstallOptionsPackage.ModBeingInstalled.Game, InstallOptionsPackage.InstallTarget.GetDLCPath(), Path.GetFileName(dlcFolderInstalled));
                 }
             }
 
@@ -1019,7 +1095,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 if (Directory.Exists(outdatedDLCInGame))
                 {
                     M3Log.Information(@"Deleting outdated custom DLC folder: " + outdatedDLCInGame);
-                    M3Utilities.DeleteFilesAndFoldersRecursively(outdatedDLCInGame);
+                    MUtilities.DeleteFilesAndFoldersRecursively(outdatedDLCInGame);
                 }
             }
 
@@ -1039,38 +1115,64 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             {
                 if (InstallOptionsPackage.ModBeingInstalled.GetJob(ModJob.JobHeader.BALANCE_CHANGES) != null)
                 {
-                    ASIManager.InstallASIToTargetByGroupID(ASIModIDs.ME3_BALANCE_CHANGES_REPLACER, @"Balance Changes Replacer", InstallOptionsPackage.InstallTarget);
+                    ASIManager.InstallASIToTargetByGroupID(ASIModUpdateGroupID.ME3_BalanceChangesReplacer, @"Balance Changes Replacer", InstallOptionsPackage.InstallTarget);
                 }
 
                 if (InstallOptionsPackage.InstallTarget.Supported)
                 {
-                    ASIManager.InstallASIToTargetByGroupID(ASIModIDs.ME3_AUTOTOC, @"AutoTOC", InstallOptionsPackage.InstallTarget);
-                    ASIManager.InstallASIToTargetByGroupID(ASIModIDs.ME3_LOGGER, @"ME3Logger-Truncating", InstallOptionsPackage.InstallTarget);
+                    ASIManager.InstallASIToTargetByGroupID(ASIModUpdateGroupID.ME3_AutoTOC, @"AutoTOC", InstallOptionsPackage.InstallTarget);
+                    ASIManager.InstallASIToTargetByGroupID(ASIModUpdateGroupID.ME3_ME3Logger, @"ME3Logger-Truncating", InstallOptionsPackage.InstallTarget);
                 }
             }
             else if (InstallOptionsPackage.ModBeingInstalled.Game == MEGame.LE1)
             {
-                ASIManager.InstallASIToTargetByGroupID(ASIModIDs.LE1_AUTOTOC, @"AutoTOC_LE", InstallOptionsPackage.InstallTarget);
-                ASIManager.InstallASIToTargetByGroupID(ASIModIDs.LE1_AUTOLOAD_ENABLER, @"AutoloadEnabler", InstallOptionsPackage.InstallTarget);
+                ASIManager.InstallASIToTargetByGroupID(ASIModUpdateGroupID.LE1_AutoTOCLE, @"AutoTOC_LE", InstallOptionsPackage.InstallTarget);
+                ASIManager.InstallASIToTargetByGroupID(ASIModUpdateGroupID.LE1_AutoloadEnabler, @"AutoloadEnabler", InstallOptionsPackage.InstallTarget);
             }
             else if (InstallOptionsPackage.ModBeingInstalled.Game == MEGame.LE2)
             {
-                ASIManager.InstallASIToTargetByGroupID(ASIModIDs.LE2_AUTOTOC, @"AutoTOC", InstallOptionsPackage.InstallTarget);
+                ASIManager.InstallASIToTargetByGroupID(ASIModUpdateGroupID.LE2_AutoTOCLE, @"AutoTOC", InstallOptionsPackage.InstallTarget);
             }
             else if (InstallOptionsPackage.ModBeingInstalled.Game == MEGame.LE3)
             {
-                ASIManager.InstallASIToTargetByGroupID(ASIModIDs.LE3_AUTOTOC, @"AutoTOC", InstallOptionsPackage.InstallTarget);
+                ASIManager.InstallASIToTargetByGroupID(ASIModUpdateGroupID.LE3_AutoTOCLE, @"AutoTOC", InstallOptionsPackage.InstallTarget);
             }
+
+            // ModDesc 9: Install mod-requested ASI mods
+            foreach (var asiMod in InstallOptionsPackage.ModBeingInstalled.ASIModsToInstall)
+            {
+                var asiToInstall = ASIManager.GetASIModVersion(InstallOptionsPackage.ModBeingInstalled.Game, asiMod.ASIGroupID, asiMod.Version);
+                if (asiToInstall != null)
+                {
+                    ASIManager.InstallASIToTarget(asiToInstall, InstallOptionsPackage.InstallTarget);
+                }
+                else
+                {
+                    M3Log.Error($@"Unable to install ASI mod {asiMod.ToString()}: not found in ASI manifest.");
+                }
+            }
+
+
 
             if (sfarStagingDirectory != null)
             {
-                M3Utilities.DeleteFilesAndFoldersRecursively(M3Filesystem.GetTempPath());
+                MUtilities.DeleteFilesAndFoldersRecursively(MCoreFilesystem.GetTempDirectory());
             }
 
             if (numFilesToInstall == numdone)
             {
                 e.Result = ModInstallCompletedStatus.INSTALL_SUCCESSFUL;
                 Action = M3L.GetString(M3L.string_installed);
+                if (Settings.ShowInstalledModsInLibrary)
+                {
+                    var gs = new GameState()
+                    {
+                        Target = InstallOptionsPackage.InstallTarget,
+                        DLCMetaCMMs = installedMetaCmms,
+                        BasegameHashes = basegameIdentificationServiceRecords
+                    };
+                    InstallOptionsPackage.ModBeingInstalled.DetermineIfInstalled(gs);
+                }
             }
             else
             {
@@ -1081,13 +1183,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             M3Log.Information(@"<<<<<<< Finishing modinstaller");
             sw.Stop();
             Debug.WriteLine($@"Installer took {sw.ElapsedMilliseconds}ms");
-            //Submit basegame tracking in async way
-            if (basegameFilesInstalled.Any() || basegameCloudDBUpdates.Any())
+            if (basegameFilesInstalled.Any() || basegameIdentificationServiceRecords.Any())
             {
                 try
                 {
-                    var files = new List<BasegameFileRecord>(basegameFilesInstalled.Count + basegameCloudDBUpdates.Count);
-                    files.AddRange(basegameCloudDBUpdates);
+                    var files = new List<BasegameFileRecord>(basegameFilesInstalled.Count + basegameIdentificationServiceRecords.Count);
+                    files.AddRange(basegameIdentificationServiceRecords.Values);
                     foreach (var file in basegameFilesInstalled)
                     {
                         var entry = new M3BasegameFileRecord(file, (int)new FileInfo(file).Length, InstallOptionsPackage.InstallTarget, InstallOptionsPackage.ModBeingInstalled);
@@ -1326,90 +1427,17 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             return true;
         }
 
-        /// <summary>
-        /// Checks if DLC specified by the job installation headers exist and prompt user to continue or not if the DLC is not found. This is only used jobs that are not CUSTOMDLC.'
-        /// </summary>
-        /// <param name="installationJobs">List of jobs to look through and validate</param>
-        /// <returns></returns>
-        private bool PrecheckHeaders(List<ModJob> installationJobs)
-        {
-            //if (InstallOptionsPackage.ModBeingInstalled.Game != MEGame.ME3) { return true; } //me1/me2 don't have dlc header checks like me3
-            foreach (var job in installationJobs)
-            {
-                if (job.Header == ModJob.JobHeader.ME1_CONFIG)
-                {
-                    //Make sure config files exist.
-                    var destFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"BioWare", @"Mass Effect", @"Config", @"BIOEngine.ini");
-                    if (!File.Exists(destFile))
-                    {
-                        bool cancel = false;
-
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-
-                            M3L.ShowDialog(Window.GetWindow(this), M3L.GetString(M3L.string_dialogRunGameOnceFirst), M3L.GetString(M3L.string_gameMustBeRunAtLeastOnce), MessageBoxButton.OK, MessageBoxImage.Error);
-                            cancel = true;
-                            return;
-                        });
-                        if (cancel) return false;
-                    }
-
-                    continue;
-                }
-
-                if (!InstallOptionsPackage.InstallTarget.IsOfficialDLCInstalled(job.Header))
-                {
-                    M3Log.Warning($@"DLC not installed that mod is marked to modify: {job.Header}, prompting user.");
-                    //Prompt user
-                    bool cancel = false;
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        var dlcName = ModJob.GetHeadersToDLCNamesMap(InstallOptionsPackage.ModBeingInstalled.Game)[job.Header];
-                        string resolvedName = dlcName;
-                        MEDirectories.OfficialDLCNames(InstallOptionsPackage.ModBeingInstalled.Game).TryGetValue(dlcName, out resolvedName);
-                        string message = M3L.GetString(M3L.string_interp_dialogOfficialTargetDLCNotInstalled, InstallOptionsPackage.ModBeingInstalled.ModName, dlcName, resolvedName);
-                        if (job.RequirementText != null)
-                        {
-                            message += M3L.GetString(M3L.string_dialogJobDescriptionMessageHeader);
-                            message += $"\n{job.RequirementText}"; //Do not localize
-                        }
-
-                        message += M3L.GetString(M3L.string_dialogJobDescriptionMessageFooter);
-                        MessageBoxResult result = M3L.ShowDialog(window, message, M3L.GetString(M3L.string_dialogJobDescriptionMessageTitle, MEDirectories.OfficialDLCNames(InstallOptionsPackage.ModBeingInstalled.Game)[ModJob.GetHeadersToDLCNamesMap(InstallOptionsPackage.ModBeingInstalled.Game)[job.Header]]), MessageBoxButton.YesNo, MessageBoxImage.Error);
-                        if (result == MessageBoxResult.No)
-                        {
-                            cancel = true;
-                            return;
-                        }
-
-                    });
-                    if (cancel)
-                    {
-                        M3Log.Error(@"User canceling installation");
-
-                        return false;
-                    }
-
-                    M3Log.Warning(@"User continuing installation anyways");
-                }
-                else
-                {
-                    M3Log.Information(@"Official headers check passed for header " + job.Header, Settings.LogModInstallation);
-                }
-            }
-
-            return true;
-        }
-
         private void ModInstallationCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            SystemSleepManager.AllowSleep(); // We can go back to sleep again.
+
             var telemetryResult = ModInstallCompletedStatus.NO_RESULT_CODE;
             if (e.Error != null)
             {
                 M3Log.Error(@"An error occurred during mod installation.");
                 M3Log.Error(App.FlattenException(e.Error));
                 telemetryResult = ModInstallCompletedStatus.INSTALL_FAILED_EXCEPTION_IN_MOD_INSTALLER;
-                M3L.ShowDialog(mainwindow, M3L.GetString(M3L.string_interp_dialog_errorOccuredDuringInstallation, App.FlattenException(e.Error)), M3L.GetString(M3L.string_error));
+                M3L.ShowDialog(mainwindow, M3L.GetString(M3L.string_interp_dialog_errorOccuredDuringInstallation, App.FlattenException(e.Error)), M3L.GetString(M3L.string_error), MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
@@ -1474,39 +1502,37 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 }
                 else if (e.Result is (ModInstallCompletedStatus dlcCode, List<DLCRequirement> failReqs))
                 {
-                    telemetryResult = dlcCode;
-                    // A DLC requirement failed
-                    string dlcText = "";
-                    foreach (var dlc in failReqs)
-                    {
-                        var info = TPMIService.GetThirdPartyModInfo(dlc.DLCFolderName,
-                            InstallOptionsPackage.ModBeingInstalled.Game);
-                        if (info != null)
-                        {
-                            dlcText += $"\n - {info.modname} ({dlc.DLCFolderName})"; //Do not localize
-                        }
-                        else
-                        {
-                            dlcText += $"\n - {dlc.DLCFolderName}"; //Do not localize
-                        }
+                    //telemetryResult = dlcCode;
+                    //// A DLC requirement failed
+                    //string dlcText = "";
+                    //foreach (var dlc in failReqs)
+                    //{
+                    //    var info = TPMIService.GetThirdPartyModInfo(dlc.DLCFolderName.Key, InstallOptionsPackage.ModBeingInstalled.Game);
+                    //    if (info != null)
+                    //    {
+                    //        dlcText += $"\n - {info.modname} ({dlc.DLCFolderName})"; //Do not localize
+                    //    }
+                    //    else
+                    //    {
+                    //        dlcText += $"\n - {dlc.DLCFolderName}"; //Do not localize
+                    //    }
 
-                        if (dlc.MinVersion != null)
-                        {
-                            dlcText += @" " + M3L.GetString(M3L.string_interp_minVersionAppend, dlc.MinVersion);
-                        }
-                    }
+                    //    if (dlc.MinVersion != null)
+                    //    {
+                    //        dlcText += @" " + M3L.GetString(M3L.string_interp_minVersionAppend, dlc.MinVersion);
+                    //    }
+                    //}
 
-                    // Show dialog
-                    if (dlcCode == ModInstallCompletedStatus.INSTALL_FAILED_REQUIRED_DLC_MISSING)
-                    {
-                        M3L.ShowDialog(window, M3L.GetString(M3L.string_dialogRequiredContentMissing, dlcText), M3L.GetString(M3L.string_requiredContentMissing), MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    else if (dlcCode == ModInstallCompletedStatus.INSTALL_FAILED_SINGLEREQUIRED_DLC_MISSING)
-                    {
-                        M3L.ShowDialog(window, M3L.GetString(M3L.string_interp_error_singleRequiredDlcMissing, InstallOptionsPackage.ModBeingInstalled.ModName, dlcText), M3L.GetString(M3L.string_requiredContentMissing), MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    //// Show dialog
+                    //if (dlcCode == ModInstallCompletedStatus.INSTALL_FAILED_REQUIRED_DLC_MISSING)
+                    //{
+                    //    M3L.ShowDialog(window, M3L.GetString(M3L.string_dialogRequiredContentMissing, dlcText), M3L.GetString(M3L.string_requiredContentMissing), MessageBoxButton.OK, MessageBoxImage.Error);
+                    //}
+                    //else if (dlcCode == ModInstallCompletedStatus.INSTALL_FAILED_SINGLEREQUIRED_DLC_MISSING)
+                    //{
+                    //}
 
-                    InstallationCancelled = true;
+                    //InstallationCancelled = true;
 
                 }
                 else if (e.Result is (ModInstallCompletedStatus result, List<string> items))
@@ -1564,30 +1590,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             // Only make changes if user didn't cancel
             if (!InstallationCancelled)
             {
-                if (InstallOptionsPackage.ModBeingInstalled.Game.IsGame1() || InstallOptionsPackage.ModBeingInstalled.Game.IsGame2())
-                {
-                    Result.TargetsToPlotManagerSync.Add(InstallOptionsPackage.InstallTarget);
-                }
-
-                if (InstallOptionsPackage.ModBeingInstalled.Game == MEGame.LE1)
-                {
-                    Result.TargetsToCoalescedMerge.Add(InstallOptionsPackage.InstallTarget);
-                }
-
-                if (InstallOptionsPackage.ModBeingInstalled.Game == MEGame.ME3 || InstallOptionsPackage.ModBeingInstalled.Game.IsLEGame())
-                {
-                    Result.TargetsToAutoTOC.Add(InstallOptionsPackage.InstallTarget);
-                }
-
-                if (InstallOptionsPackage.ModBeingInstalled.Game.IsGame3() || InstallOptionsPackage.ModBeingInstalled.Game == MEGame.LE2) // ME2 is not supported for squadmate merge
-                {
-                    Result.TargetsToSquadmateMergeSync.Add(InstallOptionsPackage.InstallTarget);
-                }
-
-                if (InstallOptionsPackage.ModBeingInstalled.Game.IsGame2())
-                {
-                    Result.TargetsToEmailMergeSync.Add(InstallOptionsPackage.InstallTarget);
-                }
+                Result.AddTargetMerges(InstallOptionsPackage.InstallTarget);
             }
 
             var telemetryInfo = new Dictionary<string, string>()
@@ -1679,10 +1682,22 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         protected override void OnClosing(DataEventArgs e)
         {
+            // Ensure we can go to sleep still. This probably isn't necessary, but probably isn't a bad idea either.
+            SystemSleepManager.AllowSleep();
+
             if (InstallOptionsPackage.ModBeingInstalled.Archive != null)
             {
                 InstallOptionsPackage.ModBeingInstalled.Archive.Dispose();
                 InstallOptionsPackage.ModBeingInstalled.Archive = null;
+            }
+
+            var mergeMods = InstallOptionsPackage.ModBeingInstalled.GetJob(ModJob.JobHeader.BASEGAME)?.MergeMods;
+            if (mergeMods != null)
+            {
+                foreach (var mm in mergeMods)
+                {
+                    mm.ReleaseAssets();
+                }
             }
 
             base.OnClosing(DataEventArgs.Empty);
@@ -1712,6 +1727,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             //    }
             //}
 #endif
+        }
+
+        public override bool CanBeForceClosed()
+        {
+            // Cannot be force closed
+            return false;
         }
 
         // ISizeAdjustable Interface

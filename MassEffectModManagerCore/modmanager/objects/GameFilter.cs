@@ -1,9 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Windows;
 using System.Windows.Media;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksModManager.modmanager.helpers;
-using PropertyChanged;
 
 namespace ME3TweaksModManager.modmanager.objects
 {

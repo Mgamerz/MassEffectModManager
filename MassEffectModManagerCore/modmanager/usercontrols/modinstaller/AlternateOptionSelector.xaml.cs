@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using LegendaryExplorerCore.Helpers;
 using ME3TweaksModManager.modmanager.objects.alternates;
 using PropertyChanged;
 using Xceed.Wpf.Toolkit;
@@ -26,6 +28,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols.modinstaller
     [AddINotifyPropertyChangedInterface]
     public partial class AlternateOptionSelector : UserControl
     {
+        /// <summary>
+        /// If tooltips should not be shown. This is real hack because tooltip is a real PITA.
+        /// </summary>
+        public bool SuppressingTooltip { get; set; }
+
         /// <summary>
         /// If the dropdown is currently open. This is set to always true if there is only one option, to enable the mouseover effect
         /// </summary>
@@ -66,20 +73,20 @@ namespace ME3TweaksModManager.modmanager.usercontrols.modinstaller
             if (DataContext is AlternateGroup group)
             {
                 group.TrySelectOption(newItem);
-                if (element?.ToolTip is ToolTip tp)
-                    tp.IsOpen = false; // Close the tooltip
             }
         }
 
-        
-
-        private void DropdownButton_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        /// <summary>
+        /// Called only by the 'OtherOptions' items.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void NotSelectedAlternateItem_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (IsDropdownOpen)
-                LastCloseTime = DateTime.Now;
-            //if (IsDropdownOpen)
-            // e.Handled = true;
+            SuppressTooltip();
+            AlternateItem_MouseUp(sender, e);
         }
+
 
         // Fix for mouse wheel scrolling
         private void HandleMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
@@ -95,6 +102,32 @@ namespace ME3TweaksModManager.modmanager.usercontrols.modinstaller
                 var parent = (((Control)sender).TemplatedParent ?? ((Control)sender).Parent) as UIElement;
                 parent.RaiseEvent(eventArg);
             }
+        }
+
+        private void AlternateItemCheckbox_Click(object sender, RoutedEventArgs e)
+        {
+            var element = (FrameworkElement)sender;
+            if (DataContext is AlternateGroup group)
+            {
+                group.TrySelectOption(group.AlternateOptions[0]);
+                if (element?.ToolTip is ToolTip tp)
+                    tp.IsOpen = false; // Close the tooltip
+            }
+        }
+
+        /// <summary>
+        /// Indicates that we should not open tooltips for the next few milliseconds to suppress some very odd behavior in ToolTip
+        /// </summary>
+        private void SuppressTooltip()
+        {
+            SuppressingTooltip = true;
+            Task.Run(() =>
+            {
+                Thread.Sleep(30); // We really need just 1 rendered frame.
+            }).ContinueWithOnUIThread(task =>
+            {
+                SuppressingTooltip = false;
+            });
         }
     }
 }

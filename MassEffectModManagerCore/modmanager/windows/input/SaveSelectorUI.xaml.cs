@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Dark.Net;
+using LegendaryExplorerCore.Coalesced.Config;
 using LegendaryExplorerCore.GameFilesystem;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
@@ -22,6 +23,8 @@ using ME3TweaksCore.GameFilesystem;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Objects;
 using ME3TweaksCoreWPF.UI;
+using ME3TweaksModManager.extensions;
+using ME3TweaksModManager.legendaryexplorercoreextended;
 using ME3TweaksModManager.modmanager.converters;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.save;
@@ -433,7 +436,7 @@ namespace ME3TweaksModManager.modmanager.windows.input
                     }
                     Texture2D t2d = new Texture2D(tex);
                     // NOTE: Set 'ClearAlpha' to false to make image support transparency!
-                    var bitmap = Image.convertRawToBitmapARGB(
+                    var bitmap = ImageExtended.ConvertRawToBitmapARGB(
                         t2d.GetImageBytesForMip(t2d.GetTopMip(), t2d.Export.Game, true, out _),
                         t2d.GetTopMip().width, t2d.GetTopMip().height, Image.getPixelFormatType(t2d.TextureFormat),
                         true);
@@ -469,7 +472,7 @@ namespace ME3TweaksModManager.modmanager.windows.input
             }
             LoadCommands();
             InitializeComponent();
-            DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+            this.ApplyDarkNetWindowTheme();
 
             SaveCareersView.Filter = FilterCareers;
             CareerSaveFilesView.Filter = FilterSaves;
@@ -618,7 +621,7 @@ namespace ME3TweaksModManager.modmanager.windows.input
                 }
                 else if (game.IsGame2() || game.IsGame3())
                 {
-                    var gameConfig = ConfigTools.GetMergedBundle(Target);
+                    var gameConfig = M3CConfigTools.GetMergedBundle(Target);
 
                     // Build save game image map
                     BuildUIAssetMap(gameConfig);

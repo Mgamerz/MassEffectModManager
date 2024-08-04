@@ -181,8 +181,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 VisibleIcon = true;
                 SpinIcon = true;
                 ActiveIcon = EFontAwesomeIcon.Solid_Spinner;
-                AuthorizeCommand.RaiseCanExecuteChanged();
-                CloseCommand.RaiseCanExecuteChanged();
                 AuthorizeToNexusText = M3L.GetString(M3L.string_pleaseWait);
 
                 var apiKeyReceived = await NexusModsUtilities.SetupNexusLogin(x => Debug.WriteLine(x));
@@ -237,9 +235,9 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     ActiveIcon = EFontAwesomeIcon.Solid_CheckCircle;
                 }
                 SpinIcon = false;
-                AuthorizeCommand.RaiseCanExecuteChanged();
-                CloseCommand.RaiseCanExecuteChanged();
+                CommandManager.InvalidateRequerySuggested();
             };
+            CommandManager.InvalidateRequerySuggested();
             nbw.RunWorkerAsync();
         }
         private void SetAuthorized(bool authorized)

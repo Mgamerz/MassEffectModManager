@@ -12,5 +12,10 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
         /// FileLibs of packages that have been loaded for script editing during this merge
         /// </summary>
         public CaseInsensitiveConcurrentDictionary<FileLib> FileLibs = new();
+
+        /// <summary>
+        /// Packages that have been opened from stream in this merge mod
+        /// </summary>
+        public CaseInsensitiveConcurrentDictionary<IMEPackage> Packages = new();
     }
 }

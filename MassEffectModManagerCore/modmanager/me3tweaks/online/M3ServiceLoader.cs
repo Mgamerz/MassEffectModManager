@@ -1,24 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using ME3TweaksCore.ME3Tweaks.Online;
 using ME3TweaksCore.Misc;
 using ME3TweaksCore.NativeMods;
 using ME3TweaksCore.Services;
-using ME3TweaksCore.Services.BasegameFileIdentification;
-using ME3TweaksCore.Services.ThirdPartyModIdentification;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.me3tweaks.services;
 using ME3TweaksModManager.modmanager.usercontrols;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace ME3TweaksModManager.modmanager.me3tweaks.online
 {
@@ -91,7 +78,7 @@ namespace ME3TweaksModManager.modmanager.me3tweaks.online
         /// </summary>
         public static FallbackLink CombinedServiceFetchURL = new FallbackLink()
         {
-            MainURL = @"https://me3tweaks.com/modmanager/services/combinedservicesfetch",
+            MainURL = @"https://me3tweaks.com/modmanager/services/combinedservicesfetch?refresh=true",
             FallbackURL = @"https://raw.githubusercontent.com/ME3Tweaks/ME3TweaksModManager/staticfiles/liveservices/services/combinedservices.json",
         };
 
@@ -112,7 +99,7 @@ namespace ME3TweaksModManager.modmanager.me3tweaks.online
             { TUTORIAL_SERVICE_KEY, TutorialService.LoadService },
             { TIPS_SERVICE_KEY, TipsService.LoadService },
             { NEXUS_UPDATER_SERVICE_KEY, NexusUpdaterService.LoadService },
-            { MCoreServiceLoader.ASI_MANIFEST_KEY, ASIManager.LoadService }, // Mod Manager controls loading this service so we use it here.
+            // { MCoreServiceLoader.ASI_MANIFEST_KEY, ASIManager.LoadService }, // Mod Manager controls loading this service so we use it here. // Moved to M3C. Not sure why this was here. Old time's sake?
             { DYNAMIC_HELP_SERVICE_KEY, DynamicHelpService.LoadService }, // This just loads the xml document. The UI must update after init
             { MODDESC_UPDATER_SERVICE_KEY, ModDescUpdaterService.LoadService } 
             // Live Localization? (This is done by startup manifest right?)

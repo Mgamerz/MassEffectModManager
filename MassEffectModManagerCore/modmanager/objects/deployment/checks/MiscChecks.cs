@@ -1,18 +1,10 @@
-﻿using LegendaryExplorerCore.Helpers;
-using LegendaryExplorerCore.Packages;
+﻿using LegendaryExplorerCore.GameFilesystem;
+using LegendaryExplorerCore.Helpers;
 using ME3TweaksModManager.modmanager.localizations;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LegendaryExplorerCore.ME1.Unreal.UnhoodBytecode;
+using ME3TweaksCore.ME3Tweaks.M3Merge;
+using ME3TweaksCore.Services.ThirdPartyModIdentification;
 using ME3TweaksModManager.modmanager.me3tweaks.services;
-using ME3TweaksModManager.modmanager.objects.merge.squadmate;
-using ME3TweaksModManager.modmanager.squadmates;
 using Newtonsoft.Json;
-using ME3TweaksModManager.modmanager.objects.mod.merge.v1;
 using ME3TweaksModManager.modmanager.objects.mod.merge;
 using ME3TweaksModManager.modmanager.objects.alternates;
 using ME3TweaksModManager.modmanager.objects.mod;
@@ -35,6 +27,7 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
                 DialogTitle = M3L.GetString(M3L.string_detectedMiscellaneousIssues),
                 ValidationFunction = CheckModForMiscellaneousIssues
             });
+
 
             if (check.ModBeingDeployed.Game.IsGame3() || check.ModBeingDeployed.Game == MEGame.LE2)
             {
@@ -276,7 +269,7 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
                 }
             }
 
-            // Check for ALOT markers
+            // Check for texture markers
             var packageFiles = referencedFiles.Where(x => x.RepresentsPackageFilePath());
             foreach (var p in packageFiles)
             {
@@ -329,6 +322,26 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
             {
                 item.AddInfoWarning(M3L.GetString(M3L.string_interp_infoModNameTooLong, item.ModToValidateAgainst.ModName, item.ModToValidateAgainst.ModName.Length));
             }
+
+
+            #region Check 2DA is not in autoload and M3DA (LE1)
+
+            if (item.ModToValidateAgainst.Game == MEGame.LE1)
+            {
+                // Get autoloads
+                var autoloads = item.ModToValidateAgainst.GetAllRelativeReferences().Where(x => Path.GetFileName(x).CaseInsensitiveEquals(@"autoload.ini"));
+                var m3das = item.ModToValidateAgainst.GetAllRelativeReferences().Where(x => Path.GetExtension(x).CaseInsensitiveEquals(@".m3da")).ToList();
+                foreach (var autoloadPath in autoloads)
+                {
+                    var dlcRoot = Directory.GetParent(Path.Combine(item.ModToValidateAgainst.ModPath, autoloadPath)).FullName;
+                    AutoloadIni autoload = new AutoloadIni(Path.Combine(dlcRoot, @"autoload.ini")); // Full path
+                    if (autoload.Bio2DAs.Any() && m3das.Any())
+                    {
+                        item.AddSignificantIssue(M3L.GetString(M3L.string_interp_modsDontMixAutoloadAndM3DA, autoloadPath));
+                    }
+                }
+            }
+            #endregion
 
             #region Check for full-file mergemod targets
             // Check if our mod contains any basegame only files that are hot merge mod targets.
@@ -433,6 +446,42 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
             }
             #endregion
 
+            #region Check if in TMPI already
+
+            var dlcFolders = item.ModToValidateAgainst.GetAllPossibleCustomDLCFolders();
+            foreach (var dlc in dlcFolders)
+            {
+                var tpmi = TPMIService.GetThirdPartyModInfo(dlc, item.ModToValidateAgainst.Game);
+                if (tpmi != null && !tpmi.modname.CaseInsensitiveEquals(item.ModToValidateAgainst.ModName))
+                {
+                    item.AddInfoWarning(M3L.GetString(M3L.string_interp_modWithDifferentNameInTPMI, dlc, tpmi.modname));
+                }
+            }
+            #endregion
+
+            #region Check merge mod version with moddesc version
+
+            foreach (var mergeMod in item.ModToValidateAgainst.GetAllMergeMods())
+            {
+                using var ms = File.OpenRead(Path.Combine(item.ModToValidateAgainst.ModPath, mergeMod));
+                var mm = MergeModLoader.LoadMergeMod(ms, mergeMod, false);
+                if (mm != null)
+                {
+                    if (mm.MergeModVersion > 1) // 1 is supposed on all
+                    {
+                        if (item.ModToValidateAgainst.ModDescTargetVersion < MergeModLoader.GetMinimumCmmVerRequirement(mm.MergeModVersion))
+                        {
+                            item.AddBlockingError(M3L.GetString(M3L.string_interp_mergeModFeatureLevelIncompatible, mergeMod, mm.MergeModVersion, MergeModLoader.GetMinimumCmmVerRequirement(mm.MergeModVersion)));
+                        }
+                    }
+                }
+                else
+                {
+                    item.AddBlockingError(M3L.GetString(M3L.string_interp_mergeModFailedToLoadUnknownFeatureLevel, mergeMod, item.ModToValidateAgainst.ModDescTargetVersion));
+                }
+            }
+            #endregion
+
             // End of check
             if (!item.HasAnyMessages())
             {
@@ -441,8 +490,18 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
             }
             else
             {
-                item.ItemText = M3L.GetString(M3L.string_detectedMiscellaneousIssues);
-                item.ToolTip = M3L.GetString(M3L.string_tooltip_deploymentChecksFoundMiscIssues);
+                if (item.HasOnlyInfoMessages())
+                {
+                    item.ItemText = M3L.GetString(M3L.string_guidanceAvailable);
+                    item.ToolTip = M3L.GetString(M3L.string_tooltip_guidanceAvailable);
+                    item.DialogMessage = M3L.GetString(M3L.string_dialog_guidanceAvailable);
+                    item.DialogTitle = M3L.GetString(M3L.string_miscellaneousGuidance);
+                }
+                else
+                {
+                    item.ItemText = M3L.GetString(M3L.string_detectedMiscellaneousIssues);
+                    item.ToolTip = M3L.GetString(M3L.string_tooltip_deploymentChecksFoundMiscIssues);
+                }
             }
         }
 

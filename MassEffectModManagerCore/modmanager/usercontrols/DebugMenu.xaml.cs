@@ -1,11 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
+using ME3TweaksCore.ME3Tweaks.M3Merge;
+using ME3TweaksCore.ME3Tweaks.M3Merge.Game2Email;
 using ME3TweaksModManager.modmanager.gamemd5;
-using ME3TweaksModManager.modmanager.merge.dlc;
-using ME3TweaksModManager.modmanager.merge.game2email;
 using ME3TweaksModManager.modmanager.objects.mod;
-using ME3TweaksModManager.modmanager.squadmates;
+using ME3TweaksModManager.modmanager.objects.gametarget;
 using SevenZip;
+using ME3TweaksModManager.modmanager.helpers;
 
 namespace ME3TweaksModManager.modmanager.usercontrols
 {
@@ -30,7 +31,16 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             if (sender == nameof(MainWindow.StripCurrentTargetWithALOTMarker_MenuItem)) StripCurrentTargetALOTMarker_Click(window);
             if (sender == nameof(MainWindow.ShowWelcomePanel_MenuItem)) ShowWelcomePanel_Click(window);
             if (sender == nameof(MainWindow.ShowBGFISDB_MenuItem)) ShowBGFISDB_Click(window);
+            if (sender == nameof(MainWindow.DebugDetermineIfInstalled_MenuItem)) TestDetermineIfInstalled(window);
 #endif
+        }
+
+        private static void TestDetermineIfInstalled(MainWindow window)
+        {
+            if (window.SelectedMod != null)
+            {
+                window.SelectedMod.DetermineIfInstalled(window.GetCurrentTarget(window.SelectedMod.Game).GetInfoRequiredToDetermineIfInstalled());
+            }
         }
 
 #if DEBUG

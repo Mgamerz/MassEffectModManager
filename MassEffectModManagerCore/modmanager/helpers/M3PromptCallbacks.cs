@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 using LegendaryExplorerCore.Packages;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.windows;
@@ -20,6 +21,8 @@ namespace ME3TweaksModManager.modmanager.helpers
         /// <param name="message"></param>
         public static void BlockingActionOccurred(string title, string message)
         {
+            var isUiThread = Dispatcher.CurrentDispatcher.Thread == Thread.CurrentThread;
+
             object syncObj = new object();
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -27,15 +30,62 @@ namespace ME3TweaksModManager.modmanager.helpers
                 {
                     M3L.ShowDialog(window, message, title, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-                lock (syncObj)
+
+                if (!isUiThread)
                 {
-                    Monitor.Pulse(syncObj);
+                    lock (syncObj)
+                    {
+                        Monitor.Pulse(syncObj);
+                    }
                 }
             });
-            lock (syncObj)
+            if (!isUiThread)
             {
-                Monitor.Wait(syncObj);
+                lock (syncObj)
+                {
+                    Monitor.Wait(syncObj);
+                }
             }
+        }
+
+        /// <summary>
+        /// Shown when prompting for user input.
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="message"></param>
+        /// <param name="buttons"></param>
+        /// <param name="image"></param>
+        /// <param name="defaultOption">The default selected option</param>
+        public static MessageBoxResult GetUserChoiceCallback(string title, string message, MessageBoxButton buttons, MessageBoxImage image, MessageBoxResult defaultOption)
+        {
+            var isUiThread = Dispatcher.CurrentDispatcher.Thread == Thread.CurrentThread;
+
+            object syncObj = new object();
+            var res = defaultOption;
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (Application.Current.MainWindow is Window window)
+                {
+                    res = M3L.ShowDialog(window, message, title, buttons, image, defaultOption);
+                }
+
+                if (!isUiThread)
+                {
+                    lock (syncObj)
+                    {
+                        Monitor.Pulse(syncObj);
+                    }
+                }
+            });
+            if (!isUiThread)
+            {
+                lock (syncObj)
+                {
+                    Monitor.Wait(syncObj);
+                }
+            }
+
+            return res;
         }
 
         /// <summary>
@@ -45,6 +95,10 @@ namespace ME3TweaksModManager.modmanager.helpers
         /// <param name="message"></param>
         public static bool ShowWarningYesNoCallback(string title, string message, bool defaultResponse, string yesMessage, string noMessage)
         {
+            var isUiThread = Dispatcher.CurrentDispatcher.Thread == Thread.CurrentThread;
+
+            object syncObj = new object();
+
             bool result = defaultResponse;
             //object syncObj = new object();
             Application.Current.Dispatcher.Invoke(() =>
@@ -53,15 +107,22 @@ namespace ME3TweaksModManager.modmanager.helpers
                 {
                     result = M3L.ShowDialog(window, message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning, defaultResponse ? MessageBoxResult.Yes : MessageBoxResult.No, yesContent: yesMessage, noContent: noMessage) == MessageBoxResult.Yes;
                 }
-                //lock (syncObj)
-               // {
-                //    Monitor.Pulse(syncObj);
-                //}
+
+                if (!isUiThread)
+                {
+                    lock (syncObj)
+                    {
+                        Monitor.Pulse(syncObj);
+                    }
+                }
             });
-            //lock (syncObj)
-            //{
-            //    Monitor.Wait(syncObj);
-            //}
+            if (!isUiThread)
+            {
+                lock (syncObj)
+                {
+                    Monitor.Wait(syncObj);
+                }
+            }
 
             return result;
         }

@@ -1,7 +1,17 @@
 ﻿<usercontrols:MMBusyPanelBase
     x:Class="ME3TweaksModManager.modmanager.usercontrols.BatchModLibrary"
-    DataContext="{Binding RelativeSource={RelativeSource Self}}" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    mc:Ignorable="d" xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI" xmlns:extensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI" xmlns:usercontrols="clr-namespace:ME3TweaksModManager.modmanager.usercontrols" xmlns:ui="clr-namespace:ME3TweaksModManager.ui" xmlns:fa5="http://schemas.fontawesome.com/icons/" xmlns:batch="clr-namespace:ME3TweaksModManager.modmanager.objects.batch"
+    DataContext="{Binding RelativeSource={RelativeSource Self}}"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:extensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
+    xmlns:usercontrols="clr-namespace:ME3TweaksModManager.modmanager.usercontrols"
+    xmlns:ui="clr-namespace:ME3TweaksModManager.ui"
+    xmlns:fa5="http://schemas.fontawesome.com/icons/"
+    xmlns:batch="clr-namespace:ME3TweaksModManager.modmanager.objects.batch"
     xmlns:modmanager="clr-namespace:ME3TweaksModManager.modmanager"
     MinWidth="700"
     MinHeight="550">
@@ -17,24 +27,13 @@
             Text="{DynamicResource string_description_batchModInstallerAllowsSerialInstall}"
             TextWrapping="Wrap"
             TextAlignment="Center" />
+        <Separator DockPanel.Dock="Top" 
+                   Margin="10,4,10,4"
+                   Opacity=".5"
+                   Foreground="{DynamicResource {x:Static adonisUi:Brushes.SlightlyDimmedForegroundBrush}}"/>
         <DockPanel
             DockPanel.Dock="Bottom"
             Margin="0,4,0,0">
-            <Button
-                Content="{DynamicResource string_editGroup}"
-                DockPanel.Dock="Left"
-                Command="{Binding EditGroupCommand}"
-                Margin="0,0,5,0" />
-            <Button
-                HorizontalAlignment="Left"
-                Content="{DynamicResource string_duplicateGroup}"
-                Margin="0,0,5,0"
-                Command="{Binding DuplicateGroupCommand}" />
-            <Button
-                Content="{DynamicResource string_deleteGroup}"
-                DockPanel.Dock="Left"
-                Command="{Binding DeleteGroupCommand}"
-                Margin="0,0,5,0" />
             <Button
                 HorizontalAlignment="Left"
                 Content="{DynamicResource string_createANewInstallGroup}"
@@ -45,12 +44,6 @@
                 Content="{DynamicResource string_debugTriggerDataReload}"
                 Margin="5,0"
                 Command="{Binding TriggerDataReloadCommand}" />
-            <Button
-                Visibility="{Binding Path=(modmanager:Settings.DeveloperMode), Converter={StaticResource BoolToVisibilityConverter}}"
-                HorizontalAlignment="Left"
-                Content="{DynamicResource string_deploy}"
-                Margin="5,0"
-                Command="{Binding DeployQueueCommand}" />
             <Button
                 DockPanel.Dock="Left"
                 HorizontalAlignment="Right"
@@ -63,7 +56,33 @@
                 Text="{DynamicResource string_installGroups}"
                 DockPanel.Dock="Top"
                 FontWeight="Bold" />
+            <ui:Clipper
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Constraint="Width"
+                DockPanel.Dock="Bottom">
+                <StackPanel
+                    ui:Clipper.WidthFraction="1"
+                    ui:Clipper.HeightFraction="0"
+                    Name="LoadingStatusPanel"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Margin="0,2"
+                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <fa5:ImageAwesome
+                        Icon="Solid_Spinner"
+                        Height="16"
+                        Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
+                        Spin="True" />
+                    <TextBlock
+                        Text="{DynamicResource string_loading}"
+                        VerticalAlignment="Center"
+                        Margin="3,0,0,0" />
+                </StackPanel>
+            </ui:Clipper>
             <ListBox
+                IsEnabled="{Binding IsLoading, Converter={StaticResource BoolEnabledConverter}, ConverterParameter='Not'}"
                 ItemsSource="{Binding AvailableBatchQueues}"
                 SelectedItem="{Binding SelectedBatchQueue}"
                 Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
@@ -94,7 +113,9 @@
             <DockPanel
                 Dock="Top">
                 <TextBlock
+                    FontSize="10"
                     Text="{Binding SelectedBatchQueue.QueueFormatVersion, StringFormat='Queue format version: {0}'}"
+                    VerticalAlignment="Center"
                     DockPanel.Dock="Right" />
                 <TextBlock
                     Text="{DynamicResource string_groupInformation}"
@@ -102,9 +123,95 @@
                     HorizontalAlignment="Left" />
             </DockPanel>
             <TextBlock
+                TextWrapping="Wrap"
                 Text="{Binding SelectedBatchQueue.QueueDescription}"
                 DockPanel.Dock="Top"
-                Margin="0,7" />
+                Margin="0,0,0,4" />
+            <DockPanel
+                DockPanel.Dock="Top">
+                <Button
+                    DockPanel.Dock="Left"
+                    Command="{Binding EditGroupCommand}"
+                    Margin="0,0,5,4">
+                    <Button.Content>
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <fa5:ImageAwesome
+                                Icon="Solid_Edit"
+                                Width="12"
+                                Height="12"
+                                VerticalAlignment="Center"
+                                Margin="0,0,5,0"
+                                Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                            <TextBlock
+                                Text="{DynamicResource string_edit}"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+                <Button
+                    HorizontalAlignment="Left"
+                    Margin="0,0,5,4"
+                    Command="{Binding DuplicateGroupCommand}">
+                    <Button.Content>
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <fa5:ImageAwesome
+                                Icon="Solid_Copy"
+                                Width="12"
+                                Height="12"
+                                VerticalAlignment="Center"
+                                Margin="0,0,5,0"
+                                Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                            <TextBlock
+                                Text="{DynamicResource string_duplicate}"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+                <Button
+                    DockPanel.Dock="Left"
+                    Command="{Binding DeleteGroupCommand}"
+                    Margin="0,0,5,4">
+                    <Button.Content>
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <fa5:ImageAwesome
+                                Icon="Solid_Times"
+                                Width="12"
+                                Height="12"
+                                VerticalAlignment="Center"
+                                Margin="0,0,5,0"
+                                Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                            <TextBlock
+                                Text="{DynamicResource string_delete}"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+                <Button
+                    Visibility="{Binding Path=(modmanager:Settings.DeveloperMode), Converter={StaticResource BoolToVisibilityConverter}}"
+                    HorizontalAlignment="Right"
+                    Margin="5,0,0,4"
+                    Command="{Binding DeployQueueCommand}"
+                    ToolTip="{DynamicResource string_tooltip_createSharableVersionOfThisInstallGroup}">
+                    <Button.Content>
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <TextBlock
+                                Text="{DynamicResource string_shareGroup}"
+                                VerticalAlignment="Center" />
+                            <fa5:ImageAwesome
+                                Icon="Solid_ShareAlt"
+                                Width="12"
+                                Height="12"
+                                VerticalAlignment="Center"
+                                Margin="5,0,0,0"
+                                Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+            </DockPanel>
             <DockPanel>
                 <DockPanel
                     DockPanel.Dock="Bottom"
@@ -168,6 +275,7 @@
                                             <TextBlock
                                                 Text="{Binding Mod.ModVersionString}"
                                                 FontStyle="Italic"
+                                                Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
                                                 Padding="2,0" />
                                         </Border>
                                     </StackPanel>
@@ -185,11 +293,18 @@
                                             Text="{DynamicResource string_modNotAvailable}"
                                             Margin="0,0,5,0"
                                             VerticalAlignment="Center" />
+                                        <!-- WPF Tomfoolery because you can't bind TargetNullValue -->
+                                        <TextBlock
+                                            Text="{Binding ModName}"
+                                            Visibility="{Binding ModName, Converter={StaticResource NullOrEmptyVisibilityConverter}}"
+                                            VerticalAlignment="Center" />
                                         <TextBlock
                                             Text="{Binding ModDescPath}"
+                                            Visibility="{Binding ModName, Converter={StaticResource NullOrEmptyVisibilityConverter}, ConverterParameter='Reversed'}"
                                             VerticalAlignment="Center" />
                                     </StackPanel>
                                     <Border
+                                        ToolTip="{Binding OptionsRecordedTooltipString}"
                                         Visibility="{Binding Mod, Converter={StaticResource NullVisibilityConverter}}"
                                         HorizontalAlignment="Right"
                                         BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
@@ -198,7 +313,25 @@
                                         <TextBlock
                                             Text="{Binding OptionsRecordedString}"
                                             FontStyle="Italic"
-                                            Padding="2,0" />
+                                            Padding="2,0">
+                                            <TextBlock.Style>
+                                                <Style
+                                                    TargetType="TextBlock">
+                                                    <Setter
+                                                        Property="Foreground"
+                                                        Value="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger
+                                                            Binding="{Binding ChosenOptionsDesync}"
+                                                            Value="True">
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="White" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                         <Border.Style>
                                             <Style
                                                 TargetType="Border">
@@ -250,20 +383,32 @@
                         VerticalAlignment="Bottom"
                         Constraint="Width"
                         DockPanel.Dock="Bottom">
-                        <TextBlock
-                            ToolTip="{DynamicResource string_tooltip_bml_downloadMod}"
+                        <StackPanel
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Background="Transparent"
+                            Cursor="Hand"
+                            MouseDown="DownloadMod_Click"
                             ui:Clipper.WidthFraction="1"
                             ui:Clipper.HeightFraction="0"
-                            Name="VisitWebsitePanel"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Bottom">
-              <Hyperlink
-                                RequestNavigate="RequestNavigate"
-                                NavigateUri="{Binding SelectedUnavailableModLink, TargetNullValue='https://example.com'}">
-                <TextBlock
-                                    Text="{DynamicResource string_downloadMod}" />
-              </Hyperlink>
-            </TextBlock>
+                            Name="VisitWebsitePanel">
+                            <fa5:ImageAwesome
+                                Icon="Solid_Download"
+                                Height="12"
+                                Margin="4,0"
+                                Foreground="{DynamicResource {x:Static adonisUi:Brushes.HyperlinkBrush}}" />
+                            <TextBlock
+                                ToolTip="{DynamicResource string_tooltip_bml_downloadMod}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom">
+                <Hyperlink
+                                    RequestNavigate="RequestNavigate"
+                                    NavigateUri="{Binding SelectedUnavailableModLink, TargetNullValue='https://example.com'}">
+                  <TextBlock
+                                        Text="{DynamicResource string_downloadMod}" />
+                </Hyperlink>
+              </TextBlock>
+                        </StackPanel>
                     </ui:Clipper>
                 </Grid>
             </DockPanel>

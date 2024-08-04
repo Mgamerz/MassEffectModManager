@@ -6,6 +6,7 @@
 trigger:
 - M3Core
 - ModManager-Next
+- MergeMigration
 
 pool:
   vmImage: 'windows-2022'
@@ -14,7 +15,7 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'x64'
   buildConfiguration: 'WinAzureRelease'
-  framework: 'net6.0'
+  framework: 'net8.0'
 
 resources:
   repositories:
@@ -32,17 +33,17 @@ steps: # Steps begin following this
   
 # Mod Manager targets .NET 6
 - task: UseDotNet@2
-  displayName: Install .NET 6.0 SDK
+  displayName: Install .NET 8.0 SDK
   inputs:
     packageType: 'sdk'
-    version: '6.0.x' 
+    version: '8.0.x' 
     
 # Required as LEC dual targets
-- task: UseDotNet@2
-  displayName: Install .NET 7.0 SDK
-  inputs:
-    packageType: 'sdk'
-    version: '7.0.x' 
+#- task: UseDotNet@2
+#  displayName: Install .NET 7.0 SDK
+#  inputs:
+#    packageType: 'sdk'
+#   version: '7.0.x' 
 
 - task: DotNetCoreCLI@2
   displayName: Build M3

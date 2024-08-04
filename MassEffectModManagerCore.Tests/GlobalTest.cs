@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using LegendaryExplorerCore;
 using LegendaryExplorerCore.Packages;
 using ME3TweaksCore;
+using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Services;
 using ME3TweaksModManager.modmanager;
 using ME3TweaksModManager.modmanager.me3tweaks.online;
@@ -35,6 +37,7 @@ namespace ME3TweaksModManager.Tests
 
         internal static void Init()
         {
+
             if (!initialized)
             {
                 //Utilities.ExtractInternalFile("MassEffectModManagerCore.bundleddlls.sevenzipwrapper.dll", Path.Combine(Utilities.GetDllDirectory(), "sevenzipwrapper.dll"), false, Assembly.GetAssembly(typeof(GameTarget)));
@@ -52,8 +55,8 @@ namespace ME3TweaksModManager.Tests
                 Analytics.SetEnabledAsync(false);
                 Crashes.SetEnabledAsync(false);
                 Settings.LogModStartup = true;
-                App.BuildNumber = 127; //THIS NEEDS TO BE UPDATED FOR EVERY MOD THAT TARGETS A NEWER RELEASE. Not really a convenient way to update it constantly though...
-#if !AZURE
+                App.BuildNumber = 134; //THIS NEEDS TO BE UPDATED FOR EVERY MOD THAT TARGETS A NEWER RELEASE. Not really a convenient way to update it constantly though...
+#if !AZURE || DEBUG
                 Log.Logger = new LoggerConfiguration().WriteTo.Console().WriteTo.Debug().CreateLogger();
 #else
                 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
@@ -63,6 +66,9 @@ namespace ME3TweaksModManager.Tests
                 //BackupService.RefreshBackupStatus(null); // used in mixin testing
 
                 CombinedServiceData = JsonConvert.DeserializeObject<JToken>(MOnlineContent.FetchRemoteString(M3ServiceLoader.CombinedServiceFetchURL.MainURL));
+
+                App.ExecutableLocation = Path.Combine(TestDataPath, "Executable", "ME3TweaksModManager.exe");
+                Directory.CreateDirectory(Directory.GetParent(App.ExecutableLocation).FullName); // For faking 
                 initialized = true;
             }
         }
@@ -96,22 +102,22 @@ namespace ME3TweaksModManager.Tests
         public static string GetTestGameFoldersDirectory(MEGame game) => Path.Combine(GetTestGameFoldersDirectory(), game.ToString().ToLowerInvariant());
         public static string GetScratchDir() => Path.Combine(Directory.GetParent(GetTestModsDirectory()).FullName, "Scratch");
 
-        public static void CreateScratchDir() => Directory.CreateDirectory(GetScratchDir());
+        public static string CreateScratchDir() => Directory.CreateDirectory(GetScratchDir()).FullName;
 
         public static void DeleteScratchDir()
         {
             if (Directory.Exists(GetScratchDir()))
             {
-                M3Utilities.DeleteFilesAndFoldersRecursively(GetScratchDir());
+                MUtilities.DeleteFilesAndFoldersRecursively(GetScratchDir());
             }
         }
 
-        public static (string md5, int size, int nummodsexpected) ParseRealArchiveAttributes(string filename)
+        public static (string md5, long size, int nummodsexpected) ParseRealArchiveAttributes(string filename)
         {
             string fname = Path.GetFileNameWithoutExtension(filename);
             string[] parts = fname.Split('-');
             string md5 = parts.Last();
-            int size = int.Parse(parts[^2]);
+            long size = long.Parse(parts[^2]);
             int nummodsexpected = int.Parse(parts[^3]);
             return (md5, size, nummodsexpected);
         }

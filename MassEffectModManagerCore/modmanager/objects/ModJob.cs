@@ -90,7 +90,10 @@ namespace ME3TweaksModManager.modmanager.objects
 
             // LE-ONLY (8.1+)
             TEXTUREMODS,
-            HEADMORPHS
+            HEADMORPHS,
+
+            // This is a task header but it does not translate to a ModJob.
+            ASIMODS
         }
 
         /// <summary>
@@ -617,15 +620,15 @@ namespace ME3TweaksModManager.modmanager.objects
             var header = Header.ToString();
             if (!string.IsNullOrWhiteSpace(JobDirectory))
             {
-                ini[header][@"moddir"] = JobDirectory;
+                ini[header][Mod.MODDESC_DESCRIPTOR_JOB_DIR] = JobDirectory;
             }
 
             if (Header == JobHeader.CUSTOMDLC)
             {
                 if (CustomDLCFolderMapping.Any())
                 {
-                    ini[header][@"sourcedirs"] = string.Join(';', CustomDLCFolderMapping.Keys);
-                    ini[header][@"destdirs"] = string.Join(';', CustomDLCFolderMapping.Values);
+                    ini[header][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_SOURCEDIRS] = string.Join(';', CustomDLCFolderMapping.Keys);
+                    ini[header][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_DESTDIRS] = string.Join(';', CustomDLCFolderMapping.Values);
                 }
             }
             else if (IsVanillaJob(this, associatedMod.Game))
@@ -637,18 +640,6 @@ namespace ME3TweaksModManager.modmanager.objects
                         ini[header][v.Key] = v.Value;
                     }
                 }
-            }
-            else if (Header == JobHeader.BALANCE_CHANGES)
-            {
-
-            }
-            else if (Header == JobHeader.ME1_CONFIG)
-            {
-
-            }
-            else if (Header == JobHeader.LOCALIZATION)
-            {
-
             }
         }
 
@@ -813,9 +804,9 @@ namespace ME3TweaksModManager.modmanager.objects
                     // should convert it here since there are no raw values 
                     // cached into raw
 
-                    parameterDictionary[@"moddir"] = @".";
-                    parameterDictionary[@"newfiles"] = @"Coalesced.bin";
-                    parameterDictionary[@"replacefiles"] = @"BIOGame\CookedPCConsole\Coalesced.bin";
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_DIR] = @".";
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_NEWFILES] = @"Coalesced.bin";
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_REPLACEFILES] = @"BIOGame\CookedPCConsole\Coalesced.bin";
 
                     // Technically this doesn't support more on this version of moddesc.
                     // But since we can't save older moddesc formats we will allow
@@ -823,51 +814,51 @@ namespace ME3TweaksModManager.modmanager.objects
                 }
                 else
                 {
-                    parameterDictionary[@"moddir"] = JobDirectory;
-                    parameterDictionary[@"newfiles"] = NewFilesRaw;
-                    parameterDictionary[@"replacefiles"] = ReplaceFilesRaw;
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_DIR] = JobDirectory;
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_NEWFILES] = NewFilesRaw;
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_REPLACEFILES] = ReplaceFilesRaw;
                 }
 
                 if (mod.Game == MEGame.ME3 || Header == JobHeader.BASEGAME)
                 {
                     // Add files
-                    parameterDictionary[@"addfiles"] = AddFilesRaw;
-                    parameterDictionary[@"addfilestargets"] = AddFilesTargetsRaw;
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_ADDFILES] = AddFilesRaw;
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_ADDFILESTARGETS] = AddFilesTargetsRaw;
                 }
 
                 if (Header == JobHeader.BASEGAME)
                 {
-                    parameterDictionary[@"mergemods"] = string.Join(';', MergeMods.Select(x => x.MergeModFilename));
+                    parameterDictionary[Mod.MODDESC_DESCRIPTOR_BASEGAME_MERGEMODS] = string.Join(';', MergeMods.Select(x => x.MergeModFilename));
                 }
 
-                parameterDictionary[@"gamedirectorystructure"] = new MDParameter(@"gamedirectorystructure", GameDirectoryStructureRaw, false);
-                parameterDictionary[@"jobdescription"] = RequirementText;
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_GAMEDIRECTORYSTRUCTURE] = new MDParameter(Mod.MODDESC_DESCRIPTOR_JOB_GAMEDIRECTORYSTRUCTURE, GameDirectoryStructureRaw, false);
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_JOBDESCRIPTION] = RequirementText;
             }
             else if (Header == JobHeader.CUSTOMDLC)
             {
                 // These are serialized in special way by the editor
                 // Do not put them into the parameter map
-                //parameterDictionary[@"sourcedirs"] = CustomDLCFolderMapping.Keys;
-                //parameterDictionary[@"destdirs"] = CustomDLCFolderMapping.Values;
+                //parameterDictionary[Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_SOURCEDIRS] = CustomDLCFolderMapping.Keys;
+                //parameterDictionary[Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_DESTDIRS] = CustomDLCFolderMapping.Values;
 
-                parameterDictionary[@"outdatedcustomdlc"] = mod.OutdatedCustomDLC;
-                parameterDictionary[@"incompatiblecustomdlc"] = mod.IncompatibleDLC;
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_OUTDATEDDLC] = mod.OutdatedCustomDLC;
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_INCOMPATIBLEDLC] = mod.IncompatibleDLC;
                 // NOT MAPPED: HUMAN READABLE NAMES
                 // CONFIGURED DIRECTLY BY EDITOR UI
             }
             else if (Header == JobHeader.LOCALIZATION)
             {
-                parameterDictionary[@"files"] = FilesToInstall.Values;
-                parameterDictionary[@"dlcname"] = mod.RequiredDLC.FirstOrDefault();
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_LOCALIZATION_FILES] = FilesToInstall.Values;
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_LOCALIZATION_TARGETDLC] = mod.RequiredDLC.FirstOrDefault();
             }
             else if (Header == JobHeader.BALANCE_CHANGES)
             {
-                parameterDictionary[@"moddir"] = JobDirectory;
-                parameterDictionary[@"newfiles"] = FilesToInstall.Values;
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_DIR] = JobDirectory;
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_NEWFILES] = FilesToInstall.Values;
             }
             else if (Header == JobHeader.ME1_CONFIG)
             {
-                parameterDictionary[@"moddir"] = JobDirectory;
+                parameterDictionary[Mod.MODDESC_DESCRIPTOR_JOB_DIR] = JobDirectory;
                 // files raw is handled by ui
             }
 

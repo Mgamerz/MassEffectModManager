@@ -132,7 +132,7 @@ namespace ME3TweaksModManager.modmanager.objects.mod.headmorph
                     }
 
                     M3Log.Information($@"Adding DLC requirement to {nameof(M3Headmorph)}: {reqDLC}", Settings.LogModStartup);
-                    RequiredDLC.Add(DLCRequirement.ParseRequirement(reqDLC, true));
+                    RequiredDLC.Add(DLCRequirement.ParseRequirement(reqDLC, true, false));
                 }
             }
 

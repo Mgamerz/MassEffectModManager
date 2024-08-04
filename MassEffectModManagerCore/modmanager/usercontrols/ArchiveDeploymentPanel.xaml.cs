@@ -1,27 +1,18 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using LegendaryExplorerCore.GameFilesystem;
 using LegendaryExplorerCore.Helpers;
-using LegendaryExplorerCore.ME1.Unreal.UnhoodBytecode;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.Helpers;
-using ME3TweaksCore.Services.Backup;
 using ME3TweaksCore.Services.ThirdPartyModIdentification;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.importer;
-using ME3TweaksModManager.modmanager.loaders;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects.deployment;
 using ME3TweaksModManager.modmanager.objects.deployment.checks;
@@ -29,10 +20,8 @@ using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.modmanager.objects.tlk;
 using ME3TweaksModManager.modmanager.windows;
 using ME3TweaksModManager.ui;
-using Microsoft.AppCenter.Analytics;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Taskbar;
-using PropertyChanged;
 using SevenZip;
 
 namespace ME3TweaksModManager.modmanager.usercontrols
@@ -148,17 +137,18 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             if (ModsInDeployment.Count > 1)
             {
                 // Multipack
-                premadeName = M3Utilities.SanitizePath($@"{ModsInDeployment[0].ModBeingDeployed.ModName}_{ModsInDeployment[0].ModBeingDeployed.ModVersionString}_multipack".Replace(@" ", ""), true);
+                premadeName = MUtilities.SanitizePath($@"{ModsInDeployment[0].ModBeingDeployed.ModName}_{ModsInDeployment[0].ModBeingDeployed.ModVersionString}_multipack".Replace(@" ", ""), true);
             }
             else
             {
-                premadeName = M3Utilities.SanitizePath($@"{ModsInDeployment[0].ModBeingDeployed.ModName}_{ModsInDeployment[0].ModBeingDeployed.ModVersionString}".Replace(@" ", ""), true);
+                premadeName = MUtilities.SanitizePath($@"{ModsInDeployment[0].ModBeingDeployed.ModName}_{ModsInDeployment[0].ModBeingDeployed.ModVersionString}".Replace(@" ", ""), true);
             }
 
             SaveFileDialog d = new SaveFileDialog
             {
                 Filter = $@"{M3L.GetString(M3L.string_7zipArchiveFile)}|*.7z",
-                FileName = premadeName
+                FileName = premadeName,
+                InitialDirectory = M3LoadedMods.GetDeploymentDirectory()
             };
             var result = d.ShowDialog();
             if (result.HasValue && result.Value)
@@ -179,6 +169,14 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 };
                 nbw.RunWorkerCompleted += (a, b) =>
                 {
+                    // If we are shutting down, close the panel immediately.
+                    if (HandlingShutdownTasks)
+                    {
+                        OnClosing(DataEventArgs.Empty);
+                        return;
+                    }
+
+
                     TaskbarHelper.SetProgressState(TaskbarProgressBarState.NoProgress);
 
                     if (b.Error != null)
@@ -210,7 +208,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                         if (nonSubmittableMods.Any())
                         {
-                            M3L.ShowDialog(window, M3L.GetString(M3L.string_interp_dialog_noModSiteDeployed, string.Join("\n - ", nonSubmittableMods.Select(x => x.ModName))), // do not localize
+                            M3L.ShowDialog(window, M3L.GetString(M3L.string_interp_dialog_noModSiteDeployed, @" - " + string.Join("\n - ", nonSubmittableMods.Select(x => x.ModName))), // do not localize
                                 M3L.GetString(M3L.string_dialog_noModSiteDeployed), MessageBoxButton.OK,
                                 MessageBoxImage.Warning);
                         }
@@ -265,7 +263,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                 if (isMultiPack)
                 {
-                    modRefMap[modBeingDeployed] = references.ToDictionary(x => x, x => $@"{M3Utilities.SanitizePath(modBeingDeployed.ModName)}\{x}");
+                    modRefMap[modBeingDeployed] = references.ToDictionary(x => x, x => $@"{MUtilities.SanitizePath(modBeingDeployed.ModName)}\{x}");
                 }
                 else
                 {
@@ -463,15 +461,22 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     // It needs a compression tlk merge file installed
                     currentDeploymentStep = M3L.GetString(M3L.string_creatingCombinedTLKMergeFile);
                     var inputFolder = Path.Combine(modBeingDeployed.ModPath, Mod.Game1EmbeddedTlkFolderName);
-                    var compressedData = CompressedTLKMergeData.CreateCompressedTlkMergeFile(inputFolder, generatingCompressedFileProgress).GetBuffer();
-                    var mergeFileTemp = Path.Combine(M3Filesystem.GetTempPath(), Mod.Game1EmbeddedTlkCompressedFilename);
+                    var compressedData = CompressedTLKMergeData.CreateCompressedTlkMergeFile(modBeingDeployed, inputFolder, generatingCompressedFileProgress).GetBuffer();
+                    var mergeFileTemp = Path.Combine(MCoreFilesystem.GetTempDirectory(), Mod.Game1EmbeddedTlkCompressedFilename);
                     File.WriteAllBytes(mergeFileTemp, compressedData);
                     var inArchiveMergeFilePath = $@"{Mod.Game1EmbeddedTlkFolderName}\{Mod.Game1EmbeddedTlkCompressedFilename}";
                     var inArchiveGame1TlkFolderPath = Mod.Game1EmbeddedTlkFolderName;
                     if (isMultiPack)
                     {
-                        inArchiveMergeFilePath = $@"{M3Utilities.SanitizePath(modBeingDeployed.ModName)}\{inArchiveMergeFilePath}";
-                        inArchiveGame1TlkFolderPath = $@"{M3Utilities.SanitizePath(modBeingDeployed.ModName)}\{inArchiveGame1TlkFolderPath}";
+                        inArchiveMergeFilePath = $@"{MUtilities.SanitizePath(modBeingDeployed.ModName)}\{inArchiveMergeFilePath}";
+                        inArchiveGame1TlkFolderPath = $@"{MUtilities.SanitizePath(modBeingDeployed.ModName)}\{inArchiveGame1TlkFolderPath}";
+
+                        if (needsGamePrefix)
+                        {
+                            inArchiveMergeFilePath = $@"{modBeingDeployed.Game}\{inArchiveMergeFilePath}";
+                            inArchiveGame1TlkFolderPath = $@"{modBeingDeployed.Game}\{inArchiveGame1TlkFolderPath}";
+
+                        }
                     }
 
                     currentDeploymentStep = M3L.GetString(M3L.string_addingCombinedTLKMergeFile);
@@ -609,8 +614,15 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         {
             if (sender is Hyperlink hl && hl.DataContext is DeploymentChecklistItem dcli)
             {
-                DeploymentListDialog ld = new DeploymentListDialog(dcli, Window.GetWindow(hl));
-                ld.ShowDialog();
+                if (dcli.HasMessage)
+                {
+                    DeploymentListDialog ld = new DeploymentListDialog(dcli, Window.GetWindow(hl));
+                    ld.ShowDialog();
+                }
+                else if (dcli.Hyperlink != null)
+                {
+                    M3Utilities.OpenWebpage(dcli.Hyperlink);
+                }
             }
         }
 
@@ -627,6 +639,9 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             InitializeComponent();
             AddModToDeployment(initialMod);
             initialMod = null;
+#if PRERELEASE
+            M3L.ShowDialog(window, M3L.GetString(M3L.string_dialog_thisIsPrereleaseBuildDeployement), M3L.GetString(M3L.string_prereleaseBuild), MessageBoxButton.OK, MessageBoxImage.Warning);
+#endif
         }
 
         private void StartCheck(EncompassingModDeploymentCheck emc)
@@ -773,6 +788,13 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             {
                 StartCheck(mod);
             }
+        }
+        public override bool DisableM3AutoSizer { get; set; } = true;
+
+        public override bool CanBeForceClosed()
+        {
+            // Force wait
+            return !DeploymentInProgress;
         }
     }
 }

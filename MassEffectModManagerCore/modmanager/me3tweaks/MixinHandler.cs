@@ -291,9 +291,15 @@ namespace ME3TweaksModManager.modmanager.me3tweaks
             {
                 if (MixinMemoryStreamManager != null) isResetting = true;
                 var MB = 1024 * 1024;
-                MixinMemoryStreamManager = new RecyclableMemoryStreamManager(MB * 4, MB * 128, MB * 256);
-                MixinMemoryStreamManager.GenerateCallStacks = true;
-                MixinMemoryStreamManager.AggressiveBufferReturn = true;
+                MixinMemoryStreamManager = new RecyclableMemoryStreamManager(
+                    new RecyclableMemoryStreamManager.Options()
+                    {
+                        BlockSize = MB * 4,
+                        LargeBufferMultiple = MB * 128,
+                        MaximumBufferSize = MB * 256,
+                        GenerateCallStacks = false, // Changed to off 05/23/2024 as we don't need it
+                        AggressiveBufferReturn = true
+                    });
                 M3MemoryAnalyzer.AddTrackedMemoryItem(@"Mixin Memory Stream Manager", MixinMemoryStreamManager);
             }
 

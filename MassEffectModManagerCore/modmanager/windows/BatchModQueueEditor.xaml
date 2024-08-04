@@ -1,16 +1,43 @@
 ﻿<Window
-    x:Class="ME3TweaksModManager.modmanager.windows.BatchModQueueEditor" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:fa5="http://schemas.fontawesome.com/icons/" xmlns:helpers="clr-namespace:ME3TweaksModManager.modmanager.helpers" xmlns:extensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI" xmlns:batch="clr-namespace:ME3TweaksModManager.modmanager.objects.batch"
+    x:Class="ME3TweaksModManager.modmanager.windows.BatchModQueueEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    xmlns:fa5="http://schemas.fontawesome.com/icons/"
+    xmlns:helpers="clr-namespace:ME3TweaksModManager.modmanager.helpers"
+    xmlns:extensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
+    xmlns:batch="clr-namespace:ME3TweaksModManager.modmanager.objects.batch"
+    xmlns:converters="clr-namespace:ME3TweaksModManager.modmanager.converters"
+    xmlns:windows="clr-namespace:ME3TweaksModManager.modmanager.windows"
+    xmlns:ui="clr-namespace:ME3TweaksModManager.ui"
     DataContext="{Binding RelativeSource={RelativeSource Self}}"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
     Title="{DynamicResource string_title_installGroupEditor}"
     Height="720"
-    Width="1280">
+    Width="1280"
+    Loaded="BatchModQueueEditor_OnLoaded">
     <Window.Style>
         <Style
             TargetType="Window"
             BasedOn="{StaticResource {x:Type Window}}" />
     </Window.Style>
+    <Window.Resources>
+        <converters:NotZeroVisibilityConverter
+            x:Key="NotZeroVisibilityConverter" />
+    </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding
+            Key="Escape"
+            Command="{Binding EscapePressedCommand}" />
+        <KeyBinding
+            Key="F"
+            Modifiers="Control"
+            Command="{Binding SearchModsCommand}" />
+    </Window.InputBindings>
     <DockPanel
         Margin="5">
         <TextBlock
@@ -23,7 +50,11 @@
             Text="{DynamicResource string_moveModsToRightSideToAdd}"
             TextAlignment="Center"
             DockPanel.Dock="Top"
-            Margin="0,0,0,10" />
+             />
+        <Separator DockPanel.Dock="Top" 
+                   Margin="10,4,10,10"
+                   Opacity=".5"
+                   Foreground="{DynamicResource {x:Static adonisUi:Brushes.SlightlyDimmedForegroundBrush}}"/>
         <Grid
             DockPanel.Dock="Left">
             <Grid.RowDefinitions>
@@ -96,8 +127,9 @@
                                 </Style>
                             </Button.Style>
                             <Image
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Width="24"
-                                Source="{Binding Path=., Converter={StaticResource GameToImageIconConverter}, ConverterParameter=24}" />
+                                Source="{Binding Path=., Converter={StaticResource GameToImageIconConverter}, ConverterParameter=32}" />
                         </Button>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -120,85 +152,125 @@
                     Header="{DynamicResource string_contentMods}"
                     Margin="0"
                     Padding="0">
-                    <ListBox
-                        Margin="-8"
-                        SelectionMode="Extended"
-                        ItemsSource="{Binding VisibleFilteredMods}"
-                        SelectedItem="{Binding SelectedAvailableMod}"
-                        Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
-                        BorderThickness="1"
-                        IsTextSearchEnabled="True"
-                        TextSearch.TextPath="ModName">
-                        <ListBox.ItemContainerStyle>
-                            <Style
-                                TargetType="ListBoxItem"
-                                BasedOn="{StaticResource ListBoxItemStyle}">
-                                <Setter
-                                    Property="HorizontalContentAlignment"
-                                    Value="Stretch" />
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel
-                                    Orientation="Horizontal">
-                                    <Image
-                                        Source="{Binding Game, Converter={StaticResource GameToImageIconConverter}, ConverterParameter=16}"
-                                        Width="16"
-                                        Height="16"
-                                        Margin="0,0,5,0" />
-                                    <TextBlock
-                                        Text="{Binding ModName}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <DockPanel>
+                        <xctk:WatermarkTextBox
+                            DockPanel.Dock="Bottom"
+                            Watermark="{DynamicResource string_typeToFilter}"
+                            Name="Avail_ModSearchBox"
+                            Margin="-8,0,-8,-8"
+                            Text="{Binding ModSearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
+                        <ListBox
+                            Name="ListBox_ContentMods"
+                            Margin="-8,-8,-8,0"
+                            SelectionMode="Extended"
+                            ItemsSource="{Binding AvailableModsView}"
+                            SelectedItem="{Binding SelectedAvailableMod}"
+                            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                            BorderThickness="1"
+                            IsTextSearchEnabled="True"
+                            TextSearch.TextPath="ModName">
+                            <ListBox.ItemContainerStyle>
+                                <Style
+                                    TargetType="ListBoxItem"
+                                    BasedOn="{StaticResource ListBoxItemStyle}">
+                                    <Setter
+                                        Property="HorizontalContentAlignment"
+                                        Value="Stretch" />
+                                    <EventSetter
+                                        Event="MouseDoubleClick"
+                                        Handler="LeftSideMod_MouseDown" />
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel
+                                        Orientation="Horizontal">
+                                        <Image
+                                            Source="{Binding Game, Converter={StaticResource GameToImageIconConverter}, ConverterParameter=16}"
+                                            Width="16"
+                                            Height="16"
+                                            Margin="0,0,5,0" />
+                                        <TextBlock
+                                            Text="{Binding ModName}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
                 </TabItem>
                 <TabItem
                     Header="{DynamicResource string_aSIMods}">
-                    <ListBox
-                        BorderThickness="1"
-                        Margin="-8"
-                        IsTextSearchEnabled="True"
-                        TextSearch.TextPath="Name"
-                        Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
-                        ItemsSource="{Binding VisibleFilteredASIMods}"
-                        HorizontalContentAlignment="Stretch"
-                        ItemContainerStyle="{StaticResource StretchNoPaddingStyle}"
-                        SelectedItem="{Binding SelectedAvailableASIMod}"></ListBox>
-                </TabItem>
-                <TabItem
-                    Header="{DynamicResource string_textureMods}">
                     <DockPanel>
-                        <Button
-                            HorizontalAlignment="Right"
-                            Margin="5,8,-8,-8"
-                            Height="24"
+                        <xctk:WatermarkTextBox
                             DockPanel.Dock="Bottom"
-                            Command="{Binding AddCustomMEMModCommand}">
-                            <Button.Content>
-                                <StackPanel
-                                    Orientation="Horizontal">
-                                    <fa5:ImageAwesome
-                                        Icon="Solid_Plus"
-                                        Width="12"
-                                        Height="12"
-                                        VerticalAlignment="Center"
-                                        Margin="0,0,5,0"
-                                        Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
-                                    <TextBlock
-                                        Text="{DynamicResource string_locateCustomFile}"
-                                        VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button.Content>
-                        </Button>
+                            Watermark="{DynamicResource string_typeToFilter}"
+                            Name="Avail_ASISearchBox"
+                            Margin="-8,0,-8,-8"
+                            Text="{Binding ASISearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
                         <ListBox
                             BorderThickness="1"
-                            Margin="-8"
+                            Margin="-8,-8,-8,0"
                             IsTextSearchEnabled="True"
                             TextSearch.TextPath="Name"
                             Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
-                            ItemsSource="{Binding VisibleFilteredMEMMods}"
+                            ItemsSource="{Binding AvailableASIModsView}"
+                            HorizontalContentAlignment="Stretch"
+                            SelectedItem="{Binding SelectedAvailableASIMod}">
+                            <ListBox.ItemContainerStyle>
+                                <Style
+                                    TargetType="ListBoxItem"
+                                    BasedOn="{StaticResource StretchNoPaddingStyle}">
+                                    <EventSetter
+                                        Event="MouseDoubleClick"
+                                        Handler="LeftSideMod_MouseDown" />
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </DockPanel>
+                </TabItem>
+                <TabItem
+                    Header="{DynamicResource string_textureMods}"
+                    Visibility="{Binding SelectedGame, Converter={StaticResource GameToVisibilityConverter}, ConverterParameter='LEGame'}">
+                    <DockPanel>
+                        <DockPanel
+                            DockPanel.Dock="Bottom"
+                            Margin="-8,0,-8,-8">
+                            <Button
+                                ToolTip="{DynamicResource string_tooltip_addMemFilesFromFilesystem}"
+                                HorizontalAlignment="Right"
+                                Height="24"
+                                DockPanel.Dock="Right"
+                                Command="{Binding AddCustomMEMModCommand}">
+                                <Button.Content>
+                                    <StackPanel
+                                        Orientation="Horizontal">
+                                        <fa5:ImageAwesome
+                                            Icon="Solid_Plus"
+                                            Width="12"
+                                            Height="12"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,5,0"
+                                            Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                                        <TextBlock
+                                            Text="{DynamicResource string_locateCustomFile}"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+                            <xctk:WatermarkTextBox
+                                Watermark="{DynamicResource string_typeToFilter}"
+                                Name="Avail_TextureSearchBox"
+                                Text="{Binding TextureSearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
+                        </DockPanel>
+                        <ListBox
+                            Name="ListBox_AvailableTextures"
+                            BorderThickness="1"
+                            Margin="-8,-8,-8,0"
+                            SelectionMode="Extended"
+                            IsTextSearchEnabled="True"
+                            TextSearch.TextPath="Name"
+                            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                            ItemsSource="{Binding AvailableMEMModsView}"
                             HorizontalContentAlignment="Stretch"
                             SelectedItem="{Binding SelectedAvailableMEMMod}">
                             <ListBox.ItemContainerStyle>
@@ -208,6 +280,9 @@
                                     <Setter
                                         Property="HorizontalContentAlignment"
                                         Value="Stretch" />
+                                    <EventSetter
+                                        Event="MouseDoubleClick"
+                                        Handler="LeftSideMod_MouseDown" />
                                 </Style>
                             </ListBox.ItemContainerStyle>
                         </ListBox>
@@ -258,8 +333,12 @@
                 Margin="0,5,0,0">
                 <Button
                     Content="{DynamicResource string_cancelEditing}"
-                    Margin="5,0"
+                    Margin="0,0,5,0"
                     Command="{Binding CancelCommand}" />
+                <Button
+                    Content="{DynamicResource string_checkForIssues}"
+                    Margin="0,0,5,0"
+                    Command="{Binding CheckForIssuesCommand}" />
                 <Button
                     Content="{DynamicResource string_saveGroup}"
                     Command="{Binding SaveAndCloseCommand}" />
@@ -282,7 +361,7 @@
                     Grid.Row="0"
                     Grid.Column="0" />
                 <xctk:WatermarkTextBox
-                    Watermark="{DynamicResource string_groupName}"
+                    Watermark="{DynamicResource string_required}"
                     Grid.Row="1"
                     Grid.Column="0"
                     Text="{Binding GroupName, UpdateSourceTrigger=PropertyChanged}" />
@@ -292,7 +371,7 @@
                     Grid.Row="2"
                     Grid.Column="0" />
                 <xctk:WatermarkTextBox
-                    Watermark="{DynamicResource string_groupDescription}"
+                    Watermark="{DynamicResource string_required}"
                     Grid.Row="3"
                     Grid.Column="0"
                     Height="55"
@@ -323,13 +402,6 @@
                                 Text="{DynamicResource string_removeModFromInstallGroup}" />
                         </StackPanel>
                     </Button>
-                    <!-- This is not really reliable because modders don't properly use the autos system -->
-                    <!--<Button DockPanel.Dock="Left" Command="{Binding AutosortCommand}" Margin="5,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <fa5:ImageAwesome Icon="Solid_Sort" Height="12" Margin="0,0,5,0" Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
-                            <TextBlock Text="Autosort (experimental)" />
-                        </StackPanel>
-                    </Button>-->
                     <Button
                         DockPanel.Dock="Right"
                         Margin="5,0,0,0"
@@ -346,7 +418,9 @@
                         </StackPanel>
                     </Button>
                     <Button
+                        DockPanel.Dock="Right"
                         HorizontalAlignment="Right"
+                        Margin="5,0,0,0"
                         Command="{Binding MoveUpCommand}">
                         <StackPanel
                             Orientation="Horizontal">
@@ -359,6 +433,28 @@
                                 Text="{DynamicResource string_moveUp}" />
                         </StackPanel>
                     </Button>
+                    <Button
+                        HorizontalAlignment="Right"
+                        Margin="5,0,0,0"
+                        Command="{Binding SortByMountPriorityCommand}">
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <fa5:ImageAwesome
+                                Icon="Solid_Sort"
+                                Height="12"
+                                Margin="0,0,5,0"
+                                Foreground="{DynamicResource {x:Static adonisUi:Brushes.DisabledForegroundBrush}}" />
+                            <TextBlock
+                                Text="{DynamicResource string_sortByMountPriority}" />
+                        </StackPanel>
+                    </Button>
+                    <CheckBox
+                        IsChecked="{Binding RestoreGameBeforeInstall}"
+                        ToolTip="{DynamicResource string_tooltip_restoreBeforeInstall}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Margin="5,2,0,0"
+                        Content="{DynamicResource string_restoreGameBeforeInstall}" />
                 </DockPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -367,98 +463,176 @@
                         <ColumnDefinition
                             Width="*" />
                     </Grid.ColumnDefinitions>
-                    <ListBox
-                        Name="InstallGroupMods_ListBox"
-                        ItemsSource="{Binding ModsInGroup}"
-                        SelectedItem="{Binding SelectedInstallGroupMod}"
-                        Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
-                        BorderThickness="1"
-                        IsTextSearchEnabled="True"
-                        TextSearch.TextPath="ModName">
-                        <ListBox.ItemContainerStyle>
-                            <Style
-                                TargetType="ListBoxItem"
-                                BasedOn="{StaticResource ListBoxItemStyle}">
-                                <Setter
-                                    Property="HorizontalContentAlignment"
-                                    Value="Stretch" />
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.InputBindings>
-                            <KeyBinding
-                                Key="Delete"
-                                Command="{Binding RemoveFromInstallGroupCommand}" />
-                        </ListBox.InputBindings>
-                        <ListBox.Resources>
-                            <DataTemplate
-                                DataType="{x:Type batch:BatchMod}">
-                                <StackPanel
-                                    Orientation="Horizontal">
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Visibility="{Binding Mod, Converter={StaticResource NullVisibilityConverter}}">
-                                        <Image
-                                            Source="{Binding Mod.Game, Converter={StaticResource GameToImageIconConverter}}"
-                                            Width="16"
-                                            Height="16"
-                                            Margin="0,0,5,0" />
-                                        <TextBlock
-                                            Text="{Binding Mod.ModName}" />
-                                    </StackPanel>
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Visibility="{Binding Mod, Converter={StaticResource NullVisibilityConverter}, ConverterParameter='Reversed'}">
-                                        <fa5:FontAwesome
-                                            Icon="Solid_Ban"
-                                            Foreground="Red"
-                                            Height="14"
-                                            Margin="0,2,5,0" />
-                                        <TextBlock
-                                            Text="{DynamicResource string_modNotAvailable}"
-                                            Margin="0,0,5,0"
-                                            VerticalAlignment="Center" />
-                                        <TextBlock
-                                            Text="{Binding ModDescPath}"
-                                            VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.Resources>
-                    </ListBox>
-                    <TextBox
-                        Grid.Column="1"
-                        IsReadOnly="True"
-                        IsReadOnlyCaretVisible="False"
-                        HorizontalContentAlignment="Left"
-                        HorizontalAlignment="Stretch"
-                        Background="{DynamicResource {x:Static adonisUi:Brushes.Layer2BackgroundBrush}}"
-                        TextWrapping="Wrap"
-                        VerticalScrollBarVisibility="Auto"
-                        BorderThickness="1"
-                        VerticalContentAlignment="Top"
-                        extensions:CursorSpotlightExtension.BackgroundBrush="Transparent"
-                        extensions:CursorSpotlightExtension.RelativeSpotlightSize="0"
-                        extensions:CursorSpotlightExtension.MaxBlurRadius="0">
-                        <TextBox.Text>
-                            <PriorityBinding>
-                                <!-- ModdescMod -->
-                                <Binding
-                                    Path="SelectedInstallGroupMod.Mod.DisplayedModDescription"
-                                    Mode="OneWay" />
-                                <!-- ASIMod -->
-                                <Binding
-                                    Path="SelectedInstallGroupMod.AssociatedMod.Description"
-                                    Mode="OneWay" />
-                                <!-- MEMMod-->
-                                <Binding
-                                    Path="SelectedInstallGroupMod.UIDescription"
-                                    Mode="OneWay" />
-                                <Binding
-                                    Path="NoModSelectedText"
-                                    Mode="OneWay" />
-                            </PriorityBinding>
-                        </TextBox.Text>
-                    </TextBox>
+                    <DockPanel
+                        Grid.Column="0">
+                        <ui:Clipper
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom"
+                            Constraint="Width"
+                            DockPanel.Dock="Bottom">
+                            <DockPanel
+                                Name="ModListSearchBoxPanel"
+                                ui:Clipper.WidthFraction="1"
+                                ui:Clipper.HeightFraction="0"
+                                VerticalAlignment="Bottom">
+                                <Button
+                                    DockPanel.Dock="Right"
+                                    ToolTip="{DynamicResource string_tooltip_closeSearchPanel}"
+                                    Command="{Binding CloseSearchCommand}">
+                                    <Button.Content>
+                                        <fa5:ImageAwesome
+                                            Icon="Solid_Times"
+                                            Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
+                                            Height="8"
+                                            Width="8" />
+                                    </Button.Content>
+                                </Button>
+                                <xctk:WatermarkTextBox
+                                    Watermark="{DynamicResource string_typeToSearchCTRLF}"
+                                    Name="ModSearchBox"
+                                    Text="{Binding GroupModSearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
+                            </DockPanel>
+                        </ui:Clipper>
+                        <ListBox
+                            Name="InstallGroupMods_ListBox"
+                            ItemsSource="{Binding ModsInGroupView}"
+                            SelectedItem="{Binding SelectedInstallGroupMod}"
+                            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                            BorderThickness="1"
+                            IsTextSearchEnabled="True"
+                            TextSearch.TextPath="ModName">
+                            <ListBox.ItemContainerStyle>
+                                <Style
+                                    TargetType="ListBoxItem"
+                                    BasedOn="{StaticResource ListBoxItemStyle}">
+                                    <Setter
+                                        Property="HorizontalContentAlignment"
+                                        Value="Stretch" />
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.InputBindings>
+                                <KeyBinding
+                                    Key="Delete"
+                                    Command="{Binding RemoveFromInstallGroupCommand}" />
+                            </ListBox.InputBindings>
+                            <ListBox.Resources>
+                                <DataTemplate
+                                    DataType="{x:Type batch:BatchMod}">
+                                    <Grid>
+                                        <DockPanel
+                                            HorizontalAlignment="Stretch"
+                                            Visibility="{Binding Mod, Converter={StaticResource NullVisibilityConverter}}">
+                                            <Image
+                                                DockPanel.Dock="Left"
+                                                Source="{Binding Mod.Game, Converter={StaticResource GameToImageIconConverter}}"
+                                                Width="16"
+                                                Height="16"
+                                                Margin="0,0,5,0" />
+                                            <Border
+                                                DockPanel.Dock="Right"
+                                                ToolTip="{DynamicResource string_tooltip_lowestMountPriority}"
+                                                Visibility="{Binding Mod.UIMountPriority, Converter={StaticResource NotZeroVisibilityConverter}}"
+                                                HorizontalAlignment="Right"
+                                                BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
+                                                BorderThickness="1"
+                                                CornerRadius="2"
+                                                Background="{DynamicResource {x:Static adonisUi:Brushes.MenuHeaderBackgroundBrush}}">
+                                                <TextBlock
+                                                    Text="{Binding Mod.UIMountPriority}"
+                                                    FontStyle="Italic"
+                                                    Padding="2,0">
+                                                    <TextBlock.Style>
+                                                        <Style
+                                                            TargetType="TextBlock">
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger
+                                                                    Binding="{Binding ChosenOptionsDesync}"
+                                                                    Value="True">
+                                                                    <Setter
+                                                                        Property="Foreground"
+                                                                        Value="White" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                            <TextBlock
+                                                HorizontalAlignment="Stretch"
+                                                Text="{Binding Mod.ModName}" />
+                                        </DockPanel>
+                                        <StackPanel
+                                            Orientation="Horizontal"
+                                            Visibility="{Binding Mod, Converter={StaticResource NullVisibilityConverter}, ConverterParameter='Reversed'}">
+                                            <fa5:FontAwesome
+                                                Icon="Solid_Ban"
+                                                Foreground="Red"
+                                                Height="14"
+                                                Margin="0,2,5,0" />
+                                            <TextBlock
+                                                Text="{DynamicResource string_modNotAvailable}"
+                                                Margin="0,0,5,0"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Text="{Binding ModName}"
+                                                Visibility="{Binding ModName, Converter={StaticResource NullOrEmptyVisibilityConverter}}"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Text="{Binding ModDescPath}"
+                                                Visibility="{Binding ModName, Converter={StaticResource NullOrEmptyVisibilityConverter}, ConverterParameter='Reversed'}"
+                                                VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.Resources>
+                        </ListBox>
+                    </DockPanel>
+                    <DockPanel
+                        Grid.Column="1">
+                        <Image
+                            Source="{Binding SelectedInstallGroupMod.Mod.BannerBitmap}"
+                            Visibility="{Binding SelectedInstallGroupMod.Mod.BannerBitmap, Converter={StaticResource NullVisibilityConverter}}"
+                            Margin="0,1"
+                            RenderOptions.BitmapScalingMode="HighQuality"
+                            DockPanel.Dock="Top" />
+                        <TextBox
+                            IsReadOnly="True"
+                            IsReadOnlyCaretVisible="False"
+                            HorizontalContentAlignment="Left"
+                            HorizontalAlignment="Stretch"
+                            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer2BackgroundBrush}}"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto"
+                            BorderThickness="1"
+                            VerticalContentAlignment="Top"
+                            extensions:CursorSpotlightExtension.BackgroundBrush="Transparent"
+                            extensions:CursorSpotlightExtension.RelativeSpotlightSize="0"
+                            extensions:CursorSpotlightExtension.MaxBlurRadius="0">
+                            <TextBox.Text>
+                                <PriorityBinding>
+                                    <!-- ModdescMod -->
+                                    <Binding
+                                        Path="SelectedInstallGroupMod.Mod.DisplayedModDescription"
+                                        Mode="OneWay" />
+                                    <!-- ASIMod -->
+                                    <Binding
+                                        Path="SelectedInstallGroupMod.AssociatedMod.Description"
+                                        Mode="OneWay" />
+                                    <!-- MEMMod, GameRestore-->
+                                    <Binding
+                                        Path="SelectedInstallGroupMod.UIDescription"
+                                        Mode="OneWay" />
+                                    <!-- Game restore -->
+                                    <Binding
+                                        Path="NoModSelectedText"
+                                        Mode="OneWay" />
+                                </PriorityBinding>
+                            </TextBox.Text>
+                        </TextBox>
+                    </DockPanel>
                 </Grid>
             </DockPanel>
         </DockPanel>

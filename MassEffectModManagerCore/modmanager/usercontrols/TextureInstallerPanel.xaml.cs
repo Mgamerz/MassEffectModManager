@@ -1,21 +1,15 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Timers;
+using System.Windows;
 using System.Windows.Input;
-using AdonisUI.Controls;
+using LegendaryExplorerCore.Helpers;
+using LegendaryExplorerCore.Misc;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Helpers.MEM;
-using ME3TweaksModManager.modmanager.diagnostics;
-using ME3TweaksModManager.modmanager.helpers;
+using ME3TweaksCore.Services.Shared.BasegameFileIdentification;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.windows;
 using ME3TweaksModManager.ui;
-using Microsoft.Win32;
-using PropertyChanged;
-using MEMIPCHandler = ME3TweaksCore.Helpers.MEM.MEMIPCHandler;
-using MessageBoxButton = System.Windows.MessageBoxButton;
-using MessageBoxImage = System.Windows.MessageBoxImage;
-using MessageBoxResult = System.Windows.MessageBoxResult;
+
 
 namespace ME3TweaksModManager.modmanager.usercontrols
 {
@@ -44,8 +38,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         /// The path where the MEM MFL file is written
         /// </summary>
         /// <returns></returns>
-        private string GetMEMMFLPath() => Path.Combine(M3Filesystem.GetTempPath(), @"meminstalllist.mfl");
+        private string GetMEMMFLPath() => Path.Combine(MCoreFilesystem.GetTempDirectory(), @"meminstalllist.mfl");
 
+        /// <summary>
+        /// If the dialog saying do not install afterwards should be shown.
+        /// </summary>
+        public bool ShowTextureWarning { get; init; } = true;
 
         /// <summary>
         /// Target we are installing textures to
@@ -75,6 +73,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         {
             //autocloses
         }
+
+        private const string BGFIS_TEXTURE_MODDED_SUFFIX = @"(Texture modded)";
+
+        private Timer _keepAwakeTimer = new Timer(30 * 1000); // 30s interval
 
         public override void OnPanelVisible()
         {
@@ -107,10 +109,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 return;
             }
 
-            if (!Target.TextureModded)
+            if (ShowTextureWarning && !Target.TextureModded)
             {
                 // Show the big scary warning
-                if (!ShowTextureInstallWarning())
+                if (!ShowTextureInstallWarning(window, false))
                 {
                     M3Log.Information(@"User declined to install texture after warning");
                     OnClosing(DataEventArgs.Empty);
@@ -122,6 +124,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             File.WriteAllLines(GetMEMMFLPath(), MEMFilesToInstall);
 
             // Perform the installation
+            if (_keepAwakeTimer != null)
+            {
+                _keepAwakeTimer.Elapsed += keepSystemAwake;
+                _keepAwakeTimer.Start();
+            }
+
             NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"TextureInstaller");
             nbw.DoWork += (a, b) =>
             {
@@ -202,6 +210,28 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         M3Log.Warning(@"Texture safety checks are disabled! Do not trust the results of this installation");
                     }
 
+                    SystemSleepManager.PreventSleep(@"TextureInstaller");
+
+                    // Mod Manager 9: Inventory all basegame changes so we have a definitive source of files.
+                    SetNextStep(M3L.GetString(M3L.string_inventoryingGameStateBeforeTextureInstall));
+                    Target.PopulateModifiedBasegameFiles();
+                    int numDone = 0;
+                    var trackedFileToOriginalMD5Map = new CaseInsensitiveDictionary<string>(); // Map pre-texture modded -> pre-texture modded MD5
+                    foreach (var f in Target.ModifiedBasegameFiles.Where(x => x.FilePath.RepresentsPackageFilePath()))
+                    {
+                        var path = Path.Combine(Target.TargetPath, f.FilePath);
+                        var hash = MUtilities.CalculateHash(path);
+                        var existingInfo = BasegameFileIdentificationService.GetBasegameFileSource(Target, path, hash);
+                        if (existingInfo != null && !existingInfo.source.EndsWith(BGFIS_TEXTURE_MODDED_SUFFIX))
+                        {
+                            trackedFileToOriginalMD5Map[f.FilePath] = hash;
+                        }
+
+                        numDone++;
+                        PercentDone = (int)(numDone * 100.0 / Target.ModifiedBasegameFiles.Count);
+                    }
+
+                    // Install the textures.
                     SetNextStep(M3L.GetString(M3L.string_preparingForTextureInstall)); // same message
                     var installResult = MEMIPCHandler.InstallMEMFiles(Target, GetMEMMFLPath(), x => ActionText = x, x => PercentDone = x, setGamePath: false);
                     TelemetryInterposer.TrackEvent(@"Installed texture mods", new Dictionary<string, string>()
@@ -213,6 +243,27 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         // If 'installation' occurred (e.g. it got past scan) we need to reload the game target to ensure consistency in the UI
                         Result.ReloadTargets = installResult.IsInstallSession;
                     }
+
+                    // Mod Manager 9: Update basegame texture hashes.
+                    SetNextStep(M3L.GetString(M3L.string_inventoryingGameStateAfterTextureInstall));
+                    var basegameFileDbUpdates = new List<BasegameFileRecord>();
+                    numDone = 0;
+                    foreach (var f in trackedFileToOriginalMD5Map.Where(x => x.Key.RepresentsPackageFilePath()))
+                    {
+                        var path = Path.Combine(Target.TargetPath, f.Key);
+                        var existingInfo = BasegameFileIdentificationService.GetBasegameFileSource(Target, path, f.Value);
+                        if (existingInfo != null) // This should never be null but we will check here anyways.
+                        {
+                            var newMd5 = MUtilities.CalculateHash(path);
+                            var newName = existingInfo.source += $@" - {BGFIS_TEXTURE_MODDED_SUFFIX}";
+                            var mm = new BasegameFileRecord(f.Key, (int)new FileInfo(path).Length, Target.Game, newName, newMd5);
+                            basegameFileDbUpdates.Add(mm);
+                        }
+                        numDone++;
+                        PercentDone = (int)(numDone * 100.0 / Target.ModifiedBasegameFiles.Count);
+                    }
+
+                    BasegameFileIdentificationService.AddLocalBasegameIdentificationEntries(basegameFileDbUpdates);
                     b.Result = installResult;
                 }
                 else
@@ -224,6 +275,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
             nbw.RunWorkerCompleted += (a, b) =>
             {
+                SystemSleepManager.AllowSleep();
                 if (b.Error != null)
                 {
                     // Logging is handled in nbw
@@ -276,16 +328,37 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             nbw.RunWorkerAsync();
         }
 
+        private void keepSystemAwake(object sender, ElapsedEventArgs e)
+        {
+            SystemSleepManager.PreventSleep(@"TextureInstaller");
+        }
+
+        protected override void OnClosing(DataEventArgs e)
+        {
+            base.OnClosing(e);
+
+            // Allow sleep when panel closes
+            _keepAwakeTimer.Stop();
+            _keepAwakeTimer.Elapsed -= keepSystemAwake;
+            SystemSleepManager.AllowSleep();
+        }
+
         private void SetNextStep(string nextStepText)
         {
             ActionText = nextStepText;
             PercentDone = 0;
         }
 
-        private bool ShowTextureInstallWarning()
+        /// <summary>
+        /// Shows the scary DO NOT INSTALL AFTER THIS prompt. This must run on a UI thread!
+        /// </summary>
+        /// <param name="window"></param>
+        /// <returns>True if user accepted, false otherwise</returns>
+        public static bool ShowTextureInstallWarning(Window window, bool isBatch)
         {
             var result = M3L.ShowDialog(window,
-                M3L.GetString(M3L.string_dialog_bigScaryTextureInstallWarning),
+                isBatch ? M3L.GetString(M3L.string_dialog_bigScaryTextureInstallWarningBatch)
+                : M3L.GetString(M3L.string_dialog_bigScaryTextureInstallWarning),
                 M3L.GetString(M3L.string_textureInstallationWarning), MessageBoxButton.YesNo, MessageBoxImage.Warning,
                 System.Windows.MessageBoxResult.No);
 

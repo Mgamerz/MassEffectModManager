@@ -13,8 +13,14 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Flurl.Http;
+using LegendaryExplorerCore.Misc;
 using LegendaryExplorerCore.Packages;
+using ME3TweaksCore.GameFilesystem;
+using ME3TweaksCore.Helpers;
+using ME3TweaksCore.Services.Shared.BasegameFileIdentification;
 using ME3TweaksModManager.modmanager.diagnostics;
+using ME3TweaksModManager.modmanager.objects.gametarget;
+using ME3TweaksModManager.modmanager.objects.mod.merge;
 using SevenZip;
 
 namespace ME3TweaksModManager.modmanager.helpers
@@ -967,19 +973,6 @@ namespace ME3TweaksModManager.modmanager.helpers
             return containsKeywords.Any(keyword => input.IndexOf(keyword, comparisonType) >= 0);
         }
 
-        // Step 2: https://stackoverflow.com/questions/2435894/net-how-do-i-check-for-illegal-characters-in-a-path
-        public static bool ContainsAnyInvalidCharacters(this string path)
-        {
-            return (!string.IsNullOrEmpty(path) && path.IndexOfAny(Path.GetInvalidPathChars()) >= 0);
-        }
-
-        //Step 3: https://stackoverflow.com/questions/2435894/net-how-do-i-check-for-illegal-characters-in-a-path
-        public static string RemoveSpecialCharactersUsingFrameworkMethod(this string path)
-        {
-            return Path.GetInvalidFileNameChars().Aggregate(path, (current, c) => current.Replace(c.ToString(), string.Empty));
-        }
-
-
         public static Stream ToStream(this string s, bool bom = false)
         {
             return s.ToStream(/*bom ? new UTF8Encoding(false) : */Encoding.UTF8);
@@ -1359,6 +1352,79 @@ namespace ME3TweaksModManager.modmanager.helpers
                 Serilog.Log.Error(@"  At line {0} column {1} in {2}: {3} {4}{3}{5}  ",
                     stackFrame.GetFileLineNumber(), stackFrame.GetFileColumnNumber(),
                     stackFrame.GetMethod(), Environment.NewLine, stackFrame.GetFileName());
+            }
+        }
+    }
+
+    public static class M3GameTargetExtensions
+    {
+        /// <summary>
+        /// Returns a GameState object populated with basegame-only hashes and metacmm files about a target.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static GameState GetInfoRequiredToDetermineIfInstalled(this GameTarget target)
+        {
+            try
+            {
+                // Service must be loaded for this to work! We will wait up to 5 seconds.
+                for (int i = 0; i < 5; i++)
+                {
+                    if (BasegameFileIdentificationService.ServiceLoaded)
+                        break;
+
+                    // Wait one second for service to come back
+                    M3Log.Information(@"GameState: Waiting for Basegame File Identification Service to load...");
+                    Thread.Sleep(1000);
+                }
+
+                if (!BasegameFileIdentificationService.ServiceLoaded)
+                {
+                    M3Log.Warning(@"GameState: Basegame File Identification Service is still not loaded. We are skipping determining if mods are installed");
+                    return GameState.Default;
+                }
+
+                // Collect merge target hashes. This will not be good for performance.
+                var mergeTargets = MergeModLoader.GetAllowedMergeTargetFilenames(target.Game, true);
+                var currentHashes = new CaseInsensitiveDictionary<string>();
+                foreach (var f in mergeTargets)
+                {
+                    var targetFile = Path.Combine(target.GetCookedPath(), f);
+                    if (File.Exists(targetFile))
+                    {
+                        var hash = MUtilities.CalculateHash(targetFile);
+                        currentHashes[Path.GetRelativePath(target.TargetPath, targetFile)] = hash;
+                    }
+                }
+
+                // Collect MetaCMM data from DLC folders.
+                var metaCMMs = target.GetMetaMappedInstalledDLC(false);
+
+                // Collect known tracked hashes for merge targets.
+                var trackedHashInfo = BasegameFileIdentificationService.GetEntriesForFiles(target.Game, currentHashes.Keys.ToList());
+
+                var currentKnownHashes = new CaseInsensitiveDictionary<BasegameFileRecord>();
+                foreach (var tracked in trackedHashInfo)
+                {
+                    foreach (var trackedInstance in tracked.Value)
+                    {
+                        if (trackedInstance.hash == currentHashes[tracked.Key])
+                        {
+                            currentKnownHashes[tracked.Key] = trackedInstance; // This hash is the one we want to use
+                        }
+                    }
+                }
+                return new GameState()
+                {
+                    Target = target,
+                    BasegameHashes = currentKnownHashes,
+                    DLCMetaCMMs = metaCMMs
+                };
+            }
+            catch (Exception ex)
+            {
+                M3Log.Exception(ex, $@"Error getting gamestate for target {target.TargetPath}:");
+                return GameState.Default;
             }
         }
     }

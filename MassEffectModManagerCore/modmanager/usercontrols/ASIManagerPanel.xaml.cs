@@ -36,7 +36,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         public string SelectedASIName { get; set; }
         public bool InstallInProgress { get; set; }
         public string InstallButtonText { get; set; }
-        private GameTargetWPF preselectedTarget;
+        private GameTarget preselectedTarget;
         public ObservableCollectionExtended<ASIGameWPF> Games { get; } = new();
 
 
@@ -46,7 +46,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         /// managing and installing ASIs. ASIs are useful for debugging purposes, which is why this feature is now 
         /// part of ME3Explorer.
         /// </summary>
-        public ASIManagerPanel(GameTargetWPF preselectedTarget = null)
+        public ASIManagerPanel(GameTarget preselectedTarget = null)
         {
             M3MemoryAnalyzer.AddTrackedMemoryItem(@"ASI Manager", this);
             M3Log.Information(@"Opening ASI Manager");
@@ -138,12 +138,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             if (SelectedASIObject == null) return false;
             if (SelectedASIObject is ASIMod am)
             {
-                return !M3Utilities.IsGameRunning(am.Game) && (Games.FirstOrDefault(x => x.Game == am.Game)?.GameTargets.Any() ?? false);
+                return !MUtilities.IsGameRunning(am.Game) && (Games.FirstOrDefault(x => x.Game == am.Game)?.GameTargets.Any() ?? false);
             }
 
             if (SelectedASIObject is InstalledASIMod iam)
             {
-                return !M3Utilities.IsGameRunning(iam.Game) && (Games.FirstOrDefault(x => x.Game == iam.Game)?.GameTargets.Any() ?? false);
+                return !MUtilities.IsGameRunning(iam.Game) && (Games.FirstOrDefault(x => x.Game == iam.Game)?.GameTargets.Any() ?? false);
             }
 
             return false;
@@ -265,7 +265,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                     if (preselectedTarget != null && preselectedTarget.Game == game)
                     {
-                        asiGame.CurrentGameTargetWPF = preselectedTarget;
+                        asiGame.CurrentGameTargetWPF = (GameTargetWPF) preselectedTarget;
                         SelectedTabIndex = index;
                     }
                     else

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,18 +8,16 @@ using LegendaryExplorerCore.Misc;
 using LegendaryExplorerCore.Helpers;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Misc;
-using ME3TweaksCore.Services.Backup;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.me3tweaks;
+using ME3TweaksModManager.modmanager.me3tweaks.services;
+using ME3TweaksModManager.modmanager.nexusmodsintegration;
+using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.ui;
-using Microsoft.AppCenter.Analytics;
 using Microsoft.WindowsAPICodePack.Taskbar;
-using PropertyChanged;
-using M3OnlineContent = ME3TweaksModManager.modmanager.me3tweaks.services.M3OnlineContent;
 
 namespace ME3TweaksModManager.modmanager.usercontrols
 {
@@ -43,6 +36,9 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         public ModUpdateInformationPanel(List<M3OnlineContent.ModUpdateInfo> modsWithUpdates)
         {
+#if DEBUG
+            DownloadManager.OnModInitialized += AssociateModDownload;
+#endif
             modsWithUpdates.ForEach(x =>
             {
                 x.ApplyUpdateCommand = new RelayCommand(ApplyUpdateToMod, CanApplyUpdateToMod);
@@ -63,6 +59,21 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             LoadCommands();
         }
 
+        private void AssociateModDownload(object sender, EventArgs e)
+        {
+            if (sender is NexusModDownload md)
+            {
+                foreach (var up in UpdatableMods.OfType<M3OnlineContent.NexusModUpdateInfo>())
+                {
+                    if (up.NexusModsId == md.ProtocolLink.ModId)
+                    {
+                        up.DownloadFlow = md;
+                        break;
+                    }
+                }
+            }
+        }
+
         private bool CanApplyUpdateToMod(object obj)
         {
             if (obj is M3OnlineContent.ModUpdateInfo ui)
@@ -76,7 +87,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             return false;
         }
 
-        private void ApplyUpdateToMod(object obj)
+        private async void ApplyUpdateToMod(object obj)
         {
             if (obj is M3OnlineContent.ModMakerModUpdateInfo mui)
             {
@@ -90,6 +101,9 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 }
                 else if (ui is M3OnlineContent.NexusModUpdateInfo nmui)
                 {
+
+
+
                     var domain = @"masseffectlegendaryedition";
                     switch (nmui.GameId)
                     {
@@ -103,6 +117,20 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                             domain = @"masseffect3";
                             break;
                     }
+
+#if DEBUG
+                    if (NexusModsUtilities.UserInfo?.IsPremium == true)
+                    {
+                        var fileId = await NexusModsUtilities.GetMainFileForMod(domain, nmui.NexusModsId);
+                        if (fileId != null)
+                        {
+                            // Fire as nxm link
+                            string nxmlink = $@"nxm://{domain}/mods/{nmui.NexusModsId}/files/{fileId}";
+                            DownloadManager.QueueNXMDownload(nxmlink);
+                            return;
+                        }
+                    }
+#endif
 
                     var url = $@"https://nexusmods.com/{domain}/mods/{nmui.NexusModsId}?tab=files";
                     M3Utilities.OpenWebpage(url);
@@ -275,13 +303,13 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         );
                     }
                 }
-                var stagingDirectory = Directory.CreateDirectory(Path.Combine(M3Filesystem.GetTempPath(), Path.GetFileName(ui.mod.ModPath))).FullName;
+                var stagingDirectory = Directory.CreateDirectory(Path.Combine(MCoreFilesystem.GetTempDirectory(), Path.GetFileName(ui.mod.ModPath))).FullName;
                 var modUpdated = M3OnlineContent.UpdateMod(ui, stagingDirectory, errorCallback);
                 ui.UpdateInProgress = false;
                 ui.CanUpdate = !modUpdated;
                 updatedMods.Add(ui.mod);
                 ui.DownloadButtonText = ui.CanUpdate ? M3L.GetString(M3L.string_downloadUpdate) : M3L.GetString(M3L.string_updated);
-                M3Utilities.DeleteFilesAndFoldersRecursively(stagingDirectory);
+                MUtilities.DeleteFilesAndFoldersRecursively(stagingDirectory);
             };
             nbw.RunWorkerCompleted += (a, b) =>
             {
@@ -420,6 +448,14 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         public void RefreshContentsOnDisplay()
         {
             RefreshContentsOnVisible = true;
+        }
+
+        protected override void OnClosing(DataEventArgs e)
+        {
+#if DEBUG
+            DownloadManager.OnModInitialized -= AssociateModDownload;
+#endif
+            base.OnClosing(e);
         }
     }
 }

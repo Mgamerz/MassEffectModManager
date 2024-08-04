@@ -1,19 +1,17 @@
-﻿using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Windows;
-using BCnEncoder.Shared;
-using Dark.Net;
-using IniParser;
-using IniParser.Model;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
+using ME3TweaksCore.GameFilesystem;
+using ME3TweaksCore.ME3Tweaks.M3Merge;
+using ME3TweaksCore.ME3Tweaks.StarterKit;
+using ME3TweaksModManager.extensions;
+using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.modmanager.objects.starterkit;
-using ME3TweaksModManager.modmanager.starterkit;
 using ME3TweaksModManager.modmanager.usercontrols.moddescinieditor;
-using TaskExtensions = LegendaryExplorerCore.Helpers.TaskExtensions;
 
 namespace ME3TweaksModManager.modmanager.windows.dialog
 {
@@ -45,19 +43,27 @@ namespace ME3TweaksModManager.modmanager.windows.dialog
             Owner = owner;
             SelectedMod = selectedMod;
             InitializeComponent();
-            DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+            this.ApplyDarkNetWindowTheme();
 
+            Title += $@" - {selectedMod.ModName}";
 
             AvailableFeatures.Add(new StarterKitAddinFeature(M3L.GetString(M3L.string_addStartupFile), AddStartupFile, validGames: new[] { MEGame.ME2, MEGame.ME3, MEGame.LE1, MEGame.LE2, MEGame.LE3 }));
             AvailableFeatures.Add(new StarterKitAddinFeature(M3L.GetString(M3L.string_addPlotManagerData), AddPlotManagerData, validGames: new[] { MEGame.ME1, MEGame.ME2, MEGame.ME3, MEGame.LE1, MEGame.LE2, MEGame.LE3 }));
 
+            // LE3 Features
             string[] game3Hench = new[] { @"Ashley", @"EDI", @"Garrus", @"Kaidan", @"Marine", @"Prothean", @"Liara", @"Tali" };
             foreach (var hench in game3Hench)
             {
-                AvailableFeatures.Add(new StarterKitAddinFeature(M3L.GetString(M3L.string_interp_addSquadmateOutfitMergeX, GetUIHenchName(hench)), () => AddSquadmateMergeOutfit(hench), validGames: new[] { MEGame.ME3, MEGame.LE3 }));
+                AvailableFeatures.Add(new StarterKitAddinFeature(M3L.GetString(M3L.string_interp_addSquadmateOutfitMergeX, StarterKitAddins.GetHumanName(hench)), () => AddSquadmateMergeOutfit(hench), validGames: new[] { MEGame.ME3, MEGame.LE3 }));
             }
 
-            AvailableFeatures.Add(new StarterKitAddinFeature(M3L.GetString(M3L.string_interp_addModSettingsMenuStub), AddModSettingsStub, validGames: new[] { /*MEGame.LE1,*/ MEGame.LE3 }));
+            string[] le2Hench = new[] { @"Vixen", @"Leading", @"Professor", @"Garrus", @"Convict", @"Grunt", @"Tali", @"Mystic", @"Assassin", @"Geth", @"Thief", @"Veteran" };
+            foreach (var hench in le2Hench)
+            {
+                AvailableFeatures.Add(new StarterKitAddinFeature(M3L.GetString(M3L.string_interp_addSquadmateOutfitMergeX, StarterKitAddins.GetHumanName(hench)), () => AddSquadmateMergeOutfit(hench), validGames: new[] { MEGame.LE2 }));
+            }
+
+            AvailableFeatures.Add(new StarterKitAddinFeature(M3L.GetString(M3L.string_interp_addModSettingsMenuStub), AddModSettingsStub, validGames: new[] { MEGame.LE1, MEGame.LE3 }));
         }
 
         private void AddModSettingsStub()
@@ -69,20 +75,25 @@ namespace ME3TweaksModManager.modmanager.windows.dialog
             Task.Run(() =>
             {
                 OperationInProgress = true;
-                List<Action<IniData>> moddescAddinDelegates = new List<Action<IniData>>();
-                StarterKitAddins.AddModSettingsMenu(SelectedMod, SelectedMod.Game,
-                    Path.Combine(SelectedMod.ModPath, dlcFolderPath), moddescAddinDelegates);
+                List<Action<DuplicatingIni>> moddescAddinDelegates = new List<Action<DuplicatingIni>>();
+                if (SelectedMod.Game == MEGame.LE1)
+                {
+                    StarterKitAddins.AddLE1ModSettingsMenu(SelectedMod, SelectedMod.Game, Path.Combine(SelectedMod.ModPath, dlcFolderPath), moddescAddinDelegates);
+                }
+                else if (SelectedMod.Game == MEGame.LE3)
+                {
+                    StarterKitAddins.AddLE3ModSettingsMenu(SelectedMod, SelectedMod.Game, Path.Combine(SelectedMod.ModPath, dlcFolderPath), moddescAddinDelegates);
+                }
 
                 if (moddescAddinDelegates.Any())
                 {
-                    var iniParser = new FileIniDataParser();
-                    var iniData = iniParser.ReadFile(SelectedMod.ModDescPath);
+                    var iniData = DuplicatingIni.LoadIni(SelectedMod.ModDescPath);
                     foreach (var del in moddescAddinDelegates)
                     {
                         del(iniData);
                     }
 
-                    File.WriteAllText(SelectedMod.ModDescPath, iniData.ToString());
+                    iniData.WriteToFile(SelectedMod.ModDescPath);
                     ReloadMod = true;
                 }
             }).ContinueWithOnUIThread(x =>
@@ -121,23 +132,26 @@ namespace ME3TweaksModManager.modmanager.windows.dialog
 
             var dlcFolderPath = GetDLCFolderPath();
             if (dlcFolderPath == null) return; // Abort
+            var henchHumanName = StarterKitAddins.GetHumanName(hench);
 
-            OperationText = M3L.GetString(M3L.string_interp_addingSquadmateOutfitMergeFilesForX, hench);
+            OperationText = M3L.GetString(M3L.string_interp_addingSquadmateOutfitMergeFilesForX, henchHumanName);
             Task.Run(() =>
             {
                 OperationInProgress = true;
-                StarterKitAddins.GenerateSquadmateMergeFiles(SelectedMod.Game, hench, dlcFolderPath,
-                    new List<Dictionary<string, object>>());
+                return StarterKitAddins.GenerateSquadmateMergeFiles(SelectedMod.Game, hench, dlcFolderPath, SQMOutfitMerge.LoadSquadmateMergeInfo(SelectedMod.Game, dlcFolderPath) , ModSourcing.GetGamePatchModFolder);
             }).ContinueWithOnUIThread(x =>
             {
                 OperationInProgress = false;
                 if (x.Exception == null)
                 {
-                    OperationText = M3L.GetString(M3L.string_interp_addedSquadmateOutfitMergeFilesForX, hench);
+                    if (x.Result != null)
+                        OperationText = x.Result;
+                    else
+                        OperationText = M3L.GetString(M3L.string_interp_addedSquadmateOutfitMergeFilesForX, henchHumanName);
                 }
                 else
                 {
-                    OperationText = M3L.GetString(M3L.string_interp_failedToAddSquadmateOutfitMergeFilesForHenchXY, hench, x.Exception.Message);
+                    OperationText = M3L.GetString(M3L.string_interp_failedToAddSquadmateOutfitMergeFilesForHenchXY, henchHumanName, x.Exception.Message);
                 }
             });
         }
@@ -166,13 +180,6 @@ namespace ME3TweaksModManager.modmanager.windows.dialog
             });
         }
 
-        private string GetUIHenchName(string hench)
-        {
-            if (hench == @"Prothean") return @"Javik"; // Not sure these need localized
-            if (hench == @"Marine") return @"James";
-            return hench;
-        }
-
         private void AddStartupFile()
         {
             var dlcFolderPath = GetDLCFolderPath();
@@ -199,7 +206,7 @@ namespace ME3TweaksModManager.modmanager.windows.dialog
         private string GetDLCFolderPath()
         {
             var dlcJob = SelectedMod.GetJob(ModJob.JobHeader.CUSTOMDLC);
-            if (dlcJob == null) return null; // Not found
+            if (dlcJob == null || dlcJob.CustomDLCFolderMapping.Keys.Count == 0) return null; // Not found
 
             var sourceDirs = dlcJob.CustomDLCFolderMapping;
 
@@ -209,13 +216,13 @@ namespace ME3TweaksModManager.modmanager.windows.dialog
                 var response = DropdownSelectorDialog.GetSelection<string>(this, M3L.GetString(M3L.string_selectDLCMod), dlcJob.CustomDLCFolderMapping.Keys.ToList(), M3L.GetString(M3L.string_selectADLCFolderToAddAStartupFileTo), @"");
                 if (response is string str)
                 {
-                    return str;
+                    return Path.Combine(SelectedMod.ModPath, str);
                 }
 
                 return null;
             }
 
-            return sourceDirs.Keys.FirstOrDefault();
+            return Path.Combine(SelectedMod.ModPath, sourceDirs.Keys.FirstOrDefault());
         }
     }
 }

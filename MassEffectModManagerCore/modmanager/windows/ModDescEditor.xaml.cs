@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
-using Dark.Net;
 using IniParser.Model;
 using LegendaryExplorerCore.Helpers;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.diagnostics;
+using ME3TweaksModManager.extensions;
 using ME3TweaksModManager.modmanager.exceptions;
-using ME3TweaksModManager.modmanager.loaders;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.me3tweaks.services;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.modmanager.usercontrols.moddescinieditor;
-using ME3TweaksModManager.ui;
 using Microsoft.AppCenter.Crashes;
 
 namespace ME3TweaksModManager.modmanager.windows
@@ -24,7 +19,7 @@ namespace ME3TweaksModManager.modmanager.windows
     /// <summary>
     /// Interaction logic for ModDescEditor.xaml
     /// </summary>
-    public partial class ModDescEditor : Window, INotifyPropertyChanged
+    public partial class ModDescEditor : Window, INotifyPropertyChanged, IClosableWindow
     {
         public Mod EditingMod { get; private set; }
         private List<ModdescEditorControlBase> editorControls = new List<ModdescEditorControlBase>();
@@ -38,7 +33,7 @@ namespace ME3TweaksModManager.modmanager.windows
             EditingMod = new Mod(selectedMod.ModDescPath, selectedMod.Game);
             LoadCommands();
             InitializeComponent();
-            DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+            this.ApplyDarkNetWindowTheme();
 
             // Tabs that can edit content
             editorControls.Add(metadataEditor_control);
@@ -48,6 +43,7 @@ namespace ME3TweaksModManager.modmanager.windows
             editorControls.Add(customdlc_alternateFileEditor_control);
             editorControls.Add(customdlc_alternateDlcEditor_control);
 
+            editorControls.Add(asi_editor_control);
             editorControls.Add(me1config_editor_control);
             editorControls.Add(balancechanges_editor_control);
             editorControls.Add(localization_editor_control);
@@ -120,7 +116,9 @@ namespace ME3TweaksModManager.modmanager.windows
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            var shouldClose = M3L.ShowDialog(this, M3L.GetString(M3L.string_closeTheEditorForThisMod), M3L.GetString(M3L.string_haveYouSavedChanges), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes) == MessageBoxResult.Yes;
+            if (shouldClose)
+                Close();
         }
 
 
@@ -147,6 +145,11 @@ namespace ME3TweaksModManager.modmanager.windows
                         continue;
                     }
                     else if (control is TexturesEditorControl)
+                    {
+                        control.Serialize(ini);
+                        continue;
+                    }
+                    else if (control is ASIEditorControl)
                     {
                         control.Serialize(ini);
                         continue;
@@ -241,5 +244,16 @@ namespace ME3TweaksModManager.modmanager.windows
         }
 
         public bool IsLocalizationMod { get; set; }
+        public bool AskToClose()
+        {
+            if (M3L.ShowDialog(this, "Close without saving changes?", "Application closing", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes) == MessageBoxResult.Yes)
+            {
+                Close();
+                return true;
+            }
+
+            // Denied closing.
+            return false;
+        }
     }
 }

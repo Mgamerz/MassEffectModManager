@@ -27,12 +27,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         //private AutoTOCMode mode;
         //private Mod modModeMod;
-        private GameTargetWPF gameWideModeTarget;
+        private GameTarget gameWideModeTarget;
 
         public int Percent { get; private set; }
         public string ActionText { get; private set; }
 
-        public AutoTOC(GameTargetWPF target)
+        public AutoTOC(GameTarget target)
         {
             DataContext = this;
             this.gameWideModeTarget = target ?? throw new Exception(@"Null target specified for AutoTOC");
@@ -51,7 +51,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             // TODO actually do this
         }
 
-        public static bool RunTOCOnGameTarget(GameTargetWPF target, Action<int> percentDoneCallback = null)
+        public static bool RunTOCOnGameTarget(GameTarget target, Action<int> percentDoneCallback = null)
         {
             M3Log.Information(@"Autotocing game: " + target.TargetPath);
             TOCCreator.CreateTOCForGame(target.Game, percentDoneCallback, target.TargetPath);

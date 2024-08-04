@@ -22,6 +22,7 @@
             <ui:ProgressRing IsActive="True"
                              EllipseDiameterScale=".9"
                              Visibility="Visible"
+                             Opacity=".7"
                              Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
                              Width="72" Height="72"/>
         </Grid>

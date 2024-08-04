@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ME3TweaksModManager.modmanager.importer;
 using ME3TweaksModManager.modmanager.objects.alternates;
 using ME3TweaksModManager.modmanager.usercontrols;
 using SevenZip;
@@ -14,7 +15,7 @@ namespace ME3TweaksModManager.modmanager.objects.mod
         /// <summary>
         /// Transform that is applied to help convert an exe installer to a mod manager mod
         /// </summary>
-        internal ModArchiveImporterPanel.ExeTransform ExeExtractionTransform;
+        internal ModArchiveImport.ExeTransform ExeExtractionTransform;
 
         /// <summary>
         /// Generates a blank mod object. You must specify you know what you are doing for this by specifying if this is a valid mod or not.
@@ -260,6 +261,22 @@ namespace ME3TweaksModManager.modmanager.objects.mod
             }
 
             return new List<string>();
+        }
+
+        public IEnumerable<string> GetAllMergeMods()
+        {
+            List<string> mergeMods = new List<string>();
+            var basegameJob = GetJob(ModJob.JobHeader.BASEGAME);
+            if (basegameJob != null)
+            {
+                mergeMods.AddRange(basegameJob.MergeMods.Select(x => $@"{MergeModFolderName}\{x.MergeModFilename}"));
+                foreach (var alt in basegameJob.AlternateFiles.Where(x => x.Operation == AlternateFile.AltFileOperation.OP_APPLY_MERGEMODS))
+                {
+                    mergeMods.AddRange(alt.MergeMods.Select(x => $@"{MergeModFolderName}\{x.MergeModFilename}"));
+                }
+            }
+
+            return mergeMods;
         }
     }
 }

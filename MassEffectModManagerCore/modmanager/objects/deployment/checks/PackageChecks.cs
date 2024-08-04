@@ -1,20 +1,9 @@
 ﻿using LegendaryExplorerCore.Helpers;
-using LegendaryExplorerCore.Packages;
 using LegendaryExplorerCore.Packages.CloningImportingAndRelinking;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.localizations;
 using Microsoft.AppCenter.Crashes;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using LegendaryExplorerCore.GameFilesystem;
-using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Unreal.ObjectInfo;
 using ME3TweaksModManager.modmanager.objects.mod;
 
 namespace ME3TweaksModManager.modmanager.objects.deployment.checks

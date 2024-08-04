@@ -43,6 +43,7 @@
     /// </summary>
     public class SevenZipSfx
     {
+#if SFX
         private static Dictionary<SfxModule, List<string>> SfxSupportedModuleNames
         {
             get
@@ -489,5 +490,6 @@
                 MakeSfx(archive, settings, sfxStream);
             }
         }
+#endif
     }
 }

@@ -299,7 +299,7 @@ namespace ME3TweaksModManager.modmanager.me3tweaks.services
                 }
                 catch (Exception e)
                 {
-                    downloadError = e.Message;
+                    downloadError = e.InnerException?.Message ?? e.Message;
                 }
             }
 

@@ -41,7 +41,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             SaveFileDialog d = new SaveFileDialog
             {
                 Filter = $@"{M3L.GetString(M3L.string_7zipArchiveFile)}|*.7z",
-                FileName = M3Utilities.SanitizePath($@"{ModForArchive.ModName}_{ModForArchive.ModVersionString}".Replace(@" ", ""), true)
+                FileName = MUtilities.SanitizePath($@"{ModForArchive.ModName}_{ModForArchive.ModVersionString}".Replace(@" ", ""), true)
             };
             var outputarchive = d.ShowDialog();
             if (outputarchive.HasValue && outputarchive.Value)
@@ -49,7 +49,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 var nbw = new NamedBackgroundWorker(@"TestArchiveGenerator");
                 nbw.DoWork += (a, b) =>
                 {
-                    var stagingPath = Directory.CreateDirectory(Path.Combine(M3Filesystem.GetTempPath(), @"TestGenerator")).FullName;
+                    var stagingPath = Directory.CreateDirectory(Path.Combine(MCoreFilesystem.GetTempDirectory(), @"TestGenerator")).FullName;
                     var referencedFiles = ModForArchive.GetAllRelativeReferences();
                     int numdone = 0;
                     ActionText = M3L.GetString(M3L.string_hashingFiles);

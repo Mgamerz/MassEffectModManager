@@ -1,30 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media.Animation;
 using IniParser.Model;
 using LegendaryExplorerCore.Gammtek.Extensions;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.GameFilesystem;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Services.ThirdPartyModIdentification;
-using ME3TweaksCore.Targets;
-using ME3TweaksCoreWPF;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.ui;
-using Microsoft.AppCenter.Analytics;
 
 namespace ME3TweaksModManager.modmanager.usercontrols
 {
@@ -60,7 +50,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         private void ImportSelectedFolder()
         {
             //Check destination path
-            var destinationName = M3Utilities.SanitizePath(ModNameText);
+            var destinationName = MUtilities.SanitizePath(ModNameText);
             if (string.IsNullOrWhiteSpace(destinationName))
             {
                 //cannot use this name
@@ -97,7 +87,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                 try
                 {
-                    M3Utilities.DeleteFilesAndFoldersRecursively(outDir);
+                    MUtilities.DeleteFilesAndFoldersRecursively(outDir);
                 }
                 catch (Exception e)
                 {
@@ -162,7 +152,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
 
             var library = M3LoadedMods.GetModDirectoryForGame(SelectedTarget.Game);
-            var destinationName = M3Utilities.SanitizePath(ModNameText);
+            var destinationName = MUtilities.SanitizePath(ModNameText);
             var modFolder = Path.Combine(library, destinationName);
             var copyDestination = Path.Combine(modFolder, SelectedDLCFolder.DLCFolderName);
             var outInfo = Directory.CreateDirectory(copyDestination);
@@ -187,16 +177,16 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
             //Write a moddesc
             IniData ini = new IniData();
-            ini[@"ModManager"][@"cmmver"] = App.HighestSupportedModDesc.ToString(CultureInfo.InvariantCulture); //prevent commas
-            ini[@"ModInfo"][@"game"] = SelectedTarget.Game.ToString();
-            ini[@"ModInfo"][@"modname"] = ModNameText;
-            ini[@"ModInfo"][@"moddev"] = M3L.GetString(M3L.string_importedFromGame);
-            ini[@"ModInfo"][@"moddesc"] = M3L.GetString(M3L.string_defaultDescriptionForImportedMod, SelectedTarget.Game.ToGameName(), DateTime.Now);
-            ini[@"ModInfo"][@"modver"] = M3L.GetString(M3L.string_unknown);
-            ini[@"ModInfo"][@"unofficial"] = @"true";
-            ini[@"ModInfo"][@"importedby"] = App.BuildNumber.ToString();
-            ini[@"CUSTOMDLC"][@"sourcedirs"] = SelectedDLCFolder.DLCFolderName;
-            ini[@"CUSTOMDLC"][@"destdirs"] = SelectedDLCFolder.DLCFolderName;
+            ini[Mod.MODDESC_HEADERKEY_MODMANAGER][Mod.MODDESC_DESCRIPTOR_MODMANAGER_CMMVER] = App.HighestSupportedModDesc.ToString(CultureInfo.InvariantCulture); //prevent commas
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_GAME] = SelectedTarget.Game.ToString();
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_NAME] = ModNameText;
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_DEVELOPER] = M3L.GetString(M3L.string_importedFromGame);
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_DESCRIPTION] = M3L.GetString(M3L.string_defaultDescriptionForImportedMod, SelectedTarget.Game.ToGameName(), DateTime.Now);
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_VERSION] = M3L.GetString(M3L.string_unknown);
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_UNOFFICIAL] = Mod.MODDESC_VALUE_TRUE;
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODMANAGER_IMPORTEDBY] = App.BuildNumber.ToString();
+            ini[Mod.MODDESC_HEADERKEY_CUSTOMDLC][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_SOURCEDIRS] = SelectedDLCFolder.DLCFolderName;
+            ini[Mod.MODDESC_HEADERKEY_CUSTOMDLC][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_DESTDIRS] = SelectedDLCFolder.DLCFolderName;
 
 
             var moddescPath = Path.Combine(modFolder, @"moddesc.ini");

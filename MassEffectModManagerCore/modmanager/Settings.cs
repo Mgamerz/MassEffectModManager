@@ -374,6 +374,13 @@ namespace ME3TweaksModManager.modmanager
             set => SetProperty(ref _enableLE1CoalescedMerge, value);
         }
 
+        private static bool _enableLE12DAMerge = true;
+        public static bool EnableLE12DAMerge
+        {
+            get => _enableLE12DAMerge;
+            set => SetProperty(ref _enableLE12DAMerge, value);
+        }
+
         private static bool _isLE1ConsoleKeySet;
         public static bool IsLE1ConsoleKeySet
         {
@@ -423,6 +430,46 @@ namespace ME3TweaksModManager.modmanager
             set => SetProperty(ref _oneTimeMessageLe1CoalescedOverwriteWarning, value);
         }
 
+        // Linux stuff.
+        private static bool _skipDarkNet = false;
+        public static bool SkipDarkNet
+        {
+            get => _skipDarkNet;
+            set => SetProperty(ref _skipDarkNet, value);
+        }
+
+        public static bool _showInstalledModsInLibrary;
+        public static bool ShowInstalledModsInLibrary
+        {
+            get => _showInstalledModsInLibrary;
+            set => SetProperty(ref _showInstalledModsInLibrary, value);
+        }
+
+        #region SESSION ONLY SETTINGS - DO NOT SAVE OR LOAD THESE
+        private static bool _sessionOnly_ShowWhichModsCanCheckForUpdates;
+
+        /// <summary>
+        /// Session only setting: Show the icon for mods being able to update
+        /// </summary>
+        public static bool SessionOnly_ShowWhichModsCanCheckForUpdates
+        {
+            get => _sessionOnly_ShowWhichModsCanCheckForUpdates;
+            set => SetProperty(ref _sessionOnly_ShowWhichModsCanCheckForUpdates, value);
+        }
+
+
+        private static bool _sessionOnly_SuppressDLCMerge;
+
+        /// <summary>
+        /// Session only setting: Prevent DLC merges from being applied to game
+        /// </summary>
+        public static bool SessionOnly_SuppressDLCMerge
+        {
+            get => _sessionOnly_SuppressDLCMerge;
+            set => SetProperty(ref _sessionOnly_SuppressDLCMerge, value);
+        }
+
+        #endregion
 
         public static readonly string SettingsPath = Path.Combine(M3Filesystem.GetAppDataFolder(), "settings.ini");
 
@@ -473,6 +520,7 @@ namespace ME3TweaksModManager.modmanager
 
             DeveloperMode = LoadSettingBool(settingsIni, "UI", "DeveloperMode", false);
             DarkTheme = LoadSettingBool(settingsIni, "UI", "DarkTheme", false);
+            SkipDarkNet = LoadSettingBool(settingsIni, "UI", "SkipDarkNet", false);
 
             ConfigureNXMHandlerOnBoot = LoadSettingBool(settingsIni, "ModManager", "ConfigureNXMHandlerOnBoot", true);
             DoubleClickModInstall = LoadSettingBool(settingsIni, "ModManager", "DoubleClickModInstall", false);
@@ -483,6 +531,7 @@ namespace ME3TweaksModManager.modmanager
             // LEGENDARY
             SkipLELauncher = LoadSettingBool(settingsIni, "ModManager", "SkipLELauncher", true);
             EnableLE1CoalescedMerge = LoadSettingBool(settingsIni, "ModManager", "EnableLE1CoalescedMerge", true);
+            EnableLE12DAMerge = LoadSettingBool(settingsIni, "ModManager", "EnableLE12DAMerge", true);
             GenerationSettingLE = LoadSettingBool(settingsIni, "ModManager", "GenerationSettingLE", true);
             GenerationSettingOT = LoadSettingBool(settingsIni, "ModManager", "GenerationSettingOT", true);
 
@@ -512,6 +561,11 @@ namespace ME3TweaksModManager.modmanager
                 // Only read if value is set so we don't have a blank
                 LE1MiniConsoleKey = LoadSettingString(settingsIni, "ConfigMerge", "LE1MiniConsoleKey", null);
             }
+
+            // BETA OPTIONS
+            ShowInstalledModsInLibrary = LoadSettingBool(settingsIni, "ModManager", "ShowInstalledModsInLibrary", false);
+
+
             Loaded = true;
         }
 
@@ -679,6 +733,7 @@ namespace ME3TweaksModManager.modmanager
                 SaveSettingString(settingsIni, "UpdaterService", "ManifestStoragePath", UpdaterServiceManifestStoragePath);
                 SaveSettingBool(settingsIni, "UI", "DeveloperMode", DeveloperMode);
                 SaveSettingBool(settingsIni, "UI", "DarkTheme", DarkTheme);
+                SaveSettingBool(settingsIni, "UI", "SkipDarkNet", SkipDarkNet);
                 SaveSettingBool(settingsIni, "Logging", "LogModInstallation", LogModInstallation);
                 SaveSettingString(settingsIni, "ModLibrary", "LibraryPath", ModLibraryPath);
                 SaveSettingString(settingsIni, "ModManager", "Language", Language);
@@ -704,7 +759,9 @@ namespace ME3TweaksModManager.modmanager
                 SaveSettingGuid(settingsIni, "ModManager", "SelectedLE3LaunchOption", SelectedLE3LaunchOption);
 
                 SaveSettingBool(settingsIni, "ModManager", "EnableLE1CoalescedMerge", EnableLE1CoalescedMerge);
+                SaveSettingBool(settingsIni, "ModManager", "EnableLE12DAMerge", EnableLE12DAMerge);
                 SaveSettingBool(settingsIni, "ModManager", "ForcePullContentNextBoot", ForcePullContentNextBoot);
+                SaveSettingBool(settingsIni, "ModManager", "ShowInstalledModsInLibrary", ShowInstalledModsInLibrary);
 
                 SaveSettingBool(settingsIni, "ModMaker", "AutoAddControllerMixins", ModMakerControllerModOption);
                 SaveSettingBool(settingsIni, "ModMaker", "AutoInjectCustomKeybinds", ModMakerAutoInjectCustomKeybindsOption);

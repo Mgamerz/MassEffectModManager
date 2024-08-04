@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -13,18 +9,14 @@ using IniParser.Model;
 using LegendaryExplorerCore.Coalesced;
 using LegendaryExplorerCore.GameFilesystem;
 using LegendaryExplorerCore.Helpers;
-using LegendaryExplorerCore.Packages;
 using LegendaryExplorerCore.TLK.ME2ME3;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Services;
-using ME3TweaksCore.Services.Backup;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.modmanager.usercontrols;
-using Microsoft.AppCenter.Analytics;
 
 namespace ME3TweaksModManager.modmanager.me3tweaks
 {
@@ -926,10 +918,10 @@ namespace ME3TweaksModManager.modmanager.me3tweaks
                 //automap
                 var dirname = Path.GetFileName(dir);
                 var headername = DefaultFoldernameToHeader(dirname).ToString();
-                ini[headername][@"moddir"] = dirname;
+                ini[headername][Mod.MODDESC_DESCRIPTOR_JOB_DIR] = dirname;
                 if (dirname != @"BALANCE_CHANGES")
                 {
-                    ini[headername][@"newfiles"] = @"CookedPCConsole";
+                    ini[headername][Mod.MODDESC_DESCRIPTOR_JOB_NEWFILES] = @"CookedPCConsole";
 
                     string inGameDestdir;
                     if (dirname == @"BASEGAME")
@@ -942,16 +934,16 @@ namespace ME3TweaksModManager.modmanager.me3tweaks
                         inGameDestdir = $@"BIOGame/DLC/{ModmakerChunkNameToDLCFoldername(dirname)}/CookedPCConsole";
                     }
 
-                    ini[headername][@"replacefiles"] = inGameDestdir;
-                    ini[headername][@"gamedirectorystructure"] = @"true";
+                    ini[headername][Mod.MODDESC_DESCRIPTOR_JOB_REPLACEFILES] =inGameDestdir;
+                    ini[headername][Mod.MODDESC_DESCRIPTOR_JOB_GAMEDIRECTORYSTRUCTURE] = Mod.MODDESC_VALUE_TRUE;
                 }
                 else
                 {
-                    ini[headername][@"newfiles"] = @"ServerCoalesced.bin"; //BALANCE_CHANGES
+                    ini[headername][Mod.MODDESC_DESCRIPTOR_JOB_NEWFILES] = @"ServerCoalesced.bin"; //BALANCE_CHANGES
                 }
             }
 
-            ini[@"ModInfo"][@"compiledagainst"] = doc.XPathSelectElement(@"/ModMaker/ModInfo/ModMakerVersion").Value;
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_MODMAKERSERVERVERSION] = doc.XPathSelectElement(@"/ModMaker/ModInfo/ModMakerVersion").Value;
             M3Log.Information(@"Writing finalized moddesc to library", Settings.LogModMakerCompiler);
             File.WriteAllText(mod.ModDescPath, ini.ToString());
         }
@@ -1086,21 +1078,21 @@ namespace ME3TweaksModManager.modmanager.me3tweaks
 
             //Write mod ini
             IniData ini = new IniData();
-            ini[@"ModManager"][@"cmmver"] = App.HighestSupportedModDesc.ToString(CultureInfo.InvariantCulture); //prevent commas
-            ini[@"ModInfo"][@"game"] = @"ME3";
-            ini[@"ModInfo"][@"modname"] = modName;
-            ini[@"ModInfo"][@"moddev"] = modDev;
-            ini[@"ModInfo"][@"moddesc"] = M3Utilities.ConvertNewlineToBr(modDescription);
-            ini[@"ModInfo"][@"modver"] = modVersion;
-            ini[@"ModInfo"][@"modid"] = code.ToString();
-            ini[@"ModInfo"][@"compiledagainst"] = modmakerServerVer;
-            ini[@"ModInfo"][@"modsite"] = @"https://me3tweaks.com/modmaker/mods/" + code;
+            ini[Mod.MODDESC_HEADERKEY_MODMANAGER][Mod.MODDESC_DESCRIPTOR_MODMANAGER_CMMVER] = App.HighestSupportedModDesc.ToString(CultureInfo.InvariantCulture); //prevent commas
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_GAME] = @"ME3";
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_NAME] = modName;
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_DEVELOPER] = modDev;
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_DESCRIPTION] = M3Utilities.ConvertNewlineToBr(modDescription);
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_VERSION] = modVersion;
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_MODMAKERID] = code.ToString();
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_MODMAKERSERVERVERSION] = modmakerServerVer;
+            ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_SITE] = @"https://me3tweaks.com/modmaker/mods/" + code;
 
-            var outputDir = modPathOverride ?? Path.Combine(M3LoadedMods.GetME3ModsDirectory(), M3Utilities.SanitizePath(modName));
+            var outputDir = modPathOverride ?? Path.Combine(M3LoadedMods.GetME3ModsDirectory(), MUtilities.SanitizePath(modName));
             M3Log.Information(@"Generating new mod directory: " + outputDir, Settings.LogModMakerCompiler);
             if (Directory.Exists(outputDir))
             {
-                M3Utilities.DeleteFilesAndFoldersRecursively(outputDir);
+                MUtilities.DeleteFilesAndFoldersRecursively(outputDir);
             }
             //apparently system is too fast to respond
             Thread.Sleep(100);

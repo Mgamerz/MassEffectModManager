@@ -1,0 +1,24 @@
+﻿<local:M3Setting x:Class="ME3TweaksModManager.modmanager.usercontrols.options.M3BooleanSetting"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ME3TweaksModManager.modmanager.usercontrols.options"
+             mc:Ignorable="d"
+             xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
+             Loaded="M3BooleanSetting_OnLoaded"
+             DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    <CheckBox Name="SettingCB">
+        <CheckBox.ContentTemplate>
+            <DataTemplate>
+                <DockPanel>
+                    <TextBlock FontWeight="Bold" DockPanel.Dock="Top"
+                               Text="{Binding RelativeSource={RelativeSource AncestorType=CheckBox}, Path=DataContext.SettingTitle}"/>
+                    <TextBlock TextWrapping="Wrap" MaxWidth="600"
+                               Text="{Binding RelativeSource={RelativeSource AncestorType=CheckBox}, Path=DataContext.SettingDescription}"/>
+                </DockPanel>
+
+            </DataTemplate>
+        </CheckBox.ContentTemplate>
+    </CheckBox>
+</local:M3Setting>

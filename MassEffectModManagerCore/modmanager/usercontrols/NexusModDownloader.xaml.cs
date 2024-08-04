@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using LegendaryExplorerCore.Misc;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.ui;
@@ -36,6 +32,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         private void CancelDownload()
         {
             cancellationTokenSource.Cancel();
+            OnClosing(DataEventArgs.Empty); // Will clear handlers.
         }
 
         public GenericCommand CancelDownloadCommand { get; set; }
@@ -56,7 +53,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         public void AddDownload(string nxmLink)
         {
             M3Log.Information($@"Queueing nxmlink {nxmLink}");
-            var dl = new ModDownload(nxmLink);
+            var dl = new NexusModDownload(nxmLink);
             dl.OnInitialized += ModInitialized;
             dl.OnModDownloaded += ModDownloaded;
             dl.OnModDownloadError += DownloadError;
@@ -67,7 +64,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         protected override void OnClosing(DataEventArgs dataEventArgs)
         {
-            base.OnClosing(dataEventArgs);
             foreach (var md in Downloads)
             {
                 md.OnInitialized -= ModInitialized;
@@ -79,6 +75,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 }
             }
             Downloads.Clear(); // Ensure we have no references in event this window doesn't clean up for some reason (memory analyzer shows it is not reliable unless another window appears)
+            base.OnClosing(dataEventArgs);
         }
 
         private void ModDownloaded(object sender, DataEventArgs e)
@@ -103,10 +100,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private void ModInitialized(object sender, EventArgs e)
         {
-            if (sender is ModDownload initializedItem)
+            if (sender is NexusModDownload initializedItem)
             {
                 M3Log.Information($@"ModDownload has initialized: {initializedItem.ModFile.Name}");
-                var nextDownload = Downloads.FirstOrDefault(x => !x.Downloaded);
+                var nextDownload = Downloads.FirstOrDefault(x => x.DownloadState == EModDownloadState.QUEUED);
                 nextDownload?.StartDownload(cancellationTokenSource.Token);
             }
         }

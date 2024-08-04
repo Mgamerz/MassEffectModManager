@@ -1,18 +1,7 @@
-﻿using ME3TweaksModManager.modmanager.objects.alternates;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using ME3TweaksModManager.modmanager.objects.alternates;
 
 namespace ME3TweaksModManager.modmanager.usercontrols.modinstaller
 {
@@ -21,7 +10,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols.modinstaller
     /// </summary>
     public partial class SingleAlternateOptionPanel : UserControl
     {
-
         /// <summary>
         /// Option that is being displayed by this UI object
         /// </summary>
@@ -39,10 +27,13 @@ namespace ME3TweaksModManager.modmanager.usercontrols.modinstaller
             InitializeComponent();
         }
 
-        private void SAOP_MouseLeave(object sender, MouseEventArgs e)
+        private void ToolTipIsOpening(object sender, ToolTipEventArgs e)
         {
-            if (ToolTip is ToolTip tp)
-                tp.IsOpen = false; // Close the image preview.
+            if (sender is SingleAlternateOptionPanel saop && saop.Tag is AlternateOptionSelector aos && aos.SuppressingTooltip && saop.DataContext is AlternateOption ao)
+            {
+                e.Handled = true; // Do not open.
+                Debug.WriteLine($@"Tooltip was suppressed. Source: {ao.FriendlyName}");
+            }
         }
     }
 }

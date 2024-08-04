@@ -27,6 +27,8 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
         public string ItemText { get; set; }
         public SolidColorBrush Foreground { get; private set; }
         public EFontAwesomeIcon Icon { get; private set; }
+        public SolidColorBrush Background { get; private set; } = Brushes.White;
+        public EFontAwesomeIcon BackgroundIcon { get; private set; }
         public bool Spinning { get; private set; }
 
         /// <summary>
@@ -66,9 +68,29 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
         public bool HasMessage => CheckDone && HasAnyMessages();
 
         /// <summary>
+        /// If the link should be shown as a hyperlink
+        /// </summary>
+        public bool ShowHyperlink => HasMessage || Hyperlink != null;
+
+        /// <summary>
         /// Target to validate against if needed
         /// </summary>
         public GameTarget internalValidationTarget { get; internal set; }
+
+        /// <summary>
+        /// If this is a manual validation check
+        /// </summary>
+        public bool IsManualValidation { get; set; }
+
+        /// <summary>
+        /// Hyperlink to make clickable. Only works if no messages.
+        /// </summary>
+        public string Hyperlink { get; set; }
+
+        /// <summary>
+        /// If the tooltip is set by the validation function
+        /// </summary>
+        public bool TooltipManagedByValidator { get; set; } = true;
 
         public DeploymentChecklistItem()
         {
@@ -94,25 +116,51 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
             Foreground = Application.Current.FindResource(AdonisUI.Brushes.HyperlinkBrush) as SolidColorBrush;
             ValidationFunction?.Invoke(this);
             Spinning = false;
-            if (!HasAnyMessages())
+            if (!IsManualValidation)
             {
-                Foreground = Brushes.Green;
-                Icon = EFontAwesomeIcon.Solid_CheckCircle;
+                if (!HasAnyMessages())
+                {
+                    Foreground = Brushes.Green;
+                    Icon = EFontAwesomeIcon.Solid_CheckCircle;
+                    BackgroundIcon = EFontAwesomeIcon.Solid_Circle;
+                    Background = Brushes.White;
+                }
+                else if (GetBlockingErrors().Any())
+                {
+                    Foreground = Brushes.Red;
+                    Icon = EFontAwesomeIcon.Solid_TimesCircle;
+                    BackgroundIcon = EFontAwesomeIcon.Solid_Circle;
+                    Background = Brushes.White;
+                }
+                else if (GetSignificantIssues().Any())
+                {
+                    Foreground = Brushes.Orange;
+                    Icon = EFontAwesomeIcon.Solid_ExclamationTriangle;
+                    BackgroundIcon = EFontAwesomeIcon.Solid_Square;
+                    Background = Brushes.Black;
+                }
+                else if (GetInfoWarnings().Any())
+                {
+                    Foreground = Brushes.DodgerBlue;
+                    Icon = EFontAwesomeIcon.Solid_InfoCircle;
+                    BackgroundIcon = EFontAwesomeIcon.Solid_Circle;
+                    Background = Brushes.White;
+                }
             }
-            else if (GetBlockingErrors().Any())
+            else
             {
-                Foreground = Brushes.Red;
-                Icon = EFontAwesomeIcon.Solid_TimesCircle;
-            }
-            else if (GetSignificantIssues().Any())
-            {
-                Foreground = Brushes.Orange;
-                Icon = EFontAwesomeIcon.Solid_ExclamationTriangle;
-            }
-            else if (GetInfoWarnings().Any())
-            {
-                Foreground = Brushes.DodgerBlue;
-                Icon = EFontAwesomeIcon.Solid_InfoCircle;
+                Icon = EFontAwesomeIcon.Solid_SpellCheck;
+
+                if (Settings.DarkTheme)
+                {
+                    Foreground = Brushes.White;
+                }
+                else
+                {
+                    Foreground = Brushes.Black;
+                }
+                BackgroundIcon = EFontAwesomeIcon.None;
+                Background = Brushes.Transparent;
             }
 
             SetDone();
@@ -138,6 +186,18 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
             Foreground = Brushes.Gray;
             Icon = EFontAwesomeIcon.Solid_Ban;
             Spinning = false;
+        }
+
+        /// <summary>
+        /// Returns if the only messages are informational.
+        /// </summary>
+        /// <returns></returns>
+        public bool HasOnlyInfoMessages()
+        {
+            if (!GetInfoWarnings().Any())
+                return false;
+
+            return (GetSignificantIssues().Count == 0 && GetBlockingErrors().Count == 0);
         }
     }
 }

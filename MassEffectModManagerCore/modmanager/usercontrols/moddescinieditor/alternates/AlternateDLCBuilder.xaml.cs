@@ -1,14 +1,11 @@
 ﻿using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using IniParser.Model;
-using LegendaryExplorerCore.Misc;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.alternates;
-using ME3TweaksModManager.ui;
+using ME3TweaksModManager.modmanager.objects.mod;
 
 namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternates
 {
@@ -41,7 +38,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternate
         {
             if (AttachedJob != null && Alternates.Any())
             {
-                string outStr = "(";
+                string outStr = @"(";
                 bool isFirst = true;
                 foreach (var adlc in Alternates)
                 {
@@ -56,8 +53,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternate
                     outStr += StringStructParser.BuildCommaSeparatedSplitValueList(adlc.ParameterMap.Where(x => !string.IsNullOrWhiteSpace(x.Value)).ToDictionary(x => x.Key, x => x.Value));
                 }
 
-                outStr += ")";
-                ini[@"CUSTOMDLC"][@"altdlc"] = outStr;
+                outStr += @")";
+                ini[Mod.MODDESC_HEADERKEY_CUSTOMDLC][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_ALTDLC] = outStr;
             }
         }
 

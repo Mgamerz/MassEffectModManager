@@ -1,27 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Windows;
-using Dark.Net;
 using IniParser;
 using IniParser.Model;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.Helpers;
-using ME3TweaksCoreWPF;
 using ME3TweaksCoreWPF.Targets;
-using ME3TweaksModManager.modmanager.diagnostics;
+using ME3TweaksModManager.extensions;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.ui;
-using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
-using PropertyChanged;
 
 namespace ME3TweaksModManager.modmanager.windows
 {
+
+    // This does not implement IClosableWindow as the main window will not be open before this one.
+
     /// <summary>
     /// Interaction logic for ME3CMMMigrationWindow.xaml
     /// </summary>
@@ -35,7 +29,7 @@ namespace ME3TweaksModManager.modmanager.windows
         public ME3CMMMigrationWindow()
         {
             InitializeComponent();
-            DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+            this.ApplyDarkNetWindowTheme();
             Tasks.Add(MigratingModsTask);
             Tasks.Add(MigratingSettings);
             Tasks.Add(CleaningUpTask);
@@ -102,7 +96,7 @@ namespace ME3TweaksModManager.modmanager.windows
                                         Directory.CreateDirectory(targetDir);
                                         CopyDir.CopyAll_ProgressBar(new DirectoryInfo(modDirToMove), new DirectoryInfo(targetDir));
                                         M3Log.Information(@" >> Deleting existing directory");
-                                        M3Utilities.DeleteFilesAndFoldersRecursively(modDirToMove);
+                                        MUtilities.DeleteFilesAndFoldersRecursively(modDirToMove);
                                     }
 
                                     M3Log.Information($@"Migrated {modDirToMove}");
@@ -311,7 +305,7 @@ namespace ME3TweaksModManager.modmanager.windows
                                             try
                                             {
                                                 M3Log.Information(@"Deleting directory: " + entry);
-                                                M3Utilities.DeleteFilesAndFoldersRecursively(entry, true);
+                                                MUtilities.DeleteFilesAndFoldersRecursively(entry, true);
                                             }
                                             catch (Exception e)
                                             {

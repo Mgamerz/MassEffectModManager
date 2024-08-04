@@ -1,10 +1,9 @@
-﻿using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using IniParser.Model;
 using LegendaryExplorerCore.Misc;
 using ME3TweaksCoreWPF.UI;
+using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects;
-using ME3TweaksModManager.ui;
 
 namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
 {
@@ -37,6 +36,32 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
         private void LoadCommands()
         {
             AddNewListCommand = new GenericCommand(AddNewList, CanAddNewList);
+            DeleteListCommand = new RelayCommand(DeleteMultilist);
+        }
+
+        public RelayCommand DeleteListCommand { get; set; }
+
+        private void DeleteMultilist(object obj)
+        {
+            if (obj is MDMultilist md)
+            {
+                var result = M3L.ShowDialog(Window.GetWindow(this),
+                                    M3L.GetString(M3L.string_dialog_deleteMultilistConfirm, md.MultilistId),
+                                    M3L.GetString(M3L.string_confirmDeletion), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+                if (result == MessageBoxResult.Yes)
+                {
+                    Multilists.Remove(md);
+                    ReindexLists();
+                }
+            }
+        }
+
+        private void ReindexLists()
+        {
+            for (int i = 0; i < Multilists.Count; i++)
+            {
+                Multilists[i].MultilistId = i + 1;
+            }
         }
 
         private bool CanAddNewList()
@@ -96,7 +121,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
         {
             foreach (var ml in Multilists)
             {
-                ini[Header.ToString()][$@"multilist{ml.MultilistId}"] = string.Join(';', ml.Files.Select(x=>x.Value));
+                var values = ml.Files.Where(x => !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
+                ini[Header.ToString()][$@"multilist{ml.MultilistId}"] = string.Join(';', values);
             }
         }
     }

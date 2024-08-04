@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Xml.Linq;
-using LegendaryExplorerCore.Misc;
+﻿using LegendaryExplorerCore.Misc;
 using ME3TweaksModManager.modmanager.localizations;
-using PropertyChanged;
 
 namespace ME3TweaksModManager.modmanager.objects.alternates
 {
@@ -93,13 +85,22 @@ namespace ME3TweaksModManager.modmanager.objects.alternates
         /// <summary>
         /// Called when the value of the dropdown changes. This doesn't get called in Single Mode.
         /// </summary>
-        public void OnSelectedOptionChanged()
+        public void OnSelectedOptionChanged(AlternateOption oldItem, AlternateOption newItem)
         {
             if (AlternateOptions.Count > 0)
             {
-                var optionsList = AlternateOptions.Where(x => x != SelectedOption).ToList();
-                // Todo: Sort non-selectable to the bottom
-                OtherOptions.ReplaceAll(optionsList);
+                if (newItem != null && oldItem != null)
+                {
+                    var swappingOutIdx = OtherOptions.IndexOf(newItem);
+                    OtherOptions.Remove(newItem);
+                    OtherOptions.Insert(swappingOutIdx, oldItem);
+                } 
+                else if (oldItem == null)
+                {
+                    // Initial population
+                    var optionsList = AlternateOptions.Where(x => x != SelectedOption).ToList();
+                    OtherOptions.ReplaceAll(optionsList);
+                }
             }
         }
 

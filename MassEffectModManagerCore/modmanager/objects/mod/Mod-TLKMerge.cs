@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Xml.Linq;
 using LegendaryExplorerCore.Compression;
-using LegendaryExplorerCore.GameFilesystem;
-using LegendaryExplorerCore.Packages;
 using LegendaryExplorerCore.TLK;
 using LegendaryExplorerCore.TLK.ME1;
-using ME3TweaksCore.Services.BasegameFileIdentification;
-using ME3TweaksCoreWPF;
+using ME3TweaksCore.Services.Shared.BasegameFileIdentification;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksModManager.me3tweakscoreextended;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects.tlk;
 
@@ -21,33 +14,84 @@ namespace ME3TweaksModManager.modmanager.objects.mod
     public partial class Mod
     {
         /// <summary>
+        /// List of all available option keys for TLK merge (LE1). This is only used when the source files are on disk (which will be the case during development of the mod)
+        /// </summary>
+        public List<string> LE1TLKMergeAllOptionKeys;
+
+        /// <summary>
+        /// List of chosen option keys for TLK merge (LE1).
+        /// </summary>
+        public List<string> LE1TLKMergeChosenOptionKeys;
+
+        /// <summary>
         /// Coalesces the TLK merges into groups by filename.
         /// </summary>
         /// <returns></returns>
-        public static Dictionary<string, List<string>> CoalesceTLKMergeFiles(IReadOnlyList<string> filenames, CompressedTLKMergeData compressTlkMergeData)
+        public Dictionary<string, List<string>> CoalesceTLKMergeFiles(IReadOnlyList<string> allFilenames, CompressedTLKMergeData compressTlkMergeData)
         {
             // Input values can be null.
-            if (filenames == null && compressTlkMergeData == null)
+            if (allFilenames == null && compressTlkMergeData == null)
                 throw new Exception(@"CoalesceTLKMergeFiles() must have a non null parameter!");
 
-            var dict = new Dictionary<string, List<string>>();
-
-            if (filenames == null)
+            if (allFilenames == null) // will be null if loading from compressed data
             {
                 // The guard at start of method will ensure compressed data is never null
-                filenames = compressTlkMergeData.GetFileListing();
+                if (ModDescTargetVersion >= 9.0)
+                {
+                    // Mod Manager 9: Filter files based on option keys
+
+                    // Verify option keys first
+                    compressTlkMergeData.VerifyOptionKeys(this);
+                    allFilenames = compressTlkMergeData.GetFileListing(LE1TLKMergeChosenOptionKeys);
+                }
+                else
+                {
+                    // Mod Manager 8.x and below
+                    allFilenames = compressTlkMergeData.GetFileListing();
+                }
+            }
+            else if (LE1TLKMergeAllOptionKeys != null) // Has filtering, disk based
+            {
+
+                List<string> filteredFiles = new List<string>();
+                foreach (var f in allFilenames)
+                {
+                    if (f.Contains('/') || f.Contains('\\'))
+                    {
+                        var parentName = Directory.GetParent(f).Name;
+                        if (parentName != Mod.Game1EmbeddedTlkFolderName)
+                        {
+                            if (LE1TLKMergeChosenOptionKeys == null || LE1TLKMergeChosenOptionKeys.Contains(parentName))
+                            {
+                                filteredFiles.Add(f);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        filteredFiles.Add(f);
+                    }
+                }
+
+                allFilenames = filteredFiles;
             }
 
-            foreach (var tlkM in filenames)
+
+            // Map of package name -> TLK filenames to install into it
+            var dict = new Dictionary<string, List<string>>();
+
+            // Build map of files
+            foreach (var tlkM in allFilenames)
             {
-                var packageName = tlkM.Substring(0, tlkM.IndexOf('.'));
+                var subStr = Path.GetFileName(tlkM);
+                var packageName = subStr.Substring(0, subStr.IndexOf('.'));
                 List<string> l;
                 if (!dict.TryGetValue(packageName, out l))
                 {
                     l = new List<string>();
                     dict[packageName] = l;
                 }
-                l.Add(tlkM);
+                l.Add(tlkM); // Use full tlk path here.
             }
 
             return dict;
@@ -105,7 +149,7 @@ namespace ME3TweaksModManager.modmanager.objects.mod
         public Dictionary<string, List<string>> PrepareTLKMerge(out CompressedTLKMergeData compressedTlkData)
         {
             compressedTlkData = null;
-            List<string> allTLKMerges = null;
+            List<string> allTlkFilenames = null;
             if (ModDescTargetVersion >= 8)
             {
                 // ModDesc 8 mods can use this feature
@@ -115,10 +159,10 @@ namespace ME3TweaksModManager.modmanager.objects.mod
             // Legacy and fallback: Use raw files
             if (compressedTlkData == null)
             {
-                allTLKMerges = InstallationJobs.Where(x => x.Game1TLKXmls != null).SelectMany(x => x.Game1TLKXmls).ToList();
+                allTlkFilenames = InstallationJobs.Where(x => x.Game1TLKXmls != null).SelectMany(x => x.Game1TLKXmls).ToList();
             }
 
-            return Mod.CoalesceTLKMergeFiles(allTLKMerges, compressedTlkData);
+            return CoalesceTLKMergeFiles(allTlkFilenames, compressedTlkData);
         }
 
         /// <summary>
@@ -127,7 +171,7 @@ namespace ME3TweaksModManager.modmanager.objects.mod
         /// <param name="tlkXmlName"></param>
         /// <param name="gameFileMapping"></param>
         /// <returns></returns>
-        public string InstallTLKMerge(string tlkXmlName, CompressedTLKMergeData compressedTlkMergeData, Dictionary<string, string> gameFileMapping, bool savePackage, PackageCache cache, GameTargetWPF target, Mod modBeingInstalled, Action<BasegameFileRecord> addCloudDBEntry)
+        public string InstallTLKMerge(string tlkXmlName, CompressedTLKMergeData compressedTlkMergeData, Dictionary<string, string> gameFileMapping, bool savePackage, PackageCache cache, GameTarget target, Mod modBeingInstalled, Action<BasegameFileRecord> addBasegameRecord)
         {
             // Need to load file into memory
             string xmlContents;
@@ -165,8 +209,9 @@ namespace ME3TweaksModManager.modmanager.objects.mod
             if (stringNodes.Any())
             {
                 // Open package
-                var packageName = tlkXmlName.Substring(0, tlkXmlName.IndexOf('.'));
-                var exportPath = Path.GetFileNameWithoutExtension(tlkXmlName.Substring(packageName.Length + 1));
+                var tlkPackageStr = Path.GetFileName(tlkXmlName);
+                var packageName = tlkPackageStr.Substring(0, tlkPackageStr.IndexOf('.'));
+                var exportPath = Path.GetFileNameWithoutExtension(tlkPackageStr.Substring(packageName.Length + 1));
 
                 string packagePath = null; ;
 
@@ -203,6 +248,10 @@ namespace ME3TweaksModManager.modmanager.objects.mod
 
                     var strRefs = talkFile.StringRefs.ToList();
                     int numDone = 0;
+                    if (strRefs.Any())
+                    {
+                        M3Log.Information($@"Installing {tlkXmlName} into {Path.GetRelativePath(target.TargetPath, package.FilePath)} {exportPath}", Settings.LogModInstallation);
+                    }
                     foreach (var node in stringNodes)
                     {
                         var tlkId = int.Parse(node.Element(@"id").Value);
@@ -237,7 +286,7 @@ namespace ME3TweaksModManager.modmanager.objects.mod
                     {
                         M3Log.Information($@"Saving TLKMerged package {packagePath}");
                         package.Save();
-                        addCloudDBEntry?.Invoke(new M3BasegameFileRecord(package.FilePath, (int)new FileInfo(package.FilePath).Length, target, modBeingInstalled));
+                        addBasegameRecord?.Invoke(new M3BasegameFileRecord(package.FilePath, (int)new FileInfo(package.FilePath).Length, target, modBeingInstalled));
                         cache.DropPackageFromCache(packagePath); // we are not doing more operations on this file so drop it out
                     }
                 }

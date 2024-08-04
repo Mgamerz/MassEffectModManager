@@ -72,6 +72,7 @@
 
     <Color x:Key="{x:Static adonisUi:Colors.WindowButtonHighlightColor}">#e5e5e5</Color>
     <Color x:Key="{x:Static adonisUi:Colors.WindowButtonInteractionColor}">#cacaca</Color>
+    <Color x:Key="{x:Static adonisUi:Colors.ThemeHardColor}">#ffffff</Color>
 
     <!-- brushes -->
     <SolidColorBrush x:Key="{x:Static adonisUi:Brushes.HoverBackgroundBrush}" Color="{DynamicResource {x:Static adonisUi:Colors.HoverBackgroundColor}}"/>

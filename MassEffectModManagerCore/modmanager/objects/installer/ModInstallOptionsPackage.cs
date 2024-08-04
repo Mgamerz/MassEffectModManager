@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ME3TweaksCoreWPF.Targets;
+﻿using ME3TweaksCoreWPF.Targets;
 using ME3TweaksModManager.modmanager.objects.alternates;
 using ME3TweaksModManager.modmanager.objects.mod;
 
@@ -14,6 +9,11 @@ namespace ME3TweaksModManager.modmanager.objects.installer
     /// </summary>
     public class ModInstallOptionsPackage
     {
+
+        /// <summary>
+        /// If the installation prerequesites check can be skipped. This can be done to not double install time if we immediately conducted it in the options dialog that automatically passed through.
+        /// </summary>
+        public bool SkipPrerequesitesCheck { get; init; }
         /// <summary>
         /// If ME1 config files should be set to read only after install
         /// </summary>
@@ -29,7 +29,7 @@ namespace ME3TweaksModManager.modmanager.objects.installer
         /// <summary>
         /// The target to install to
         /// </summary>
-        public GameTargetWPF InstallTarget { get; init; }
+        public GameTarget InstallTarget { get; init; }
         /// <summary>
         /// If this installation is occurring in batch-mode
         /// </summary>
@@ -39,5 +39,10 @@ namespace ME3TweaksModManager.modmanager.objects.installer
         /// The list of selected installation options mapped by each header
         /// </summary>
         public Dictionary<ModJob.JobHeader, List<AlternateOption>> SelectedOptions { get; init; } = new();
+
+        /// <summary>
+        /// If this is the first content mod that will be installed. Things such as bink bypass will be installed
+        /// </summary>
+        public bool IsFirstBatchMod { get; set; }
     }
 }

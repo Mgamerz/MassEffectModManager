@@ -5,6 +5,7 @@ using System.Windows;
 using Dark.Net;
 using LegendaryExplorerCore.Misc;
 using ME3TweaksCoreWPF.UI;
+using ME3TweaksModManager.extensions;
 using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.me3tweaks.services;
@@ -18,7 +19,7 @@ namespace ME3TweaksModManager.modmanager.windows
     /// Interaction logic for IntroTutorial.xaml
     /// </summary>
     [AddINotifyPropertyChangedInterface]
-    public partial class IntroTutorial : Window
+    public partial class IntroTutorial : Window, IClosableWindow
     {
         /// <summary>
         /// The list of all steps in the tutorial
@@ -46,7 +47,7 @@ namespace ME3TweaksModManager.modmanager.windows
                 CurrentStep = TutorialSteps[0];
                 LoadCommands();
                 InitializeComponent();
-                DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+                this.ApplyDarkNetWindowTheme();
             }
             else
             {
@@ -168,5 +169,10 @@ namespace ME3TweaksModManager.modmanager.windows
         public GenericCommand PreviousCommand { get; set; }
         public GenericCommand SkipTutorialCommand { get; set; }
         public GenericCommand ReloadTutorialCommand { get; set; }
+        public bool AskToClose()
+        {
+            Close();
+            return true;
+        }
     }
 }

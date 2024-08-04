@@ -45,6 +45,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="{Binding Key}" Width="160" VerticalAlignment="Center"/>
                         <TextBox Grid.Column="1" Text="{Binding Value}" 
+                                 TextAlignment="Left"
                                  IsReadOnly="{Binding ReadOnly}"
                                  IsEnabled="{Binding ReadOnly, Converter={StaticResource BoolToEnabledConverter}, ConverterParameter='Not'}"
                                  AcceptsReturn="{Binding AcceptsNewLines}" 

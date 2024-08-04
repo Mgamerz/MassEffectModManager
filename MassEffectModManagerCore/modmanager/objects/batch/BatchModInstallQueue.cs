@@ -17,8 +17,8 @@ using ME3TweaksModManager.modmanager.objects.mod.interfaces;
 using ME3TweaksModManager.modmanager.objects.mod.texture;
 using Microsoft.AppCenter.Crashes;
 using SevenZip.EventArguments;
-using WinCopies.Util;
 using ME3TweaksModManager.modmanager.localizations;
+using ME3TweaksModManager.modmanager.windows;
 
 namespace ME3TweaksModManager.modmanager.objects.batch
 {
@@ -67,6 +67,12 @@ namespace ME3TweaksModManager.modmanager.objects.batch
         /// </summary>
         [JsonIgnore]
         public int QueueFormatVersion { get; set; } = QUEUE_VERSION_BIQ2;
+
+        /// <summary>
+        /// If a game restore should happen before installation, to reset the game. This is only supported on Mod Manager 9 and above.
+        /// </summary>
+        [JsonProperty(@"restorebeforeinstall")]
+        public bool RestoreBeforeInstall { get; set; }
 
         /// <summary>
         /// Mods that are part of the queue. This does not ensure they are available for use, check the properties
@@ -193,7 +199,7 @@ namespace ME3TweaksModManager.modmanager.objects.batch
                 modernQueue.QueueFormatVersion = QUEUE_VERSION_BIQ2;
                 foreach (var mod in modernQueue.ModsToInstall)
                 {
-                    mod.Init();
+                    mod.Init(true);
                 }
                 foreach (var mod in modernQueue.ASIModsToInstall)
                 {
@@ -254,6 +260,10 @@ namespace ME3TweaksModManager.modmanager.objects.batch
                 modernQueue.SerializeOnly_MEMFilePaths = null; // Remove this data as it's only used during serialization
 
                 // Populate the full list of mods for UI binding
+                if (modernQueue.RestoreBeforeInstall)
+                {
+                    modernQueue.AllModsToInstall.Add(new BatchGameRestore());
+                }
                 modernQueue.AllModsToInstall.AddRange(modernQueue.ModsToInstall);
                 modernQueue.AllModsToInstall.AddRange(modernQueue.ASIModsToInstall);
                 modernQueue.AllModsToInstall.AddRange(modernQueue.TextureModsToInstall);
@@ -325,7 +335,7 @@ namespace ME3TweaksModManager.modmanager.objects.batch
             // Prepare for save
             foreach (var m in ModsToInstall)
             {
-                m.PrepareForSave();
+                m?.PrepareForSave();
             }
 
             SerializeOnly_MEMFilePaths = TextureModsToInstall.Select(x =>
@@ -373,7 +383,7 @@ namespace ME3TweaksModManager.modmanager.objects.batch
             // Commit
             var json = JsonConvert.SerializeObject(this, Formatting.Indented);
 
-            var savePath = getSaveName(newName ?? ModName, canOverwrite);
+            var savePath = GetSaveName(newName ?? ModName, canOverwrite);
             File.WriteAllText(savePath, json);
 
             SerializeOnly_MEMFilePaths = null; // Clear
@@ -385,10 +395,10 @@ namespace ME3TweaksModManager.modmanager.objects.batch
         /// </summary>
         /// <param name="groupName"></param>
         /// <returns></returns>
-        private string getSaveName(string groupName, bool canOverwrite)
+        public string GetSaveName(string groupName, bool canOverwrite)
         {
             var batchfolder = M3LoadedMods.GetBatchInstallGroupsDirectory();
-            var newFname = M3Utilities.SanitizePath(groupName);
+            var newFname = MUtilities.SanitizePath(groupName);
             if (string.IsNullOrWhiteSpace(newFname))
             {
                 // Has generic name. We have to make a generic name instead
@@ -479,15 +489,44 @@ namespace ME3TweaksModManager.modmanager.objects.batch
                     else if (v is BatchASIMod a)
                     {
                         str += M3L.GetString(M3L.string_interp_xASIMod, a.AssociatedMod.Name);
-
+                    }
+                    else if (v is BatchMod bm)
+                    {
+                        str += @" - ";
+                        if (!string.IsNullOrWhiteSpace(bm.ModName))
+                        {
+                            str += bm.ModName + Environment.NewLine;
+                        }
+                        else
+                        {
+                            str += bm.ModDescPath + Environment.NewLine;
+                        }
                     }
                 }
 
-                str += M3L.GetString(M3L.string_uiImportInstallGroupSuffix);
+                str += "\n" + // do not localize
+                       M3L.GetString(M3L.string_uiImportInstallGroupSuffix);
 
                 return str;
             }
         }
-    }
 
+        /// <summary>
+        /// If this batch queue contains texture mods to install
+        /// </summary>
+        /// <returns></returns>
+        public bool ContainsTextureMods()
+        {
+            return TextureModsToInstall.Any();
+        }
+
+        /// <summary>
+        /// If this batch queue contains content mods to install
+        /// </summary>
+        /// <returns></returns>
+        public bool ContainsContentMods()
+        {
+            return ModsToInstall.Any();
+        }
+    }
 }

@@ -1,9 +1,7 @@
-﻿using LegendaryExplorerCore.Packages;
-using ME3TweaksModManager.modmanager.localizations;
+﻿using ME3TweaksModManager.modmanager.localizations;
+using ME3TweaksModManager.modmanager.nexusmodsintegration;
 using ME3TweaksModManager.modmanager.objects.mod;
-using System;
-using System.IO;
-using System.Linq;
+
 
 namespace ME3TweaksModManager.modmanager.objects.deployment.checks
 {
@@ -14,7 +12,11 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
             string versionString = check.ModBeingDeployed.ParsedModVersion != null ? check.ModBeingDeployed.ParsedModVersion.ToString(M3Utilities.GetDisplayableVersionFieldCount(check.ModBeingDeployed.ParsedModVersion)) : check.ModBeingDeployed.ModVersionString;
             string versionFormat = check.ModBeingDeployed.ModDescTargetVersion < 6 ? @"X.X" : @"X.X[.X[.X]]";
             string checklistItemText = check.ModBeingDeployed.ParsedModVersion != null ? M3L.GetString(M3L.string_verifyModVersion) : M3L.GetString(M3L.string_recommendedVersionFormatNotFollowed, versionFormat);
-            check.DeploymentChecklistItems.Add(new DeploymentChecklistItem() { ItemText = $@"{checklistItemText}: {versionString}", ValidationFunction = ManualValidationFunction.ManualValidation });
+            check.DeploymentChecklistItems.Add(new DeploymentChecklistItem()
+            {
+                ItemText = $@"{checklistItemText}: {versionString}",
+                ValidationFunction = ManualValidationFunction.ManualValidation
+            });
             check.DeploymentChecklistItems.Add(new DeploymentChecklistItem()
             {
                 ItemText = $@"{M3L.GetString(M3L.string_verifyURLIsCorrect)} {check.ModBeingDeployed.ModWebsite}",
@@ -27,7 +29,7 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
             {
                 ItemText = M3L.GetString(M3L.string_verifyModDescription),
                 ModToValidateAgainst = check.ModBeingDeployed,
-                ValidationFunction = ManualValidationFunction.ManualValidation
+                ValidationFunction = ManualValidationFunction.DescriptionValidation,
             });
             if (check.ModBeingDeployed.Game == MEGame.ME3) // SFAR Check (ME3 only)
             {
@@ -67,6 +69,38 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
                 }
                 else
                 {
+                    // 06/27/2024 - try to get info from Nexus page
+                    if (!string.IsNullOrWhiteSpace(item.ModToValidateAgainst.ModWebsite))
+                    {
+                        item.Hyperlink = item.ModToValidateAgainst.ModWebsite;
+                        if (NexusModsUtilities.HasAPIKey)
+                        {
+                            var nfi = NexusFileInfo.FromModSite(item.ModToValidateAgainst.Game,
+                                item.ModToValidateAgainst.ModWebsite);
+                            if (nfi != null)
+                            {
+                                // its a nexus link
+                                try
+                                {
+                                    var modInfo = NexusModsUtilities.GetClient().Mods.GetMod(nfi.Domain, nfi.ModId)
+                                        .Result;
+                                    if (modInfo != null)
+                                    {
+                                        item.ItemText = M3L.GetString(M3L.string_interp_nexusModsPageX, modInfo.Name);
+                                        item.ToolTip = M3L.GetString(M3L.string_validationOK);
+                                        item.Hyperlink = item.ModToValidateAgainst.ModWebsite;
+                                        return;
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    M3Log.Error(
+                                        $@"Error getting mod information from NexusMods: {e.Message}. This may be expected if mod page is not created yet.");
+                                }
+                            }
+                        }
+                    }
+
                     item.ItemText = M3L.GetString(M3L.string_interp_modURLOK, item.ModToValidateAgainst.ModWebsite);
                     item.ToolTip = M3L.GetString(M3L.string_validationOK);
                 }

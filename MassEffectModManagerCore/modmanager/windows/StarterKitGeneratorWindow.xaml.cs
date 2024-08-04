@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,40 +7,30 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using IniParser;
-using IniParser.Model;
-using LegendaryExplorerCore.Coalesced;
 using LegendaryExplorerCore.GameFilesystem;
 using LegendaryExplorerCore.Gammtek.Extensions.Collections.Generic;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
-using LegendaryExplorerCore.TLK;
-using LegendaryExplorerCore.TLK.ME1;
 using ME3TweaksCore.Helpers;
-using ME3TweaksCore.Objects;
+using ME3TweaksCore.Localization;
+using ME3TweaksCore.ME3Tweaks.StarterKit;
 using ME3TweaksCore.Services.ThirdPartyModIdentification;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.diagnostics;
+using ME3TweaksModManager.extensions;
 using ME3TweaksModManager.modmanager.helpers;
-using ME3TweaksModManager.modmanager.loaders;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.memoryanalyzer;
 using ME3TweaksModManager.modmanager.objects.mod;
-using ME3TweaksModManager.modmanager.objects.starterkit;
-using ME3TweaksModManager.modmanager.squadmates;
-using ME3TweaksModManager.modmanager.starterkit;
+using ME3TweaksModManager.modmanager.windows.dialog;
 using ME3TweaksModManager.ui;
-using Microsoft.AppCenter.Analytics;
 using MvvmValidation;
-using static ME3TweaksModManager.modmanager.usercontrols.BackupFileFetcher;
 
 namespace ME3TweaksModManager.modmanager.windows
 {
     /// <summary>
     /// Interaction logic for StarterKitGeneratorWindow.xaml
     /// </summary>
-    public partial class StarterKitGeneratorWindow : ValidatableWindowBase
+    public partial class StarterKitGeneratorWindow : ValidatableWindowBase, IClosableWindow
     {
         public int MaxMountForGame
         {
@@ -122,6 +108,22 @@ namespace ME3TweaksModManager.modmanager.windows
 
         // Game 1
         public ObservableCollectionExtended<Bio2DAOption> Selected2DAs { get; } = new();
+
+        // LE2
+        public bool AddSquadmateMerge2Miranda { get; set; }
+        public bool AddSquadmateMerge2Jacob { get; set; }
+        public bool AddSquadmateMerge2Mordin { get; set; }
+        public bool AddSquadmateMerge2Garrus { get; set; }
+        public bool AddSquadmateMerge2Jack { get; set; }
+        public bool AddSquadmateMerge2Grunt { get; set; }
+        public bool AddSquadmateMerge2Tali { get; set; }
+        public bool AddSquadmateMerge2Samara { get; set; }
+        public bool AddSquadmateMerge2Thane { get; set; }
+        public bool AddSquadmateMerge2Legion { get; set; }
+        public bool AddSquadmateMerge2Kasumi { get; set; }
+        public bool AddSquadmateMerge2Zaeed { get; set; }
+
+
 
         // Game 3
         public bool AddModSettingsMenuData { get; set; } = true; // LE3 only
@@ -248,6 +250,8 @@ namespace ME3TweaksModManager.modmanager.windows
             M3MemoryAnalyzer.AddTrackedMemoryItem(@"Starter Kit Window", this);
             M3Log.Information(@"Opening Starter Kit window");
 
+            this.ApplyDarkNetWindowTheme();
+
             PendingGame = Game;
             CustomDLCMountsForGame.Filter = FilterTMPIEntries;
 
@@ -273,15 +277,24 @@ namespace ME3TweaksModManager.modmanager.windows
             Validator.AddRule(nameof(ModName), () =>
             {
                 if (string.IsNullOrWhiteSpace(ModName)) return RuleResult.Invalid(M3L.GetString(M3L.string_modNameCannotBeEmpty));
+                var mn = ModName.Trim();
                 var r = new Regex("[A-Z,a-z,0-9,\\-,',., ,|,\",]+"); //do not localize
-                if (!r.IsMatch(ModName))
+                if (!r.IsMatch(mn))
                 {
                     return RuleResult.Invalid(M3L.GetString(M3L.string_modNameCanOnlyContain));
                 }
-                var sanitized = M3Utilities.SanitizePath(ModName, true);
+                if (mn.StartsWith('/'))
+                {
+                    return RuleResult.Invalid(M3L.GetString(M3L.string_modNameCannotStartWithSlash));
+                }
+                var sanitized = MUtilities.SanitizePath(mn, true);
                 if (sanitized.Length == 0)
                 {
                     return RuleResult.Invalid(M3L.GetString(M3L.string_modNameWillNotResolveToAUsableFilesystemPath));
+                }
+                if (sanitized.Length > 50)
+                {
+                    return RuleResult.Invalid(M3L.GetString(M3L.string_sk_modNameTooLong));
                 }
                 if (sanitized.Contains(@".."))
                 {
@@ -316,16 +329,22 @@ namespace ME3TweaksModManager.modmanager.windows
                 //Debug.WriteLine("MDFN " + ModDLCFolderName);
                 if (string.IsNullOrWhiteSpace(ModDLCFolderName))
                     return RuleResult.Invalid(M3L.GetString(M3L.string_dLCFolderNameCannotBeEmpty));
+                var dfn = ModDLCFolderName.Trim();
                 Regex reg = new Regex("^[A-Za-z0-9_]+$"); //do not localize
-                if (!reg.IsMatch(ModDLCFolderName))
+                if (!reg.IsMatch(dfn))
                 {
                     return RuleResult.Invalid(M3L.GetString(M3L.string_dLCFolderNameCanOnlyConsistOf));
                 }
 
                 // 02/02/2022 - Discovered that LE3 rejects DLC foldernames containing case sensitive 'MP'
-                if (Game == MEGame.LE3 && ModDLCFolderName.Contains(@"MP"))
+                if (Game == MEGame.LE3 && dfn.Contains(@"MP"))
                 {
                     return RuleResult.Invalid(M3L.GetString(M3L.string_le3dlcFolderNamesMP));
+                }
+
+                if (dfn.Length > 25)
+                {
+                    return RuleResult.Invalid(M3L.GetString(M3L.string_sk_modFoldernameTooLong));
                 }
 
                 return RuleResult.Valid();
@@ -416,14 +435,14 @@ namespace ME3TweaksModManager.modmanager.windows
                 if (result == MessageBoxResult.No) return;
             }
 
-            var outputDirectory = Path.Combine(M3LoadedMods.GetModDirectoryForGame(Game), M3Utilities.SanitizePath(ModName));
+            var outputDirectory = Path.Combine(M3LoadedMods.GetModDirectoryForGame(Game), MUtilities.SanitizePath(ModName.Trim()));
             if (Directory.Exists(outputDirectory))
             {
                 var result = M3L.ShowDialog(this, M3L.GetString(M3L.string_interp_dialogWillDeleteExistingMod, outputDirectory), M3L.GetString(M3L.string_modAlreadyExists), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
                 if (result == MessageBoxResult.No) return;
                 try
                 {
-                    if (!M3Utilities.DeleteFilesAndFoldersRecursively(outputDirectory))
+                    if (!MUtilities.DeleteFilesAndFoldersRecursively(outputDirectory))
                     {
                         M3Log.Error(@"Could not delete existing output directory.");
                         M3L.ShowDialog(this, M3L.GetString(M3L.string_dialogErrorDeletingExistingMod), M3L.GetString(M3L.string_errorDeletingExistingMod), MessageBoxButton.OK, MessageBoxImage.Error);
@@ -446,7 +465,7 @@ namespace ME3TweaksModManager.modmanager.windows
         private void RunStarterKitGenerator(MountFlag mf)
         {
 
-            StarterKitOptions sko = new StarterKitOptions
+            var sko = new StarterKitOptions
             {
                 ModName = ModName,
                 ModDescription = ModDescription,
@@ -465,21 +484,39 @@ namespace ME3TweaksModManager.modmanager.windows
                 AddPlotManagerData = AddPlotManagerData,
                 AddModSettingsMenu = AddModSettingsMenuData,
                 Blank2DAsToGenerate = Selected2DAs.ToList(),
-                AddAshleySQM = AddSquadmateMerge3Ashley,
-                AddGarrusSQM = AddSquadmateMerge3Garrus,
-                AddJamesSQM = AddSquadmateMerge3James,
-                AddEDISQM = AddSquadmateMerge3EDI,
-                AddJavikSQM = AddSquadmateMerge3Javik,
-                AddKaidanSQM = AddSquadmateMerge3Kaidan,
-                AddLiaraSQM = AddSquadmateMerge3Liara,
-                AddTaliSQM = AddSquadmateMerge3Tali,
+
+                // SQUADMATE MERGE
+
+                // SHARED 2/3
+                AddGarrusSQM = AddSquadmateMerge3Garrus && (Game.IsGame3() || Game == MEGame.LE2),
+                AddTaliSQM = AddSquadmateMerge3Tali && (Game.IsGame3() || Game == MEGame.LE2),
+
+                // LE2
+                AddMirandaSQM = AddSquadmateMerge2Miranda && Game == MEGame.LE2,
+                AddJacobSQM = AddSquadmateMerge2Jacob && Game == MEGame.LE2,
+                AddMordinSQM = AddSquadmateMerge2Mordin && Game == MEGame.LE2,
+                AddJackSQM = AddSquadmateMerge2Jack && Game == MEGame.LE2,
+                AddGruntSQM = AddSquadmateMerge2Grunt && Game == MEGame.LE2,
+                AddSamaraSQM = AddSquadmateMerge2Samara && Game == MEGame.LE2,
+                AddThaneSQM = AddSquadmateMerge2Thane && Game == MEGame.LE2,
+                AddLegionSQM = AddSquadmateMerge2Legion && Game == MEGame.LE2,
+                AddKasumiSQM = AddSquadmateMerge2Kasumi && Game == MEGame.LE2,
+                AddZaeedSQM = AddSquadmateMerge2Zaeed && Game == MEGame.LE2,
+
+                // GAME3
+                AddAshleySQM = AddSquadmateMerge3Ashley && Game.IsGame3(),
+                AddJamesSQM = AddSquadmateMerge3James && Game.IsGame3(),
+                AddEDISQM = AddSquadmateMerge3EDI && Game.IsGame3(),
+                AddJavikSQM = AddSquadmateMerge3Javik && Game.IsGame3(),
+                AddKaidanSQM = AddSquadmateMerge3Kaidan && Game.IsGame3(),
+                AddLiaraSQM = AddSquadmateMerge3Liara && Game.IsGame3(),
             };
 
             M3Log.Information(@"Generating a starter kit mod with the following options:");
             M3Log.Information(sko.ToString());
 
             IsBusy = true;
-            BusyText = M3L.GetString(M3L.string_generatingMod);
+            BusyText = LC.GetString(LC.string_generatingMod);
             Task.Run(() =>
             {
                 FinishedCallback(CreateStarterKitMod(sko, s => { BusyText = s; }));
@@ -487,6 +524,7 @@ namespace ME3TweaksModManager.modmanager.windows
             {
                 if (x.Exception != null)
                 {
+                    M3Log.Exception(x.Exception, @"Error generating mod:");
                     M3L.ShowDialog(this, x.Exception.Message, M3L.GetString(M3L.string_errorGeneratingMod), MessageBoxButton.OK, MessageBoxImage.Error);
                     IsBusy = false;
                 }
@@ -577,258 +615,30 @@ namespace ME3TweaksModManager.modmanager.windows
             }
         }
 
+        /// <summary>
+        /// Generates a DLC mod with starter kit. Can return null if generate moddesc is not specified
+        /// </summary>
+        /// <param name="skOption"></param>
+        /// <param name="UITextCallback"></param>
+        /// <returns></returns>
         public static Mod CreateStarterKitMod(StarterKitOptions skOption, Action<string> UITextCallback)
         {
-            //NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"StarterKitThread");
-            //nbw.DoWork += (sender, args) =>
-            //{
-            var dlcFolderName = $@"DLC_MOD_{skOption.ModDLCFolderNameSuffix}";
-            var modPath = skOption.OutputFolderOverride ?? Path.Combine(M3LoadedMods.GetModDirectoryForGame(skOption.ModGame), M3Utilities.SanitizePath(skOption.ModName));
-            if (skOption.OutputFolderOverride == null && Directory.Exists(modPath))
-            {
-                M3Utilities.DeleteFilesAndFoldersRecursively(modPath);
-            }
-
-            Directory.CreateDirectory(modPath);
-
-            //Creating DLC directories
-            M3Log.Information(@"Creating starter kit folders");
-            var contentDirectory = Path.Combine(modPath, dlcFolderName);
-
-            if (skOption.OutputFolderOverride != null && Directory.Exists(contentDirectory))
-            {
-                // Wipe out DLC folder target
-                M3Utilities.DeleteFilesAndFoldersRecursively(contentDirectory);
-            }
-
-            Directory.CreateDirectory(contentDirectory);
-
-            var cookedDir = Directory.CreateDirectory(Path.Combine(contentDirectory, skOption.ModGame.CookedDirName())).FullName;
-            if (skOption.ModGame.IsGame1())
-            {
-                //AutoLoad.ini
-                IniData autoload = new IniData();
-                autoload[@"Packages"][@"GlobalTalkTable1"] = $@"{dlcFolderName}_GlobalTlk.GlobalTlk_tlk";
-
-                autoload[@"GUI"][@"NameStrRef"] = skOption.ModInternalTLKID.ToString();
-
-                autoload[@"ME1DLCMOUNT"][@"ModName"] = skOption.ModName;
-                autoload[@"ME1DLCMOUNT"][@"ModMount"] = skOption.ModMountPriority.ToString();
-                M3Log.Information($@"Saving autoload.ini for {skOption.ModGame} mod");
-                new FileIniDataParser().WriteFile(Path.Combine(contentDirectory, @"AutoLoad.ini"), autoload, new UTF8Encoding(false));
-
-                //TLK
-                var dialogdir = skOption.ModGame == MEGame.ME1
-                    ? Directory.CreateDirectory(Path.Combine(cookedDir, @"Packages", @"Dialog")).FullName
-                    : cookedDir;
-                var tlkGlobalFile = Path.Combine(dialogdir, $@"{dlcFolderName}_GlobalTlk");
-                var extension = skOption.ModGame == MEGame.ME1 ? @"upk" : @"pcc";
-                foreach (var lang in GameLanguage.GetLanguagesForGame(skOption.ModGame))
-                {
-                    var langExt = lang.FileCode == @"INT" ? "" : $@"_{lang.FileCode}"; // do not localize
-                    var tlkPath = $@"{tlkGlobalFile}{langExt}.{extension}";
-                    M3Utilities.ExtractInternalFile($@"ME3TweaksModManager.modmanager.starterkit.BlankTlkFile.{extension}", tlkPath, true);
-
-                    var tlkFile = MEPackageHandler.OpenMEPackage(tlkPath);
-                    var tlk1 = new ME1TalkFile(tlkFile.GetUExport(1));
-                    var tlk2 = new ME1TalkFile(tlkFile.GetUExport(2));
-
-                    tlk1.StringRefs[0].StringID = skOption.ModInternalTLKID;
-                    tlk2.StringRefs[0].StringID = skOption.ModInternalTLKID;
-
-                    tlk1.StringRefs[0].Data = skOption.ModInternalName;
-                    tlk2.StringRefs[0].Data = skOption.ModInternalName;
-
-                    var huff = new HuffmanCompression();
-                    huff.LoadInputData(tlk1.StringRefs.ToList());
-                    huff.SerializeTalkfileToExport(tlkFile.GetUExport(1));
-
-                    huff = new HuffmanCompression();
-                    huff.LoadInputData(tlk2.StringRefs.ToList());
-                    huff.SerializeTalkfileToExport(tlkFile.GetUExport(2));
-                    M3Log.Information($@"Saving {tlkPath} TLK package");
-                    tlkFile.Save();
-                }
-            }
-            else
-            {
-                //ME2, ME3
-                MountFile mf = new MountFile();
-                mf.Game = skOption.ModGame;
-                mf.MountFlags = skOption.ModMountFlag;
-                mf.ME2Only_DLCFolderName = dlcFolderName;
-                mf.ME2Only_DLCHumanName = skOption.ModName;
-                mf.MountPriority = (ushort)skOption.ModMountPriority;
-                mf.TLKID = skOption.ModInternalTLKID;
-                M3Log.Information(@"Saving mount.dlc file for mod");
-                mf.WriteMountFile(Path.Combine(cookedDir, @"Mount.dlc"));
-
-                if (skOption.ModGame.IsGame3())
-                {
-                    if (skOption.ModGame == MEGame.ME3)
-                    {
-                        //Extract Default.Sfar
-                        M3Utilities.ExtractInternalFile(@"ME3TweaksModManager.modmanager.starterkit.Default.sfar", Path.Combine(cookedDir, @"Default.sfar"), true);
-                    }
-
-                    //Generate Coalesced.bin for mod
-                    var memory = M3Utilities.ExtractInternalFileToStream(@"ME3TweaksModManager.modmanager.starterkit.Default_DLC_MOD_StarterKit.bin");
-                    var files = CoalescedConverter.DecompileGame3ToMemory(memory);
-                    //Modify coal files for this mod.
-                    files[@"BioEngine.xml"] = files[@"BioEngine.xml"].Replace(@"StarterKit", skOption.ModDLCFolderNameSuffix); //update bioengine
-
-                    var newMemory = CoalescedConverter.CompileFromMemory(files);
-                    var outpath = Path.Combine(cookedDir, $@"Default_{dlcFolderName}.bin");
-                    M3Log.Information(@"Saving new starterkit coalesced file");
-                    File.WriteAllBytes(outpath, newMemory.ToArray());
-                }
-                else
-                {
-                    //ME2, LE2
-                    IniData bioEngineIni = new IniData();
-                    bioEngineIni.Configuration.AssigmentSpacer = ""; //no spacer.
-                    bioEngineIni[@"Core.System"][@"!CookPaths"] = @"CLEAR";
-                    bioEngineIni[@"Core.System"][@"+SeekFreePCPaths"] = $@"..\BIOGame\DLC\{dlcFolderName}\CookedPC"; // Is still CookedPC on LE
-
-                    //bioEngineIni["Engine.PackagesToAlwaysCook"]["!Package"] = "CLEAR";
-                    //bioEngineIni["Engine.PackagesToAlwaysCook"]["!SeekFreePackage"] = "CLEAR";
-
-                    //Todo: Find way to tell user what this is for and how to pick one. Used to determine TLK filename
-                    bioEngineIni[@"Engine.DLCModules"][dlcFolderName] = skOption.ModModuleNumber.ToString();
-
-                    bioEngineIni[@"DLCInfo"][@"Version"] = 0.ToString(); //unknown
-                    bioEngineIni[@"DLCInfo"][@"Flags"] = ((int)skOption.ModMountFlag.FlagValue).ToString();
-                    bioEngineIni[@"DLCInfo"][@"Name"] = skOption.ModInternalTLKID.ToString();
-                    M3Log.Information(@"Saving BioEngine file");
-                    new FileIniDataParser().WriteFile(Path.Combine(cookedDir, @"BIOEngine.ini"), bioEngineIni, new UTF8Encoding(false));
-                }
-
-                var tlkFilePrefix = skOption.ModGame.IsGame3() ? dlcFolderName : $@"DLC_{skOption.ModModuleNumber}";
-
-                var languages = GameLanguage.GetLanguagesForGame(skOption.ModGame);
-                foreach (var lang in languages)
-                {
-                    List<TLKStringRef> strs = new List<TLKStringRef>();
-                    strs.Add(new TLKStringRef(skOption.ModInternalTLKID, skOption.ModInternalName));
-                    if (skOption.ModGame.IsGame2())
-                    {
-                        strs.Add(new TLKStringRef(skOption.ModInternalTLKID + 1, @"DLC_" + skOption.ModModuleNumber));
-                    }
-                    else
-                    {
-                        strs.Add(new TLKStringRef(skOption.ModInternalTLKID + 1, @"DLC_MOD_" + skOption.ModDLCFolderNameSuffix));
-                    }
-
-                    strs.Add(new TLKStringRef(skOption.ModInternalTLKID + 2, lang.LanguageCode.ToString()));
-                    strs.Add(new TLKStringRef(skOption.ModInternalTLKID + 3, @"Male"));
-                    strs.Add(new TLKStringRef(skOption.ModInternalTLKID + 3, @"Female"));
-
-                    foreach (var str in strs)
-                    {
-                        str.Data += '\0';
-                    }
-
-                    var tlk = Path.Combine(cookedDir, $@"{tlkFilePrefix}_{lang.FileCode}.tlk");
-                    M3Log.Information(@"Saving TLK file: " + tlk);
-                    LegendaryExplorerCore.TLK.ME2ME3.HuffmanCompression.SaveToTlkFile(tlk, strs);
-                }
-            }
-
-            // ADDINS
-            List<Action<IniData>> moddescAddinDelegates = new List<Action<IniData>>();
-            if (skOption.AddStartupFile)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - Startup file");
-                StarterKitAddins.AddStartupFile(skOption.ModGame, contentDirectory);
-            }
-            if (skOption.AddPlotManagerData)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - PlotManager data");
-                StarterKitAddins.GeneratePlotData(skOption.ModGame, contentDirectory);
-            }
-
-            if (skOption.AddModSettingsMenu)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - Mod Settings Menu");
-                StarterKitAddins.AddModSettingsMenu(null, skOption.ModGame, contentDirectory, moddescAddinDelegates);
-            }
-
-            if (skOption.Blank2DAsToGenerate.Any())
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - 2DAs");
-                StarterKitAddins.GenerateBlank2DAs(skOption.ModGame, contentDirectory, skOption.Blank2DAsToGenerate);
-            }
-
-            // Generator needs to accept multiple outfit dictionaries
-            var outfits = new List<Dictionary<string, object>>();
-            string errorMessage = null;
-            if (skOption.AddAshleySQM)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - Ashley SQM");
-                errorMessage = StarterKitAddins.GenerateSquadmateMergeFiles(skOption.ModGame, @"Ashley", contentDirectory, outfits);
-            }
-            if (errorMessage == null && skOption.AddEDISQM)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - EDI SQM");
-                errorMessage = StarterKitAddins.GenerateSquadmateMergeFiles(skOption.ModGame, @"EDI", contentDirectory, outfits);
-            }
-            if (errorMessage == null && skOption.AddGarrusSQM)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - Garrus SQM");
-                errorMessage = StarterKitAddins.GenerateSquadmateMergeFiles(skOption.ModGame, @"Garrus", contentDirectory, outfits);
-            }
-            if (errorMessage == null && skOption.AddKaidanSQM)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - Kaidan SQM");
-                errorMessage = StarterKitAddins.GenerateSquadmateMergeFiles(skOption.ModGame, @"Kaidan", contentDirectory, outfits);
-            }
-            if (errorMessage == null && skOption.AddJamesSQM)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - James SQM");
-                errorMessage = StarterKitAddins.GenerateSquadmateMergeFiles(skOption.ModGame, @"Marine", contentDirectory, outfits);
-            }
-            if (errorMessage == null && skOption.AddJavikSQM)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - Javik SQM");
-                errorMessage = StarterKitAddins.GenerateSquadmateMergeFiles(skOption.ModGame, @"Prothean", contentDirectory, outfits);
-            }
-            if (errorMessage == null && skOption.AddLiaraSQM)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - Liara SQM");
-                errorMessage = StarterKitAddins.GenerateSquadmateMergeFiles(skOption.ModGame, @"Liara", contentDirectory, outfits);
-            }
-            if (errorMessage == null && skOption.AddTaliSQM)
-            {
-                UITextCallback?.Invoke($@"{M3L.GetString(M3L.string_generatingMod)} - Tali SQM");
-                errorMessage = StarterKitAddins.GenerateSquadmateMergeFiles(skOption.ModGame, @"Tali", contentDirectory, outfits);
-            }
-
-            if (errorMessage != null)
-            {
-                throw new Exception(errorMessage);
-            }
-
-            if (outfits.Any())
-            {
-                // Write the .sqm file
-                var sqmText = StarterKitAddins.GenerateOutfitMergeText(skOption.ModGame, outfits);
-                var sqmPath = Path.Combine(contentDirectory, skOption.ModGame.CookedDirName(), SQMOutfitMerge.SQUADMATE_MERGE_MANIFEST_FILE);
-                File.WriteAllText(sqmPath, sqmText);
-            }
-
+            var modPath = DLCModGenerator.CreateStarterKitMod(M3LoadedMods.GetModDirectoryForGame(skOption.ModGame)
+                , skOption, UITextCallback, out var moddescAddinDelegates, ModSourcing.GetGamePatchModFolder);
             if (skOption.GenerateModdesc)
             {
-                IniData ini = new IniData();
-                ini[@"ModManager"][@"cmmver"] = App.HighestSupportedModDesc.ToString(CultureInfo.InvariantCulture); //prevent commas
-                ini[@"ModInfo"][@"game"] = skOption.ModGame.ToString();
-                ini[@"ModInfo"][@"modname"] = skOption.ModName;
-                ini[@"ModInfo"][@"moddev"] = skOption.ModDeveloper;
-                ini[@"ModInfo"][@"moddesc"] = M3Utilities.ConvertNewlineToBr(skOption.ModDescription);
-                ini[@"ModInfo"][@"modver"] = 1.0.ToString(CultureInfo.InvariantCulture);
-                ini[@"ModInfo"][@"modsite"] = skOption.ModURL;
+                var dlcFolderName = $@"DLC_MOD_{skOption.ModDLCFolderNameSuffix}";
+                var ini = new DuplicatingIni();
+                ini[Mod.MODDESC_HEADERKEY_MODMANAGER][Mod.MODDESC_DESCRIPTOR_MODMANAGER_CMMVER].Value = App.HighestSupportedModDesc.ToString(CultureInfo.InvariantCulture); //prevent commas
+                ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_GAME].Value = skOption.ModGame.ToString();
+                ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_NAME].Value = skOption.ModName;
+                ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_DEVELOPER].Value = skOption.ModDeveloper;
+                ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_DESCRIPTION].Value = M3Utilities.ConvertNewlineToBr(skOption.ModDescription);
+                ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_VERSION].Value = 1.0.ToString(CultureInfo.InvariantCulture);
+                ini[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_SITE].Value = skOption.ModURL;
 
-                ini[@"CUSTOMDLC"][@"sourcedirs"] = dlcFolderName;
-                ini[@"CUSTOMDLC"][@"destdirs"] = dlcFolderName;
+                ini[Mod.MODDESC_HEADERKEY_CUSTOMDLC][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_SOURCEDIRS].Value = dlcFolderName;
+                ini[Mod.MODDESC_HEADERKEY_CUSTOMDLC][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_DESTDIRS].Value = dlcFolderName;
 
                 foreach (var v in moddescAddinDelegates)
                 {
@@ -836,73 +646,12 @@ namespace ME3TweaksModManager.modmanager.windows
                 }
 
                 var modDescPath = Path.Combine(modPath, @"moddesc.ini");
-                new FileIniDataParser().WriteFile(modDescPath, ini, new UTF8Encoding(false));
+                ini.WriteToFile(modDescPath, new UTF8Encoding(false));
                 Mod m = new Mod(modDescPath, skOption.ModGame);
                 return m;
             }
 
             return null;
-        }
-
-        public class StarterKitOptions
-        {
-            public string ModDescription;
-            public string ModDeveloper;
-            public string ModName;
-            public string ModInternalName;
-            public string ModDLCFolderNameSuffix;
-            public int ModMountPriority;
-            public int ModInternalTLKID;
-            public string ModURL;
-            public MountFlag ModMountFlag;
-            public MEGame ModGame;
-
-            public int ModModuleNumber;
-
-            /// <summary>
-            /// If a Mod object should be generated via moddesc.ini. Defaults to true
-            /// </summary>
-            public bool GenerateModdesc { get; set; } = true;
-            /// <summary>
-            /// Directory to place the DLC folder at. Set to null to use the mod library
-            /// </summary>
-            public string OutputFolderOverride { get; set; }
-
-
-            #region FEATURE OPTIONS
-            /// <summary>
-            /// If a startup file should be added after the mod has been generated
-            /// </summary>
-            public bool AddStartupFile { get; set; }
-            public bool AddPlotManagerData { get; set; }
-            public bool AddModSettingsMenu { get; set; }
-            public List<Bio2DAOption> Blank2DAsToGenerate { get; set; } = new();
-            public bool AddAshleySQM { get; set; }
-            public bool AddGarrusSQM { get; set; }
-            public bool AddLiaraSQM { get; set; }
-            public bool AddJamesSQM { get; set; }
-            public bool AddEDISQM { get; set; }
-            public bool AddKaidanSQM { get; set; }
-            public bool AddJavikSQM { get; set; }
-            public bool AddTaliSQM { get; set; }
-            #endregion
-
-
-            public override string ToString()
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine(@"Game: " + ModGame);
-                sb.AppendLine(@"ModName: " + ModName);
-                sb.AppendLine(@"ModDescription: " + ModDescription);
-                sb.AppendLine(@"ModDeveloper: " + ModDLCFolderNameSuffix);
-                sb.AppendLine(@"ModDLCFolderName: " + ModDLCFolderNameSuffix);
-                sb.AppendLine(@"ModInternalTLKID: " + ModInternalTLKID);
-                sb.AppendLine(@"ModMountPriority: " + ModMountPriority);
-                sb.AppendLine(@"ModModuleNumber: " + ModModuleNumber);
-                sb.AppendLine(@"ModURL: " + ModURL);
-                sb.AppendLine(@"Mount flag: " + ModMountFlag);
-                return sb.ToString();
-            }
         }
 
         private void MountPriority_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -958,6 +707,20 @@ namespace ME3TweaksModManager.modmanager.windows
             AddModSettingsMenuData = false;
             AddPlotManagerData = false;
             Selected2DAs.Clear();
+
+            AddSquadmateMerge2Miranda = false;
+            AddSquadmateMerge2Jacob = false;
+            AddSquadmateMerge2Mordin = false;
+            AddSquadmateMerge2Garrus = false;
+            AddSquadmateMerge2Jack = false;
+            AddSquadmateMerge2Grunt = false;
+            AddSquadmateMerge2Tali = false;
+            AddSquadmateMerge2Samara = false;
+            AddSquadmateMerge2Thane = false;
+            AddSquadmateMerge2Legion = false;
+            AddSquadmateMerge2Kasumi = false;
+            AddSquadmateMerge2Zaeed = false;
+
             AddSquadmateMerge3Ashley = false;
             AddSquadmateMerge3EDI = false;
             AddSquadmateMerge3Garrus = false;
@@ -965,6 +728,7 @@ namespace ME3TweaksModManager.modmanager.windows
             AddSquadmateMerge3Javik = false;
             AddSquadmateMerge3Kaidan = false;
             AddSquadmateMerge3Liara = false;
+            AddSquadmateMerge3Tali = false;
         }
 
         private void DebugFill_Click(object sender, RoutedEventArgs e)
@@ -979,6 +743,18 @@ namespace ME3TweaksModManager.modmanager.windows
             ModDescription = @"Debug Description for mod";
             ModDLCModuleNumber = 12345;
 #endif
+        }
+
+        public bool AskToClose()
+        {
+            if (M3L.ShowDialog(this, "Close without generating the mod?", "Application closing", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes) == MessageBoxResult.Yes)
+            {
+                Close();
+                return true;
+            }
+
+            // Denied closing.
+            return false;
         }
     }
 }

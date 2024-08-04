@@ -1,8 +1,16 @@
 ﻿<Window
-    x:Class="ME3TweaksModManager.modmanager.windows.ModDescEditor" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI" xmlns:moddescinieditor="clr-namespace:ME3TweaksModManager.modmanager.usercontrols.moddescinieditor" xmlns:alternates="clr-namespace:ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternates" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    x:Class="ME3TweaksModManager.modmanager.windows.ModDescEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:moddescinieditor="clr-namespace:ME3TweaksModManager.modmanager.usercontrols.moddescinieditor"
+    xmlns:alternates="clr-namespace:ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternates"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     DataContext="{Binding RelativeSource={RelativeSource Self}}"
-    Title="{DynamicResource string_moddesciniEdsitor}"
+    Title="{DynamicResource string_moddesciniEditor}"
     MinHeight="750"
     MinWidth="1280"
     Height="750"
@@ -34,6 +42,7 @@
                 Click="Close_Click"
                 DockPanel.Dock="Right" />
             <Button
+                ToolTip="{DynamicResource string_tooltip_mde_serialize}"
                 Content="{DynamicResource string_serialize}"
                 Margin="5,0"
                 Click="SerializeData_Click"
@@ -88,6 +97,13 @@
                 <alternates:AlternateDLCBuilder
                     x:Name="customdlc_alternateDlcEditor_control" />
             </TabItem>
+            <!-- LE only -->
+            <TabItem
+                Header="{DynamicResource string_aSIMods}"
+                Visibility="{Binding EditingMod.Game, Converter={StaticResource GameToVisibilityConverter}, ConverterParameter='LEGame'}">
+                <moddescinieditor:ASIEditorControl
+                    x:Name="asi_editor_control" />
+            </TabItem>
             <!-- ME1 only -->
             <TabItem
                 Header="{DynamicResource string_mE1ConfigFiles}"
@@ -137,6 +153,7 @@
                     <DockPanel
                         Dock="Bottom">
                         <Button
+                            ToolTip="{DynamicResource string_tooltip_mde_saveToMod}"
                             Content="{DynamicResource string_saveModdesciniToMod}"
                             DockPanel.Dock="Right"
                             Margin="5,0,0,0"
@@ -155,8 +172,8 @@
                         IsReadOnly="True"
                         IsReadOnlyCaretVisible="False"
                         TextWrapping="Wrap"
-                        VerticalAlignment="Top"
-                        TextAlignment="Left" />
+                        TextAlignment="Left"
+                        Margin="0,4" />
                 </DockPanel>
             </TabItem>
         </TabControl>

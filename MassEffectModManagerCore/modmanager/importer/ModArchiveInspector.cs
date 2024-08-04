@@ -39,9 +39,8 @@ namespace ME3TweaksModManager.modmanager.importer
             Action<MEMMod> addTextureMod = null,
             Action<BatchLibraryInstallQueue> addBiq = null,
             Action<string> currentOperationTextCallback = null,
-            Action showALOTLauncher = null,
             string forcedMD5 = null,
-            int forcedSize = -1,
+            long forcedSize = -1,
             Stream archiveStream = null)
         {
             string relayVersionResponse = @"-1";
@@ -76,10 +75,10 @@ namespace ME3TweaksModManager.modmanager.importer
                 return ioException.Message;
             }
 #if DEBUG
-            foreach (var v in archiveFile.ArchiveFileData)
-            {
-                Debug.WriteLine($@"{v.FileName} | Index {v.Index} | Size {v.Size} | Method {v.Method} | IsDirectory {v.IsDirectory} | Last Modified {v.LastWriteTime}");
-            }
+            //foreach (var v in archiveFile.ArchiveFileData)
+            //{
+            //    Debug.WriteLine($@"{v.FileName} | Index {v.Index} | Size {v.Size} | Method {v.Method} | IsDirectory {v.IsDirectory} | Last Modified {v.LastWriteTime}");
+            //}
 #endif
             var moddesciniEntries = new List<ArchiveFileInfo>();
             var sfarEntries = new List<ArchiveFileInfo>(); //ME3 DLC
@@ -221,37 +220,12 @@ namespace ME3TweaksModManager.modmanager.importer
             }
             else if (textureModEntries.Any())
             {
-                if (isAlotFile)
+                //found some .mem files
+                foreach (var entry in textureModEntries.Where(x => Path.GetExtension(x.FileName) == @".mem"))
                 {
-                    //is alot installer
-                    M3Log.Information(@"This file contains texture files and ALOTInstaller.exe - this is an ALOT main file");
-                    var textureLibraryPath = M3Utilities.GetALOTInstallerTextureLibraryDirectory();
-                    if (textureLibraryPath != null)
-                    {
-                        //we have destination
-                        var destPath = Path.Combine(textureLibraryPath, Path.GetFileName(filepath));
-                        if (!File.Exists(destPath))
-                        {
-                            M3Log.Information(
-                                M3L.GetString(M3L.string_thisFileIsNotInTheTextureLibraryMovingItToTheTextureLibrary));
-                            currentOperationTextCallback?.Invoke(
-                                M3L.GetString(M3L.string_movingALOTFileToTextureLibraryPleaseWait));
-                            archiveFile.Dispose();
-                            File.Move(filepath, destPath, true);
-                            showALOTLauncher?.Invoke();
-                            useTPIS = false;
-                        }
-                    }
-                }
-                else
-                {
-                    //found some .mem files
-                    foreach (var entry in textureModEntries.Where(x => Path.GetExtension(x.FileName) == @".mem"))
-                    {
-                        MEMMod memFile = new MEMMod(entry.FileName) { SizeRequiredtoExtract = (long)entry.Size, SelectedForImport = true, IsInArchive = true };
-                        addTextureMod(memFile);
-                        useTPIS = false;
-                    }
+                    MEMMod memFile = new MEMMod(entry.FileName) { SizeRequiredtoExtract = (long)entry.Size, SelectedForImport = true, IsInArchive = true };
+                    addTextureMod(memFile);
+                    useTPIS = false;
                 }
             }
             else if (batchQueueEntries.Any())
@@ -285,11 +259,11 @@ namespace ME3TweaksModManager.modmanager.importer
                     return null; // We don't want to tell user that we don't support it cause they'll just ask us to, which I don't want
                 }
 
-                ModArchiveImporterPanel.ExeTransform transform = null;
+                ModArchiveImport.ExeTransform transform = null;
                 if (importingInfo?.exetransform != null)
                 {
                     M3Log.Information(@"TPIS lists exe transform for this mod: " + importingInfo.exetransform);
-                    transform = new ModArchiveImporterPanel.ExeTransform(M3OnlineContent.FetchExeTransform(importingInfo.exetransform));
+                    transform = new ModArchiveImport.ExeTransform(M3OnlineContent.FetchExeTransform(importingInfo.exetransform));
                 }
 
                 string custommoddesc = null;
@@ -461,33 +435,33 @@ namespace ME3TweaksModManager.modmanager.importer
                             M3Log.Information($@"Third party mod found: {thirdPartyInfo.modname}, preparing virtual moddesc.ini");
                             //We will have to load a virtual moddesc. Since Mod constructor requires reading an ini, we will build and feed it a virtual one.
                             IniData virtualModDesc = new IniData();
-                            virtualModDesc[@"ModManager"][@"cmmver"] = App.HighestSupportedModDesc.ToString();
-                            virtualModDesc[@"ModManager"][@"importedby"] = App.BuildNumber.ToString();
-                            virtualModDesc[@"ModInfo"][@"game"] = @"ME3";
-                            virtualModDesc[@"ModInfo"][@"modname"] = thirdPartyInfo.modname;
-                            virtualModDesc[@"ModInfo"][@"moddev"] = thirdPartyInfo.moddev;
-                            virtualModDesc[@"ModInfo"][@"modsite"] = thirdPartyInfo.modsite;
-                            virtualModDesc[@"ModInfo"][@"moddesc"] = thirdPartyInfo.moddesc;
-                            virtualModDesc[@"ModInfo"][@"unofficial"] = @"true";
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_MODMANAGER][Mod.MODDESC_DESCRIPTOR_MODMANAGER_CMMVER] = App.HighestSupportedModDesc.ToString();
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_MODMANAGER][Mod.MODDESC_DESCRIPTOR_MODMANAGER_IMPORTEDBY] = App.BuildNumber.ToString();
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_GAME] = @"ME3";
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_NAME] = thirdPartyInfo.modname;
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_DEVELOPER] = thirdPartyInfo.moddev;
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_SITE] = thirdPartyInfo.modsite;
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_DESCRIPTION] = thirdPartyInfo.moddesc;
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_UNOFFICIAL] = Mod.MODDESC_VALUE_TRUE;
                             if (int.TryParse(thirdPartyInfo.updatecode, out var updatecode) && updatecode > 0)
                             {
-                                virtualModDesc[@"ModInfo"][@"updatecode"] = updatecode.ToString();
-                                virtualModDesc[@"ModInfo"][@"modver"] = 0.001.ToString(CultureInfo.InvariantCulture); //This will force mod to check for update after reload
+                                virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_UPDATECODE] = updatecode.ToString();
+                                virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_VERSION] = 0.001.ToString(CultureInfo.InvariantCulture); //This will force mod to check for update after reload
                             }
                             else
                             {
-                                virtualModDesc[@"ModInfo"][@"modver"] = 0.0.ToString(CultureInfo.InvariantCulture); //Will attempt to look up later after mods have parsed.
+                                virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_VERSION] = 0.0.ToString(CultureInfo.InvariantCulture); //Will attempt to look up later after mods have parsed.
                             }
 
-                            virtualModDesc[@"CUSTOMDLC"][@"sourcedirs"] = dlcFolderName;
-                            virtualModDesc[@"CUSTOMDLC"][@"destdirs"] = dlcFolderName;
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_CUSTOMDLC][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_SOURCEDIRS] = dlcFolderName;
+                            virtualModDesc[Mod.MODDESC_HEADERKEY_CUSTOMDLC][Mod.MODDESC_DESCRIPTOR_CUSTOMDLC_DESTDIRS] = dlcFolderName;
 
                             var archiveSize = archive.ArchiveSize;
                             var importingInfos = TPIService.GetImportingInfosBySize(archiveSize);
                             if (importingInfos.Count == 1 && importingInfos[0].GetParsedRequiredDLC().Count > 0)
                             {
                                 M3OnlineContent.QueryModRelay(importingInfos[0].md5, archiveSize); //Tell telemetry relay we are accessing the TPIS for an existing item so it can update latest for tracking
-                                virtualModDesc[@"ModInfo"][@"requireddlc"] = importingInfos[0].requireddlc;
+                                virtualModDesc[Mod.MODDESC_HEADERKEY_MODINFO][Mod.MODDESC_DESCRIPTOR_MODINFO_REQUIREDDLC] = importingInfos[0].requireddlc;
                             }
 
                             return new Mod(virtualModDesc.ToString(), FilesystemInterposer.DirectoryGetParent(dlcDir, true), archive);

@@ -1,24 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using LegendaryExplorerCore.Gammtek.Extensions;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.Helpers;
-using ME3TweaksCore.Services.Backup;
-using ME3TweaksCore.Services.ThirdPartyModIdentification;
-using ME3TweaksCore.Targets;
-using ME3TweaksCoreWPF;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.diagnostics;
-using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.memoryanalyzer;
 using ME3TweaksModManager.modmanager.objects;
@@ -66,11 +54,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private bool CanRestoreMPSFARs()
         {
-            return IsPanelOpen && SelectedTarget != null && SelectedTarget.Game != MEGame.Unknown && !M3Utilities.IsGameRunning(SelectedTarget.Game) && SelectedTarget.HasModifiedMPSFAR() && !SFARBeingRestored;
+            return IsPanelOpen && SelectedTarget != null && SelectedTarget.Game != MEGame.Unknown && !MUtilities.IsGameRunning(SelectedTarget.Game) && SelectedTarget.HasModifiedMPSFAR() && !SFARBeingRestored;
         }
         private bool CanRestoreSPSFARs()
         {
-            return IsPanelOpen && SelectedTarget.Game != MEGame.Unknown && !M3Utilities.IsGameRunning(SelectedTarget.Game) && SelectedTarget.HasModifiedSPSFAR() && !SFARBeingRestored;
+            return IsPanelOpen && SelectedTarget.Game != MEGame.Unknown && !MUtilities.IsGameRunning(SelectedTarget.Game) && SelectedTarget.HasModifiedSPSFAR() && !SFARBeingRestored;
         }
 
         private bool CanRemoveTarget() => SelectedTarget != null && SelectedTarget.Game != MEGame.Unknown && !SelectedTarget.RegistryActive;
@@ -96,9 +84,19 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private bool RestoreAllBasegameInProgress;
 
+        /// <summary>
+        /// If 'RestoreAllBasegame' can be clicked
+        /// </summary>
+        /// <returns></returns>
         private bool CanRestoreAllBasegame()
         {
-            return IsPanelOpen && SelectedTarget != null && SelectedTarget.Game != MEGame.Unknown && !M3Utilities.IsGameRunning(SelectedTarget.Game) && SelectedTarget?.ModifiedBasegameFiles.Count > 0 && !RestoreAllBasegameInProgress && BackupService.GetGameBackupPath(SelectedTarget.Game) != null; //check if ifles being restored
+            return IsPanelOpen && SelectedTarget != null && SelectedTarget.Game != MEGame.Unknown
+                   && BackupService.GetBackupStatus(SelectedTarget.Game).BackedUp
+                   && !RestoreAllBasegameInProgress
+                   && !MUtilities.IsGameRunning(SelectedTarget.Game)
+                   // Check there is at least one file we can restore
+                   && SelectedTarget.ModifiedBasegameFiles.Count(x =>
+                       !SelectedTarget.TextureModded || !x.FilePath.RepresentsPackageFilePath()) > 0;
         }
 
         public string ModifiedFilesFilterText { get; set; }
@@ -119,24 +117,27 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private void RestoreAllBasegame()
         {
+            bool restorePackages = true;
             bool restore = false;
             if (SelectedTarget.TextureModded)
             {
                 if (!Settings.DeveloperMode)
                 {
-                    M3L.ShowDialog(Window.GetWindow(this), M3L.GetString(M3L.string_dialogRestoringFilesWhileAlotIsInstalledNotAllowed), M3L.GetString(M3L.string_cannotRestoreSfarFiles), MessageBoxButton.OK, MessageBoxImage.Error);
+                    M3L.ShowDialog(window, M3L.GetString(M3L.string_dialogRestoringFilesWhileAlotIsInstalledNotAllowed), M3L.GetString(M3L.string_cannotRestoreSfarFiles), MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
                 else
                 {
-                    var res = M3L.ShowDialog(Window.GetWindow(this), M3L.GetString(M3L.string_dialogRestoringFilesWhileAlotIsInstalledNotAllowedDevMode), M3L.GetString(M3L.string_invalidTexturePointersWarning), MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    // Developer mode: Allow bypass.
+                    var res = M3L.ShowDialog(window, M3L.GetString(M3L.string_dialogRestoringFilesWhileAlotIsInstalledNotAllowedDevMode), M3L.GetString(M3L.string_invalidTexturePointersWarning), MessageBoxButton.YesNo, MessageBoxImage.Warning);
                     restore = res == MessageBoxResult.Yes;
 
+                    
                 }
             }
             else
             {
-                restore = M3L.ShowDialog(Window.GetWindow(this), M3L.GetString(M3L.string_restoreAllModifiedFilesQuestion), M3L.GetString(M3L.string_confirmRestoration), MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+                restore = M3L.ShowDialog(window, M3L.GetString(M3L.string_restoreAllModifiedFilesQuestion), M3L.GetString(M3L.string_confirmRestoration), MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
 
             }
             if (restore)
@@ -282,7 +283,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private bool CanRestoreAllSFARs()
         {
-            return IsPanelOpen && SelectedTarget != null && SelectedTarget.Game != MEGame.Unknown && !M3Utilities.IsGameRunning(SelectedTarget.Game) && SelectedTarget.ModifiedSFARFiles.Count > 0 && !SFARBeingRestored;
+            return IsPanelOpen && SelectedTarget != null && SelectedTarget.Game != MEGame.Unknown && !MUtilities.IsGameRunning(SelectedTarget.Game) && SelectedTarget.ModifiedSFARFiles.Count > 0 && !SFARBeingRestored;
         }
 
         /// <summary>
@@ -290,26 +291,27 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         /// </summary>
         private void PopulateUI()
         {
-            if (SelectedTarget == null || SelectedTarget.Game == MEGame.Unknown) return; // Do not populate anything
+            var selectedTarget = SelectedTarget; // We cache this here because there is a lot of accessing of this var on async thread. And it can change
+            if (selectedTarget == null || selectedTarget.Game == MEGame.Unknown) return; // Do not populate anything
             NamedBackgroundWorker bw = new NamedBackgroundWorker($@"InstallationInformation-{nameof(PopulateUI)}");
             bw.DoWork += (a, b) =>
             {
                 bool deleteConfirmationCallback(InstalledDLCMod mod)
                 {
-                    if (M3Utilities.IsGameRunning(SelectedTarget.Game))
+                    if (MUtilities.IsGameRunning(selectedTarget.Game))
                     {
                         M3L.ShowDialog(Window.GetWindow(this),
                             M3L.GetString(M3L.string_interp_cannotDeleteModsWhileXIsRunning,
-                                SelectedTarget.Game.ToGameName()), M3L.GetString(M3L.string_gameRunning),
+                                selectedTarget.Game.ToGameName()), M3L.GetString(M3L.string_gameRunning),
                             MessageBoxButton.OK, MessageBoxImage.Error);
                         return false;
                     }
 
-                    if (SelectedTarget.TextureModded)
+                    if (selectedTarget.TextureModded)
                     {
                         var res = M3L.ShowDialog(Window.GetWindow(this),
-                            M3L.GetString(M3L.string_interp_deletingXwhileAlotInstalledUnsupported, mod.ModName),
-                            M3L.GetString(M3L.string_deletingWillPutAlotInUnsupportedConfig), MessageBoxButton.YesNo,
+                            M3L.GetString(M3L.string_interp_deletingXwhileTexturesInstalled, mod.ModName),
+                            M3L.GetString(M3L.string_deletingWillPutGameInUnsupportedConfig), MessageBoxButton.YesNo,
                             MessageBoxImage.Error);
                         return res == MessageBoxResult.Yes;
                     }
@@ -320,67 +322,67 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         MessageBoxImage.Warning) == MessageBoxResult.Yes;
                 }
 
-                void notifyDeleted()
+                void notifyDLCModDeleted()
                 {
-                    if (SelectedTarget.Game.IsGame1() || SelectedTarget.Game.IsGame2())
+                    if (selectedTarget.Game.IsGame1() || selectedTarget.Game.IsGame2())
                     {
-                        Result.TargetsToPlotManagerSync.Add(SelectedTarget);
+                        Result.TargetsToPlotManagerSync.Add(selectedTarget);
                     }
 
-                    if (SelectedTarget.Game == MEGame.LE1)
+                    if (selectedTarget.Game == MEGame.LE1)
                     {
-                        Result.TargetsToCoalescedMerge.Add(SelectedTarget); // Rebuild coalesced merge
+                        Result.TargetsToLE1Merge.Add(selectedTarget); // Rebuild coalesced merge
                     }
 
-                    if (SelectedTarget.Game.IsGame2())
+                    if (selectedTarget.Game.IsGame2())
                     {
-                        Result.TargetsToEmailMergeSync.Add(SelectedTarget);
+                        Result.TargetsToEmailMergeSync.Add(selectedTarget);
                     }
 
-                    if (SelectedTarget.Game.IsGame3() || SelectedTarget.Game == MEGame.LE2) // ME2 is not supported for merge due to having to edit the SWF
+                    if (selectedTarget.Game.IsGame3() || selectedTarget.Game == MEGame.LE2) // ME2 is not supported for merge due to having to edit the SWF
                     {
-                        Result.TargetsToSquadmateMergeSync.Add(SelectedTarget);
+                        Result.TargetsToSquadmateMergeSync.Add(selectedTarget);
                     }
-                    PopulateUI();
+                    selectedTarget.PopulateDLCMods(true, deleteConfirmationCallback, notifyDLCModDeleted, notifyToggled);
                 }
 
                 void notifyToggled()
                 {
-                    if (SelectedTarget.Game.IsGame1() || SelectedTarget.Game.IsGame2())
+                    if (selectedTarget.Game.IsGame1() || selectedTarget.Game.IsGame2())
                     {
-                        Result.TargetsToPlotManagerSync.Add(SelectedTarget);
+                        Result.TargetsToPlotManagerSync.Add(selectedTarget);
                     }
 
-                    if (SelectedTarget.Game == MEGame.LE1)
+                    if (selectedTarget.Game == MEGame.LE1)
                     {
-                        Result.TargetsToCoalescedMerge.Add(SelectedTarget); // Rebuild coalesced merge
+                        Result.TargetsToLE1Merge.Add(selectedTarget); // Rebuild coalesced merge
                     }
 
-                    if (SelectedTarget.Game.IsGame2())
+                    if (selectedTarget.Game.IsGame2())
                     {
-                        Result.TargetsToEmailMergeSync.Add(SelectedTarget);
+                        Result.TargetsToEmailMergeSync.Add(selectedTarget);
                     }
 
-                    if (SelectedTarget.Game.IsGame3() || SelectedTarget.Game == MEGame.LE2) // ME2 is not supported for merge due to having to edit the SWF
+                    if (selectedTarget.Game.IsGame3() || selectedTarget.Game == MEGame.LE2) // ME2 is not supported for merge due to having to edit the SWF
                     {
-                        Result.TargetsToSquadmateMergeSync.Add(SelectedTarget);
+                        Result.TargetsToSquadmateMergeSync.Add(selectedTarget);
                     }
                 }
 
-                SelectedTarget.PopulateDLCMods(true, deleteConfirmationCallback, notifyDeleted, notifyToggled);
-                SelectedTarget.PopulateExtras();
-                SelectedTarget.PopulateTextureInstallHistory();
+                selectedTarget.PopulateDLCMods(true, deleteConfirmationCallback, notifyDLCModDeleted, notifyToggled);
+                selectedTarget.PopulateExtras();
+                selectedTarget.PopulateTextureInstallHistory();
                 bool restoreBasegamefileConfirmationCallback(string filepath)
                 {
-                    if (M3Utilities.IsGameRunning(SelectedTarget.Game))
+                    if (MUtilities.IsGameRunning(selectedTarget.Game))
                     {
                         M3L.ShowDialog(Window.GetWindow(this),
-                            M3L.GetString(M3L.string_interp_cannotRestoreFilesWhileXIsRunning, SelectedTarget.Game.ToGameName()), M3L.GetString(M3L.string_gameRunning),
+                            M3L.GetString(M3L.string_interp_cannotRestoreFilesWhileXIsRunning, selectedTarget.Game.ToGameName()), M3L.GetString(M3L.string_gameRunning),
                             MessageBoxButton.OK, MessageBoxImage.Error);
                         return false;
                     }
 
-                    if (SelectedTarget.TextureModded && filepath.RepresentsPackageFilePath())
+                    if (selectedTarget.TextureModded && filepath.RepresentsPackageFilePath())
                     {
                         if (!Settings.DeveloperMode)
                         {
@@ -412,16 +414,16 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                 bool restoreSfarConfirmationCallback(string sfarPath)
                 {
-                    if (M3Utilities.IsGameRunning(SelectedTarget.Game))
+                    if (MUtilities.IsGameRunning(selectedTarget.Game))
                     {
                         M3L.ShowDialog(Window.GetWindow(this),
                             M3L.GetString(M3L.string_interp_cannotRestoreFilesWhileXIsRunning,
-                                SelectedTarget.Game.ToGameName()), M3L.GetString(M3L.string_gameRunning),
+                                selectedTarget.Game.ToGameName()), M3L.GetString(M3L.string_gameRunning),
                             MessageBoxButton.OK, MessageBoxImage.Error);
                         return false;
                     }
 
-                    if (SelectedTarget.TextureModded)
+                    if (selectedTarget.TextureModded)
                     {
                         if (!Settings.DeveloperMode)
                         {
@@ -462,22 +464,22 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                 void notifyRestoredCallback(object itemRestored)
                 {
-                    if (SelectedTarget == null)
+                    if (selectedTarget == null)
                         return; // User may have closed panel or something
                     if (itemRestored is ModifiedFileObject mf)
                     {
 
-                        if (SelectedTarget.Game is MEGame.ME3 or MEGame.LE1 or MEGame.LE2 or MEGame.LE3)
-                            Result.TargetsToAutoTOC.Add(SelectedTarget);
+                        if (selectedTarget.Game is MEGame.ME3 or MEGame.LE1 or MEGame.LE2 or MEGame.LE3)
+                            Result.TargetsToAutoTOC.Add(selectedTarget);
                         Application.Current.Dispatcher.Invoke(delegate
                         {
-                            SelectedTarget.ModifiedBasegameFiles.Remove(mf);
+                            selectedTarget.ModifiedBasegameFiles.Remove(mf);
                         });
-                        bool resetBasegameFilesBeingRestored = SelectedTarget.ModifiedBasegameFiles.Count == 0;
+                        bool resetBasegameFilesBeingRestored = selectedTarget.ModifiedBasegameFiles.Count == 0;
                         if (!resetBasegameFilesBeingRestored)
                         {
                             resetBasegameFilesBeingRestored =
-                                !SelectedTarget.ModifiedBasegameFiles.Any(x => x.Restoring);
+                                !selectedTarget.ModifiedBasegameFiles.Any(x => x.Restoring);
                         }
 
                         if (resetBasegameFilesBeingRestored)
@@ -489,13 +491,13 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     {
                         if (!ms.IsModified)
                         {
-                            SelectedTarget.ModifiedSFARFiles.Remove(ms);
+                            selectedTarget.ModifiedSFARFiles.Remove(ms);
                         }
 
-                        bool resetSfarsBeingRestored = SelectedTarget.ModifiedSFARFiles.Count == 0;
+                        bool resetSfarsBeingRestored = selectedTarget.ModifiedSFARFiles.Count == 0;
                         if (!resetSfarsBeingRestored)
                         {
-                            resetSfarsBeingRestored = !SelectedTarget.ModifiedSFARFiles.Any(x => x.Restoring);
+                            resetSfarsBeingRestored = !selectedTarget.ModifiedSFARFiles.Any(x => x.Restoring);
                         }
 
                         if (resetSfarsBeingRestored)
@@ -506,10 +508,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     else if (itemRestored == null)
                     {
                         //restore failed.
-                        bool resetSfarsBeingRestored = SelectedTarget.ModifiedSFARFiles.Count == 0;
+                        bool resetSfarsBeingRestored = selectedTarget.ModifiedSFARFiles.Count == 0;
                         if (!resetSfarsBeingRestored)
                         {
-                            resetSfarsBeingRestored = !SelectedTarget.ModifiedSFARFiles.Any(x => x.Restoring);
+                            resetSfarsBeingRestored = !selectedTarget.ModifiedSFARFiles.Any(x => x.Restoring);
                         }
 
                         if (resetSfarsBeingRestored)
@@ -517,11 +519,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                             SFARBeingRestored = false;
                         }
 
-                        bool resetBasegameFilesBeingRestored = SelectedTarget.ModifiedBasegameFiles.Count == 0;
+                        bool resetBasegameFilesBeingRestored = selectedTarget.ModifiedBasegameFiles.Count == 0;
                         if (!resetBasegameFilesBeingRestored)
                         {
                             resetBasegameFilesBeingRestored =
-                                !SelectedTarget.ModifiedBasegameFiles.Any(x => x.Restoring);
+                                !selectedTarget.ModifiedBasegameFiles.Any(x => x.Restoring);
                         }
 
                         if (resetBasegameFilesBeingRestored)
@@ -531,12 +533,15 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     }
                 }
 
-                if (SelectedTarget != null)
+                if (selectedTarget != null)
                 {
                     // 06/16/2022 - Change from not populating at all if texture modded
                     // to filtering out package files and tfc files since they will all be modified.
 
-                    SelectedTarget?.PopulateModifiedBasegameFiles(restoreBasegamefileConfirmationCallback,
+                    // 06/01/2024 - Change to allow showing packages files if texture modded,
+                    // but only if they are tracked. Untracked will show nothing. I guess we
+                    // could technically track non-vanilla before texture install.
+                    selectedTarget?.PopulateModifiedBasegameFiles(restoreBasegamefileConfirmationCallback,
                         restoreSfarConfirmationCallback,
                         notifyStartingSfarRestoreCallback,
                         notifyStartingBasegameFileRestoreCallback,
@@ -545,21 +550,19 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
                 SFARBeingRestored = false;
 
-                SelectedTarget?.PopulateASIInfo();
-                SelectedTarget?.PopulateBinkInfo();
+                selectedTarget.PopulateASIInfo();
+                selectedTarget.PopulateBinkInfo();
 
-                if (SelectedTarget != null && !SelectedTarget.TextureModded)
+                // Look for all changes
+                NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"BasegameSourceIdentifier");
+                nbw.DoWork += (a, b) =>
                 {
-                    NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"BasegameSourceIdentifier");
-                    nbw.DoWork += (a, b) =>
+                    foreach (var v in selectedTarget.ModifiedBasegameFiles.ToList())
                     {
-                        foreach (var v in SelectedTarget.ModifiedBasegameFiles.ToList())
-                        {
-                            v.DetermineSource();
-                        }
-                    };
-                    nbw.RunWorkerAsync();
-                }
+                        v.DetermineSource();
+                    }
+                };
+                nbw.RunWorkerAsync();
             };
             bw.RunWorkerCompleted += (a, b) => { DataIsLoading = false; };
             DataIsLoading = true;

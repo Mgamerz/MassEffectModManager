@@ -22,30 +22,32 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <ItemsControl
+        <ScrollViewer>
+
+            <ItemsControl
             IsEnabled="{Binding OperationInProgress, Converter={StaticResource BoolToEnabledConverter}, ConverterParameter='Not'}"
-            Grid.Row="0"
             ItemsSource="{Binding AvailableFeatures}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate
                     DataType="{x:Type starterkit:StarterKitAddinFeature}">
-                    <Button
+                        <Button
                         Content="{Binding DisplayString}"
                         Command="{Binding AddFeatureCommand}"
                         Margin="0,5">
-                        <Button.Visibility>
-                            <converters:ConverterBindableParameter
+                            <Button.Visibility>
+                                <converters:ConverterBindableParameter
                                 Binding="{Binding SelectedMod.Game, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dialog:StarterKitContentSelector}}}"
                                 Converter="{StaticResource StarterKitAddinAvailableConverter}"
                                 ConverterParameter="{Binding ValidGames}" />
-                        </Button.Visibility>
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                            </Button.Visibility>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
         <StatusBar Grid.Row="1">
             <StatusBarItem>
-                <TextBlock Text="{Binding OperationText}"/>
+                <TextBlock Text="{Binding OperationText}" TextWrapping="Wrap"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

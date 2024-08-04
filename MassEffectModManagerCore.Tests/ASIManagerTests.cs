@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.GameFilesystem;
+using ME3TweaksCore.Helpers;
 using ME3TweaksCore.ME3Tweaks.Online;
 using ME3TweaksCore.NativeMods;
 using ME3TweaksCore.Targets;
@@ -21,7 +22,7 @@ namespace ME3TweaksModManager.Tests
         public void TestASIManager()
         {
 #if AZURE
-            return; // This doens't work with updates from web host
+            return; // This doesn't work with updates from web host
 #endif
             GlobalTest.Init();
             Random random = new Random();
@@ -36,11 +37,11 @@ namespace ME3TweaksModManager.Tests
                 var normal = Path.Combine(root, "normal");
                 GameTarget gt = new GameTarget(game, normal, true, false, isTest: true);
 
-                var asiDir = M3Directories.GetASIPath(gt);
+                var asiDir = gt.GetASIPath();
                 if (Directory.Exists(asiDir))
                 {
                     // Clean slate
-                    M3Utilities.DeleteFilesAndFoldersRecursively(asiDir);
+                    MUtilities.DeleteFilesAndFoldersRecursively(asiDir);
                 }
 
                 var asisForGame = ASIManager.GetASIModsByGame(game);

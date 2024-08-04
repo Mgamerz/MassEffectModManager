@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using LegendaryExplorerCore.Helpers;
+using ME3TweaksCore.Diagnostics;
 using ME3TweaksModManager.modmanager.memoryanalyzer;
 using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.usercontrols.interfaces;
@@ -17,6 +18,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 {
     public abstract class MMBusyPanelBase : UserControl, INotifyPropertyChanged, ISizeAdjustable
     {
+        /// <summary>
+        /// If app cleanup is in progress
+        /// </summary>
+        protected bool HandlingShutdownTasks { get; set; }
+
         //Fody uses this property on weaving
 #pragma warning disable
         public event PropertyChangedEventHandler PropertyChanged;
@@ -44,7 +50,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             window = Window.GetWindow(this);
             mainwindow = window as MainWindow;
             window.KeyDown += HandleKeyPress;
-            OnPanelVisible();
+            
+            // Lock here as OnPanelVisible() is where targets are likely set.
+            lock (MainWindow.targetRepopulationSyncObj)
+            {
+                OnPanelVisible();
+            }
         }
 
         /// <summary>
@@ -53,11 +64,14 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         public PanelResult Result = new();
 
         public abstract void HandleKeyPress(object sender, KeyEventArgs e);
+
         public abstract void OnPanelVisible();
 
         public event EventHandler<DataEventArgs> Close;
         protected virtual void OnClosing(DataEventArgs e)
         {
+            M3Log.Information($@"Panel closing: {this.GetType().Name}");
+
             // This is done on the UI thread as it might require UI interaction to release things
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -111,11 +125,28 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             });
         }
 
+        /// <summary>
+        /// When window is closing, does this panel support immediate closure? Some like installers should probably not
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool CanBeForceClosed()
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Called when the application has a close request. Panels can override this to custom their shutdown behavior.
+        /// </summary>
+        public virtual void SignalAppClosing()
+        {
+            HandlingShutdownTasks = true;
+        }
+
         public virtual double MaxWindowWidthPercent { get; set; }
         public virtual double MaxWindowHeightPercent { get; set; }
 
         /// <summary>
-        /// Set to false to disable autosizing feature
+        /// Set to true to disable autosizing feature
         /// </summary>
         public virtual bool DisableM3AutoSizer { get; set; }
     }

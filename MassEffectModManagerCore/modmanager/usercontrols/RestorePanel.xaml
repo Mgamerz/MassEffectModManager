@@ -10,7 +10,6 @@
         <TextBlock DockPanel.Dock="Top" Text="{DynamicResource string_fullGameRestore}" FontSize="24" FontWeight="Bold" TextAlignment="Center" Margin="0,5" />
         <TextBlock DockPanel.Dock="Top" Text="{DynamicResource string_entireGameDirectoryWillBeDeleted}" TextWrapping="Wrap" />
         <Button DockPanel.Dock="Bottom" Content="{DynamicResource string_close}" Command="{Binding CloseCommand}" HorizontalAlignment="Right" Padding="7,5" Margin="0,5,0,0" />
-        <TextBlock DockPanel.Dock="Bottom" Text="{DynamicResource string_youMaySeeElevationPromptOnRestore}" TextWrapping="Wrap" Margin="0,5" />
         <ScrollViewer>
             <ItemsControl ItemsSource="{Binding GameRestoreControllers}">
                 <ItemsControl.ItemContainerStyle>

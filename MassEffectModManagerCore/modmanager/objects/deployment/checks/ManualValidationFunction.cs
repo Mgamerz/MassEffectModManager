@@ -16,7 +16,14 @@ namespace ME3TweaksModManager.modmanager.objects.deployment.checks
         /// <param name="item"></param>
         internal static void ManualValidation(DeploymentChecklistItem item)
         {
+            item.IsManualValidation = true;
             item.ToolTip = M3L.GetString(M3L.string_thisItemMustBeManuallyCheckedByYou);
+        }
+
+        public static void DescriptionValidation(DeploymentChecklistItem item)
+        {
+            item.IsManualValidation = true;
+            item.ToolTip = item.ModToValidateAgainst.DisplayedModDescription;
         }
     }
 }

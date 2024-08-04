@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
 using System.Windows;
 using LegendaryExplorerCore.Gammtek.Extensions.Collections.Generic;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Services;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects;
@@ -32,27 +27,41 @@ namespace ME3TweaksModManager.modmanager.loaders
         // Todo: rename to mod library
 
         #region MOD LIBRARY PATHING
+
         /// <summary>
         /// Gets the mod library directory
         /// </summary>
         /// <returns></returns>
         public static string GetCurrentModLibraryDirectory()
         {
-            var libraryPath = Settings.ModLibraryPath;
-            if (Directory.Exists(libraryPath))
+#if !AZURE // Azure can only use local library path.
+            if (IsSharedLibrary())
             {
-                return libraryPath;
+                return Settings.ModLibraryPath;
             }
             else
+#endif
             {
                 return Path.Combine(M3Utilities.GetMMExecutableDirectory(), @"mods");
             }
         }
 
         /// <summary>
+        /// If Mod Manager settings indicate it is using a shared library path or one local to this instance. This, technically, may desync as the value is not stored in memory, e.g. if the underlying library folder goes missing.
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsSharedLibrary()
+        {
+            return Settings.ModLibraryPath != null && Directory.Exists(Settings.ModLibraryPath);
+        }
+
+        /// <summary>
         /// Invoked when the mod library has finished loading
         /// </summary>
         public static event EventHandler ModsReloaded;
+
+        private static bool LoadedOT;
+        private static bool LoadedLE;
 
         public static string GetModDirectoryForGame(MEGame game)
         {
@@ -84,20 +93,29 @@ namespace ME3TweaksModManager.modmanager.loaders
 
         }
 
-        public static string GetBatchInstallGroupsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"BatchModQueues");
+        public static string GetBatchInstallGroupsDirectory() =>
+            Path.Combine(GetCurrentModLibraryDirectory(), @"BatchModQueues");
+
         /// <summary>
         /// Mod Manager 8 (and 8.0.1 beta prior to 1/8/2023) stored this in ProgramData
         /// </summary>
         /// <returns></returns>
-        public static string GetBatchInstallGroupsDirectoryPre801() => Path.Combine(M3Filesystem.GetAppDataFolder(), @"batchmodqueues");
-        public static string GetLaunchOptionsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"LaunchOptions");
+        public static string GetBatchInstallGroupsDirectoryPre801() =>
+            Path.Combine(M3Filesystem.GetAppDataFolder(), @"batchmodqueues");
+
+        public static string GetLaunchOptionsDirectory() =>
+            Path.Combine(GetCurrentModLibraryDirectory(), @"LaunchOptions");
+
         public static string GetME3ModsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"ME3");
         public static string GetME2ModsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"ME2");
         public static string GetME1ModsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"ME1");
         public static string GetLE3ModsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"LE3");
         public static string GetLE2ModsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"LE2");
         public static string GetLE1ModsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"LE1");
-        public static string GetLELauncherModsDirectory() => Path.Combine(GetCurrentModLibraryDirectory(), @"LELAUNCHER");
+
+        public static string GetLELauncherModsDirectory() =>
+            Path.Combine(GetCurrentModLibraryDirectory(), @"LELAUNCHER");
+
         public static string GetTextureLibraryDirectory(MEGame? game = null)
         {
             if (game == null)
@@ -105,7 +123,7 @@ namespace ME3TweaksModManager.modmanager.loaders
             return Path.Combine(GetCurrentModLibraryDirectory(), @"Textures", game.ToString());
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// If the mod list hasn't actually booted once
@@ -135,7 +153,8 @@ namespace ME3TweaksModManager.modmanager.loaders
         /// <summary>
         /// If mods are currently loading
         /// </summary>
-        public bool IsLoadingMods { get; private set; } = true; // This makes the spinner activate while program is starting up.
+        public bool IsLoadingMods { get; private set; } =
+            true; // This makes the spinner activate while program is starting up.
 
         /// <summary>
         /// If the mod library has completed the first load
@@ -166,6 +185,7 @@ namespace ME3TweaksModManager.modmanager.loaders
         /// All mods that successfully loaded.
         /// </summary>
         public ObservableCollectionExtended<Mod> AllLoadedMods { get; } = new ObservableCollectionExtended<Mod>();
+
         /// <summary>
         /// All mods that failed to load
         /// </summary>
@@ -184,12 +204,14 @@ namespace ME3TweaksModManager.modmanager.loaders
         /// <summary>
         /// Private constructor to force accessor via ModLoader.
         /// </summary>
-        private M3LoadedMods() { }
+        private M3LoadedMods()
+        {
+        }
 
         /// <summary>
         /// Reference to the main window, which is used to center dialogs.
         /// </summary>
-        private Window window { get; init; }
+        private MainWindow window { get; init; }
 
         /// <summary>
         /// The bottom left loading task. Can be null.
@@ -200,7 +222,8 @@ namespace ME3TweaksModManager.modmanager.loaders
         {
             if (LoadingTask != null && NumTotalMods > 0)
             {
-                BackgroundTaskEngine.SubmitBackgroundTaskUpdate(LoadingTask, M3L.GetString(M3L.string_loadingMods) + $@" {Math.Round(NumModsLoaded * 100.0f / NumTotalMods)}%");
+                BackgroundTaskEngine.SubmitBackgroundTaskUpdate(LoadingTask,
+                    M3L.GetString(M3L.string_loadingMods) + $@" {Math.Round(NumModsLoaded * 100.0f / NumTotalMods)}%");
             }
         }
 
@@ -227,6 +250,12 @@ namespace ME3TweaksModManager.modmanager.loaders
 
                 SuppressFilterMods = false;
                 FilterMods();
+
+                if (Settings.GenerationSettingOT && !LoadedOT)
+                {
+                    LoadedOT = true;
+                    LoadMods(gamesToLoad: new[] { MEGame.ME1, MEGame.ME2, MEGame.ME3 });
+                }
             }
             else if (e.PropertyName == nameof(Settings.GenerationSettingLE))
             {
@@ -235,8 +264,15 @@ namespace ME3TweaksModManager.modmanager.loaders
                 {
                     gf.IsEnabled = false;
                 }
+
                 SuppressFilterMods = false;
                 FilterMods();
+
+                if (Settings.GenerationSettingLE && !LoadedLE)
+                {
+                    LoadedLE = true;
+                    LoadMods(gamesToLoad: new[] { MEGame.LE1, MEGame.LE2, MEGame.LE3, MEGame.LELauncher });
+                }
             }
         }
 
@@ -247,16 +283,21 @@ namespace ME3TweaksModManager.modmanager.loaders
         /// <param name="forceUpdateCheckOnCompletion">If an update check should be forced when mod loading has completed</param>
         /// <param name="scopedModsToCheckForUpdates">If an update check is forced, this list scopes which mods will be checked</param>
         /// <param name="gamesToLoad">If not null, only load moddescs for the specified games</param>
-        public void LoadMods(Mod modToHighlight = null, bool forceUpdateCheckOnCompletion = false, List<Mod> scopedModsToCheckForUpdates = null, MEGame[] gamesToLoad = null)
+        public void LoadMods(Mod modToHighlight = null, bool forceUpdateCheckOnCompletion = false,
+            List<Mod> scopedModsToCheckForUpdates = null, MEGame[] gamesToLoad = null,
+            List<string> scopedModsToReload = null)
         {
-            LoadMods(modToHighlight?.ModPath, forceUpdateCheckOnCompletion, scopedModsToCheckForUpdates, gamesToLoad);
+            LoadMods(modToHighlight?.ModPath, forceUpdateCheckOnCompletion, scopedModsToCheckForUpdates, gamesToLoad,
+                scopedModsToReload);
         }
 
         /// <summary>
         /// Reload mods. Highlight the specified mod that matches the path if any
         /// </summary>
         /// <param name="modpathToHighlight"></param>
-        public void LoadMods(string modpathToHighlight, bool forceUpdateCheckOnCompletion = false, List<Mod> scopedModsToCheckForUpdates = null, MEGame[] gamesToLoad = null)
+        public void LoadMods(string modpathToHighlight, bool forceUpdateCheckOnCompletion = false,
+            List<Mod> scopedModsToCheckForUpdates = null, MEGame[] gamesToLoad = null,
+            List<string> scopedModsToReload = null)
         {
             if (IsLoadingMods && !IsFirstLoad)
                 return; // Do not accept another load in the middle of load
@@ -271,7 +312,9 @@ namespace ME3TweaksModManager.modmanager.loaders
             {
                 M3Log.Error(@"Unable to ensure mod directories: " + e.Message);
                 Crashes.TrackError(e);
-                M3L.ShowDialog(window, M3L.GetString(M3L.string_interp_dialogUnableToCreateModLibraryNoPermissions, e.Message), M3L.GetString(M3L.string_errorCreatingModLibrary), MessageBoxButton.OK, MessageBoxImage.Error);
+                M3L.ShowDialog(window,
+                    M3L.GetString(M3L.string_interp_dialogUnableToCreateModLibraryNoPermissions, e.Message),
+                    M3L.GetString(M3L.string_errorCreatingModLibrary), MessageBoxButton.OK, MessageBoxImage.Error);
                 var folderPicked = ChooseModLibraryPath(window, false);
                 if (folderPicked)
                 {
@@ -280,8 +323,10 @@ namespace ME3TweaksModManager.modmanager.loaders
                 else
                 {
                     M3Log.Error(@"Unable to create mod library. Mod Manager will now exit.");
-                    Crashes.TrackError(new Exception(@"Unable to create mod library", e), new Dictionary<string, string>() { { @"Executable location", App.ExecutableLocation } });
-                    M3L.ShowDialog(window, M3L.GetString(M3L.string_unableToCreateModLibrary), M3L.GetString(M3L.string_errorCreatingModLibrary), MessageBoxButton.OK, MessageBoxImage.Error);
+                    Crashes.TrackError(new Exception(@"Unable to create mod library", e),
+                        new Dictionary<string, string>() { { @"Executable location", App.ExecutableLocation } });
+                    M3L.ShowDialog(window, M3L.GetString(M3L.string_unableToCreateModLibrary),
+                        M3L.GetString(M3L.string_errorCreatingModLibrary), MessageBoxButton.OK, MessageBoxImage.Error);
                     Environment.Exit(1);
                 }
 
@@ -292,16 +337,28 @@ namespace ME3TweaksModManager.modmanager.loaders
             List<Mod> cachedLoadedMods = new List<Mod>();
             List<Mod> cachedFailedMods = new List<Mod>();
 
-            if (gamesToLoad != null)
+            if (gamesToLoad != null || (scopedModsToReload != null && scopedModsToReload.Any()))
             {
                 // Clear only specific games
-                // .ToList() because we are going to be modifying the collection during the operation so we have to collect
+                // .ToList() because we are going to be modifying the collection during the operation so we have to  collect
                 // the results first
 
                 // remove all mods that have games matching the list of games to load
-                cachedVisibleMods.ReplaceAll(VisibleFilteredMods.Where(x => !gamesToLoad.Contains(x.Game)));
-                cachedLoadedMods.ReplaceAll(AllLoadedMods.Where(x => !gamesToLoad.Contains(x.Game)));
-                cachedFailedMods.ReplaceAll(FailedMods.Where(x => !gamesToLoad.Contains(x.Game)));
+                if (scopedModsToReload != null && scopedModsToReload.Any())
+                {
+                    cachedVisibleMods.ReplaceAll(VisibleFilteredMods.Where(x =>
+                        !scopedModsToReload.Contains(x.ModDescPath, StringComparer.InvariantCultureIgnoreCase)));
+                    cachedLoadedMods.ReplaceAll(AllLoadedMods.Where(x =>
+                        !scopedModsToReload.Contains(x.ModDescPath, StringComparer.InvariantCultureIgnoreCase)));
+                    cachedFailedMods.ReplaceAll(FailedMods.Where(x =>
+                        !scopedModsToReload.Contains(x.ModDescPath, StringComparer.InvariantCultureIgnoreCase)));
+                }
+                else
+                {
+                    cachedVisibleMods.ReplaceAll(VisibleFilteredMods.Where(x => !gamesToLoad.Contains(x.Game)));
+                    cachedLoadedMods.ReplaceAll(AllLoadedMods.Where(x => !gamesToLoad.Contains(x.Game)));
+                    cachedFailedMods.ReplaceAll(FailedMods.Where(x => !gamesToLoad.Contains(x.Game)));
+                }
             }
 
             // Clear everything
@@ -315,43 +372,94 @@ namespace ME3TweaksModManager.modmanager.loaders
             bw.WorkerReportsProgress = true;
             bw.DoWork += (a, args) =>
             {
-                bool canAutoCheckForModUpdates = MOnlineContent.CanFetchContentThrottleCheck(); //This is here as it will fire before other threads can set this value used in this session.
+                bool canAutoCheckForModUpdates =
+                    MOnlineContent
+                        .CanFetchContentThrottleCheck(); //This is here as it will fire before other threads can set this value used in this session.
                 ModsLoaded = false;
-                LoadingTask = BackgroundTaskEngine.SubmitBackgroundJob(@"ModLoader", M3L.GetString(M3L.string_loadingMods), M3L.GetString(M3L.string_loadedMods));
+                LoadingTask = BackgroundTaskEngine.SubmitBackgroundJob(@"ModLoader",
+                    M3L.GetString(M3L.string_loadingMods), M3L.GetString(M3L.string_loadedMods));
                 M3Log.Information(@"Loading mods from mod library: " + GetCurrentModLibraryDirectory());
 
-                var le3modDescsToLoad = Directory.GetDirectories(GetLE3ModsDirectory()).Select(x => (game: MEGame.LE3, path: Path.Combine(x, @"moddesc.ini"))).Where(x => File.Exists(x.path));
-                var le2modDescsToLoad = Directory.GetDirectories(GetLE2ModsDirectory()).Select(x => (game: MEGame.LE2, path: Path.Combine(x, @"moddesc.ini"))).Where(x => File.Exists(x.path));
-                var le1modDescsToLoad = Directory.GetDirectories(GetLE1ModsDirectory()).Select(x => (game: MEGame.LE1, path: Path.Combine(x, @"moddesc.ini"))).Where(x => File.Exists(x.path));
-                var me3modDescsToLoad = Directory.GetDirectories(GetME3ModsDirectory()).Select(x => (game: MEGame.ME3, path: Path.Combine(x, @"moddesc.ini"))).Where(x => File.Exists(x.path));
-                var me2modDescsToLoad = Directory.GetDirectories(GetME2ModsDirectory()).Select(x => (game: MEGame.ME2, path: Path.Combine(x, @"moddesc.ini"))).Where(x => File.Exists(x.path));
-                var me1modDescsToLoad = Directory.GetDirectories(GetME1ModsDirectory()).Select(x => (game: MEGame.ME1, path: Path.Combine(x, @"moddesc.ini"))).Where(x => File.Exists(x.path));
-
-                // LE Launcher
-                var leLaunchermodDescsToLoad = Directory.GetDirectories(GetLELauncherModsDirectory()).Select(x => (game: MEGame.LELauncher, path: Path.Combine(x, @"moddesc.ini"))).Where(x => File.Exists(x.path));
-                //var modDescsToLoad = leLaunchermodDescsToLoad.ToList();
-
                 List<(MEGame game, string path)> modDescsToLoad = new();
-                if (Settings.GenerationSettingOT)
-                {
-                    if (gamesToLoad == null || gamesToLoad.Contains(MEGame.ME1))
-                        modDescsToLoad.AddRange(me1modDescsToLoad);
-                    if (gamesToLoad == null || gamesToLoad.Contains(MEGame.ME2))
-                        modDescsToLoad.AddRange(me2modDescsToLoad);
-                    if (gamesToLoad == null || gamesToLoad.Contains(MEGame.ME3))
-                        modDescsToLoad.AddRange(me3modDescsToLoad);
-                }
 
-                if (Settings.GenerationSettingLE)
+                if (scopedModsToReload != null && scopedModsToReload.Any())
                 {
-                    if (gamesToLoad == null || gamesToLoad.Contains(MEGame.LE1))
-                        modDescsToLoad.AddRange(le1modDescsToLoad);
-                    if (gamesToLoad == null || gamesToLoad.Contains(MEGame.LE2))
-                        modDescsToLoad.AddRange(le2modDescsToLoad);
-                    if (gamesToLoad == null || gamesToLoad.Contains(MEGame.LE3))
-                        modDescsToLoad.AddRange(le3modDescsToLoad);
-                    if (gamesToLoad == null || gamesToLoad.Contains(MEGame.LELauncher))
-                        modDescsToLoad.AddRange(leLaunchermodDescsToLoad);
+                    modDescsToLoad.ReplaceAll(scopedModsToReload.Select(x => (MEGame.Unknown, x)));
+                }
+                else
+                {
+                    var le3modDescsToLoad = gamesToLoad != null && !gamesToLoad.Contains(MEGame.LE3)
+                        ? Array.Empty<(MEGame, string)>()
+                        : Directory.GetDirectories(GetLE3ModsDirectory())
+                            .Select(x => (game: MEGame.LE3, path: Path.Combine(x, @"moddesc.ini")))
+                            .Where(x => File.Exists(x.path)).ToArray();
+                    var le2modDescsToLoad = gamesToLoad != null && !gamesToLoad.Contains(MEGame.LE2)
+                        ? Array.Empty<(MEGame, string)>()
+                        : Directory.GetDirectories(GetLE2ModsDirectory())
+                            .Select(x => (game: MEGame.LE2, path: Path.Combine(x, @"moddesc.ini")))
+                            .Where(x => File.Exists(x.path)).ToArray();
+                    var le1modDescsToLoad = gamesToLoad != null && !gamesToLoad.Contains(MEGame.LE1)
+                        ? Array.Empty<(MEGame, string)>()
+                        : Directory.GetDirectories(GetLE1ModsDirectory())
+                            .Select(x => (game: MEGame.LE1, path: Path.Combine(x, @"moddesc.ini")))
+                            .Where(x => File.Exists(x.path)).ToArray();
+                    var me3modDescsToLoad = gamesToLoad != null && !gamesToLoad.Contains(MEGame.ME3)
+                        ? Array.Empty<(MEGame, string)>()
+                        : Directory.GetDirectories(GetME3ModsDirectory())
+                            .Select(x => (game: MEGame.ME3, path: Path.Combine(x, @"moddesc.ini")))
+                            .Where(x => File.Exists(x.path)).ToArray();
+                    var me2modDescsToLoad = gamesToLoad != null && !gamesToLoad.Contains(MEGame.ME2)
+                        ? Array.Empty<(MEGame, string)>()
+                        : Directory.GetDirectories(GetME2ModsDirectory())
+                            .Select(x => (game: MEGame.ME2, path: Path.Combine(x, @"moddesc.ini")))
+                            .Where(x => File.Exists(x.path)).ToArray();
+                    var me1modDescsToLoad = gamesToLoad != null && !gamesToLoad.Contains(MEGame.ME1)
+                        ? Array.Empty<(MEGame, string)>()
+                        : Directory.GetDirectories(GetME1ModsDirectory())
+                            .Select(x => (game: MEGame.ME1, path: Path.Combine(x, @"moddesc.ini")))
+                            .Where(x => File.Exists(x.path)).ToArray();
+
+                    // LE Launcher
+                    var leLaunchermodDescsToLoad = gamesToLoad != null && !gamesToLoad.Contains(MEGame.LELauncher)
+                        ? Array.Empty<(MEGame, string)>()
+                        : Directory.GetDirectories(GetLELauncherModsDirectory())
+                            .Select(x => (game: MEGame.LELauncher, path: Path.Combine(x, @"moddesc.ini")))
+                            .Where(x => File.Exists(x.path));
+                    //var modDescsToLoad = leLaunchermodDescsToLoad.ToList();
+
+                    if (Settings.GenerationSettingOT)
+                    {
+                        if (gamesToLoad == null)
+                            LoadedOT = true;
+                        if (gamesToLoad == null || gamesToLoad.Contains(MEGame.ME1))
+                            modDescsToLoad.AddRange(me1modDescsToLoad);
+                        if (gamesToLoad == null || gamesToLoad.Contains(MEGame.ME2))
+                            modDescsToLoad.AddRange(me2modDescsToLoad);
+                        if (gamesToLoad == null || gamesToLoad.Contains(MEGame.ME3))
+                            modDescsToLoad.AddRange(me3modDescsToLoad);
+                    }
+                    else
+                    {
+                        LoadedOT = false;
+                    }
+
+                    if (Settings.GenerationSettingLE)
+                    {
+                        if (gamesToLoad == null)
+                            LoadedLE = true;
+                        if (gamesToLoad == null || gamesToLoad.Contains(MEGame.LE1))
+                            modDescsToLoad.AddRange(le1modDescsToLoad);
+                        if (gamesToLoad == null || gamesToLoad.Contains(MEGame.LE2))
+                            modDescsToLoad.AddRange(le2modDescsToLoad);
+                        if (gamesToLoad == null || gamesToLoad.Contains(MEGame.LE3))
+                            modDescsToLoad.AddRange(le3modDescsToLoad);
+                        if (gamesToLoad == null || gamesToLoad.Contains(MEGame.LELauncher))
+                            modDescsToLoad.AddRange(leLaunchermodDescsToLoad);
+                    }
+                    else
+                    {
+                        LoadedLE = false;
+                    }
                 }
 
                 NumTotalMods = modDescsToLoad.Count;
@@ -371,6 +479,7 @@ namespace ME3TweaksModManager.modmanager.loaders
                         if (loader != null) loader.IsLoading = true;
                         loadingGame = mod.Game;
                     }
+
                     if (mod.ValidMod)
                     {
                         AllLoadedMods.Add(mod);
@@ -408,10 +517,32 @@ namespace ME3TweaksModManager.modmanager.loaders
                     {
                         //moddesc.ini exists but it did not load
                         M3Log.Error(@"Mod to highlight failed to load! Path: " + modpathToHighlight);
-                        Crashes.TrackError(new Exception(@"Mod set to highlight but not in list of loaded mods"), new Dictionary<string, string>()
+                        Crashes.TrackError(new Exception(@"Mod set to highlight but not in list of loaded mods"),
+                            new Dictionary<string, string>()
+                            {
+                                { @"Moddesc path", modpathToHighlight }
+                            });
+                    }
+                }
+
+                if (Settings.ShowInstalledModsInLibrary)
+                {
+                    foreach (var target in
+                             window.InstallationTargets
+                                 .ToList()) // We do .ToList() in case user adds target while this information is computing.
+                    {
+                        if (target.Game.IsLEGame() && target.RegistryActive &&
+                            (gamesToLoad == null || gamesToLoad.Contains(target.Game)) &&
+                            AllLoadedMods.Any(x => x.Game == target.Game))
                         {
-                            { @"Moddesc path", modpathToHighlight }
-                        });
+                            BackgroundTaskEngine.SubmitBackgroundTaskUpdate(LoadingTask,
+                                M3L.GetString(M3L.string_interp_determiningInstalledModsX, target.Game));
+                            var gs = target.GetInfoRequiredToDetermineIfInstalled();
+                            foreach (var mod in AllLoadedMods.Where(x => x.Game == target.Game))
+                            {
+                                mod.DetermineIfInstalled(gs);
+                            }
+                        }
                     }
                 }
 
@@ -430,6 +561,8 @@ namespace ME3TweaksModManager.modmanager.loaders
                 {
                     ModUpdater.Instance.CheckModsForUpdates(scopedModsToCheckForUpdates);
                 }
+
+
             };
             bw.RunWorkerCompleted += (a, b) =>
             {
@@ -440,6 +573,7 @@ namespace ME3TweaksModManager.modmanager.loaders
                 {
                     SelectModCallback?.Invoke(m);
                 }
+
                 ModsReloaded?.Invoke(this, EventArgs.Empty);
             };
             bw.RunWorkerAsync();
@@ -447,15 +581,22 @@ namespace ME3TweaksModManager.modmanager.loaders
 
         public static bool ChooseModLibraryPath(Window centeringWindow, bool loadModsAfterSelecting)
         {
-            CommonOpenFileDialog m = new CommonOpenFileDialog
+            MessageBoxResult libraryType = MessageBoxResult.Yes;
+            if (Settings.DeveloperMode)
             {
-                IsFolderPicker = true,
-                EnsurePathExists = true,
-                Title = M3L.GetString(M3L.string_selectModLibraryFolder)
-            };
-            if (m.ShowDialog(centeringWindow) == CommonFileDialogResult.Ok)
+                libraryType = M3L.ShowDialog(centeringWindow,
+                    M3L.GetString(M3L.string_dialog_pickLibraryType),
+                    M3L.GetString(M3L.string_selectLibraryType),
+                    MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Question,
+                    MessageBoxResult.Cancel,
+                    M3L.GetString(M3L.string_shared),
+                    M3L.GetString(M3L.string_local));
+            }
+
+            if (libraryType == MessageBoxResult.No)
             {
-                Settings.ModLibraryPath = m.FileName;
+                Settings.ModLibraryPath = null;
                 if (loadModsAfterSelecting)
                 {
                     Instance.LoadMods();
@@ -463,10 +604,29 @@ namespace ME3TweaksModManager.modmanager.loaders
 
                 return true;
             }
-            else
+
+            if (libraryType == MessageBoxResult.Yes)
             {
-                return false;
+                // Shared
+                CommonOpenFileDialog m = new CommonOpenFileDialog
+                {
+                    IsFolderPicker = true,
+                    EnsurePathExists = true,
+                    Title = M3L.GetString(M3L.string_selectModLibraryFolder)
+                };
+                if (m.ShowDialog(centeringWindow) == CommonFileDialogResult.Ok)
+                {
+                    Settings.ModLibraryPath = m.FileName;
+                    if (loadModsAfterSelecting)
+                    {
+                        Instance.LoadMods();
+                    }
+
+                    return true;
+                }
             }
+
+            return false;
         }
 
         /// <summary>
@@ -477,7 +637,8 @@ namespace ME3TweaksModManager.modmanager.loaders
         {
             AllLoadedMods.Remove(selectedMod);
             VisibleFilteredMods.Remove(selectedMod);
-            FailedMods.Remove(selectedMod); //make sure to remove it from this in case it's failed mods panel calling this.
+            FailedMods.Remove(
+                selectedMod); //make sure to remove it from this in case it's failed mods panel calling this.
         }
 
         public void OnModSearchTextChanged()
@@ -549,7 +710,8 @@ namespace ME3TweaksModManager.modmanager.loaders
             var launchDir = GetLaunchOptionsDirectory();
             if (Directory.Exists(launchDir))
             {
-                var launcherOptions = Directory.GetFiles(launchDir, @"*" + LaunchOptionsPackage.FILE_EXTENSION, SearchOption.TopDirectoryOnly);
+                var launcherOptions = Directory.GetFiles(launchDir, @"*" + LaunchOptionsPackage.FILE_EXTENSION,
+                    SearchOption.TopDirectoryOnly);
                 foreach (var launchOption in launcherOptions)
                 {
                     M3Log.Information($@"Parsing launch option package {launchOption}");
@@ -596,7 +758,9 @@ namespace ME3TweaksModManager.modmanager.loaders
                 return mm;
 
             // Generic mem files
-            var mems = Directory.GetFiles(Directory.CreateDirectory(GetTextureLibraryDirectory(game == MEGame.Unknown ? null : game)).FullName, @"*.mem", SearchOption.AllDirectories); // this uses a ? null check
+            var mems = Directory.GetFiles(
+                Directory.CreateDirectory(GetTextureLibraryDirectory(game == MEGame.Unknown ? null : game)).FullName,
+                @"*.mem", SearchOption.AllDirectories); // this uses a ? null check
             foreach (var mem in mems)
             {
                 if (game != MEGame.Unknown && ModFileFormats.GetGameMEMFileIsFor(mem) != game)
@@ -621,6 +785,7 @@ namespace ME3TweaksModManager.modmanager.loaders
             {
                 return GetModDirectoryForGame(m.Game);
             }
+
             if (mod is MEMMod texMod)
             {
                 // We stage here before we analyze it for what folder it goes to
@@ -628,6 +793,72 @@ namespace ME3TweaksModManager.modmanager.loaders
             }
 
             throw new Exception(@"Unsupported extraction object type!");
+        }
+
+        public static string GetRelativeModdescPath(Mod mod)
+        {
+            if (mod.IsInArchive)
+                return ""; // There is no way this will be possible to compute.
+            return Path.GetRelativePath(GetCurrentModLibraryDirectory(), mod.ModDescPath);
+        }
+
+        /// <summary>
+        /// Gets mods that have loaded for the specified game.
+        /// </summary>
+        /// <param name="game"></param>
+        /// <returns></returns>
+        public static IEnumerable<Mod> GetModsForGame(MEGame game)
+        {
+            return Instance.AllLoadedMods.Where(x => x.Game == game);
+        }
+
+        /// <summary>
+        /// Finds the DLC-mod source path of the first mod of the specified game that installs the listed DLC. This assumes the DLC folder is in the root of the mod directory, as it does not parse the source.
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="dlcFolderName"></param>
+        /// <returns></returns>
+        public static string FindDLCModFolderInLibrary(MEGame game, string dlcFolderName)
+        {
+            var mod = FindModWithDLCFolder(game, dlcFolderName);
+            if (mod == null)
+                return null;
+
+            // This assumes source and dest dir values are the same, which technically they might differ. But that has also sorts of other bug implications
+            var dlcPath = Path.Combine(mod.ModPath, dlcFolderName);
+            if (Directory.Exists(dlcPath))
+                return dlcPath;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Finds the first mod of the specified game that can potentially install the listed DLC folder
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="dlcFolderName"></param>
+        /// <returns></returns>
+        public static Mod FindModWithDLCFolder(MEGame game, string dlcFolderName)
+        {
+            foreach (var mod in Instance.AllLoadedMods.Where(x => x.Game == game))
+            {
+                var dlcFolders = mod.GetAllPossibleCustomDLCFolders();
+                if (dlcFolders.Contains(dlcFolderName, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    return mod;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get the mod library deployment folder
+        /// </summary>
+        /// <returns></returns>
+        public static string GetDeploymentDirectory()
+        {
+            return Directory.CreateDirectory(Path.Combine(GetCurrentModLibraryDirectory(), @"DeployedMods")).FullName;
         }
     }
 }

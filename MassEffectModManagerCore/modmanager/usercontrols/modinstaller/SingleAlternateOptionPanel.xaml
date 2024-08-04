@@ -6,6 +6,7 @@
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
              xmlns:local="clr-namespace:ME3TweaksModManager.modmanager.usercontrols.modinstaller" xmlns:converters="clr-namespace:ME3TweaksModManager.modmanager.converters" xmlns:fa5="http://schemas.fontawesome.com/icons/"
              xmlns:alternates="clr-namespace:ME3TweaksModManager.modmanager.objects.alternates"
+             xmlns:usercontrols="clr-namespace:ME3TweaksModManager.modmanager.usercontrols"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="SAOP"
@@ -14,14 +15,14 @@
              ToolTipService.BetweenShowDelay="0"
              HorizontalContentAlignment="Stretch"
              HorizontalAlignment="Stretch"
-             MouseLeave="SAOP_MouseLeave">
+             ToolTipOpening="ToolTipIsOpening">
     <UserControl.Resources>
         <converters:GroupNameToColorConverter
             x:Key="GroupNameToColorConverter" />
     </UserControl.Resources>
     <!-- DataContext is the AlternateOption object itself!-->
     <Border
-        Name="BorderElement"
+        x:Name="BorderElement"
         Padding="5,3"
         HorizontalAlignment="Stretch">
         <DockPanel HorizontalAlignment="Stretch">
@@ -135,7 +136,7 @@
                         </MultiDataTrigger.Conditions>
                         <Setter
                             Property="ToolTip"
-                            Value="Based on conditions set by the mod developer, this option is not applicable based on your game's current setup"/>
+                            Value="{DynamicResource string_tooltip_optionNotApplicable}"/>
                         <Setter
                             Property="Cursor"
                             Value="No" />
@@ -149,7 +150,7 @@
                         </MultiDataTrigger.Conditions>
                         <Setter
                             Property="ToolTip"
-                            Value="Based on conditions set by the mod developer, this option must be applied based on your game's current setup"/>
+                            Value="{DynamicResource string_tooltip_optionForceApplied}"/>
                         <Setter
                             Property="Cursor"
                             Value="No" />

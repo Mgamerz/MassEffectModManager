@@ -135,6 +135,20 @@ namespace ME3TweaksModManager.modmanager.save
             var reader = new UnrealStream(input, true, saveVersion);
             save.Serialize(reader);
 
+            // 06/13/2024: LE1 'Debug Saves' mod by DropTheSquid
+            if (save is LE1SaveFile le1sf && !string.IsNullOrWhiteSpace(fileName))
+            {
+                var shortFName = Path.GetFileNameWithoutExtension(fileName);
+                if (shortFName.Count(x => x == '_') == 2)
+                {
+                    // Assign debug name between the asterisks.
+                    var debugName = shortFName.Substring(shortFName.IndexOf('_') + 1);
+                    debugName = debugName.Substring(0, debugName.IndexOf('_'));
+                    le1sf.FileDebugName = debugName;
+                }
+            }
+
+
             // Have to figure out how to handle this later since it has decompression.
 
             var finalPos = input.Position;

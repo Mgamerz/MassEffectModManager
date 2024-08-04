@@ -63,6 +63,7 @@
 	<system:String x:Key="string_interp_validation_altdlc_condManualWithConditionalDLC">Alternate DLC {0} содежит значение для ConditionalDLC в условии COND_MANUAL. ConditionalDLC не применяется в COND_MANUAL, вместо этого используйте DLCRequirements.</system:String>
 	<system:String x:Key="string_interp_validation_altdlc_flattentNotTrueOrFalse">В Alternate DLC ({0}) указан дескриптор 'FlattenMultiListOutput', но значение не равно 'true'или 'false'</system:String>
 	<system:String x:Key="string_interp_validation_altdlc_dlcrequirementsHasOfficialLEDLC">В DLCRequirements Alternate DLC ({0}) указано DLC, поставляемое вместе с Legendary Edition. Моды Legendary Edition, под moddesc 8.0 и выше не могут устанавливать DLCRequirements для оригинальных DLC, поскольку Mod Manager не поддерживает игры без оригинальных DLC. Неподдерживаемое значение: {1}</system:String>
+	<system:String x:Key="string_interp_validation_altdlc_tlkMergeSuboption">Alternate DLC ({0}) использует операцию {1}, которое требует присвоения дескриптору '{2}' значения, соответствующего имени папки в папке задания {3}.</system:String>
 	<system:String x:Key="string_validation_altfile_oneAltDlcMissingFriendlyNameCmm6">Как минимум в одном определенном Alternate File не указан параметр FriendlyName, который требуется модам, предназначенным для cmmver >= 6.0.</system:String>
 	<system:String x:Key="string_validation_altfile_unknownCondition">В Alternate File указано неизвестное/неподдерживаемое условие:</system:String>
 	<system:String x:Key="string_validation_altfile_unknownOperation">В Alternate File указана неизвестная/неподдерживаемая операция:</system:String>
@@ -81,10 +82,10 @@
 	<system:String x:Key="string_interp_altfile_installToNotGuaranteedCustomDLC">Целевой файл мода (ModFile) в Alternate File {0} не изменяет DLC, куда этот будет (всегда) устанавливаться: {1}</system:String>
 	<system:String x:Key="string_interp_validation_altfile_flattentNotTrueOrFalse">В Alternate File ({0}) задан дескриптор 'FlattenMultiListOutput', но его значение не равно 'true' или 'false'</system:String>
 	<system:String x:Key="string_interp_altfile_missingOperation">В Alternate File не задан параметр ModOperation, требуемый для всех Alternate Files: {0}</system:String>
-	<system:String x:Key="string_interp_altfile_disallowedPattern">В Alternate File {0} используется имя, содержащее .. , что недопустимо: {1}</system:String>
-	<system:String x:Key="string_interp_altfile_nonExistentMergeFile">Объединенный файл Alternate File (пункт в MergeFiles) не существует: {0}</system:String>
-	<system:String x:Key="string_interp_altfile_mergeFileFailedToLoad">Не удалось загрузить объединенный файл Alternate File {0} по причине: {1}</system:String>
-	<system:String x:Key="string_interp_altfile_noMergeFilesSpecified">Имена Alternate File для объединенного файла (MergeFiles) требуются, но не указаны. Данное значение требуется для Alternate Files, использующих операцию OP_APPLY_MERGEMODS.</system:String>
+	<system:String x:Key="string_interp_altfile_disallowedPattern">В Alternate File {0} используется merge-имя, содержащее .. , что недопустимо: {1}</system:String>
+	<system:String x:Key="string_interp_altfile_nonExistentMergeFile">Merge-файл Alternate File (пункт в MergeFiles) не существует: {0}</system:String>
+	<system:String x:Key="string_interp_altfile_mergeFileFailedToLoad">Не удалось загрузить merge-файл Alternate File {0} по причине: {1}</system:String>
+	<system:String x:Key="string_interp_altfile_noMergeFilesSpecified">Имена Alternate File для merge-файла (MergeFiles) требуются, но не указаны. Данное значение требуется для Alternate Files, использующих операцию OP_APPLY_MERGEMODS.</system:String>
 	<system:String x:Key="string_interp_groupNameAlternateOptionsHeader">{0} - Опций: {1}</system:String>
 	<system:String x:Key="string_validation_alt_imageAssetArchiveError">В Alternate {0} указано изображение {1}, но его чтение из архива невозможно. Подробности содержатся в логе.</system:String>
 	<system:String x:Key="string_validation_alt_imageAssetNotFound">В Alternate {0} указано изображение {1}, но объект отсутствует в директории мода {2}</system:String>
@@ -114,13 +115,14 @@
 	<system:String x:Key="string_installLoader">Установить загрузчик</system:String>
 	<system:String x:Key="string_unknownASIMod">Неизвестный ASI-мод</system:String>
 	<system:String x:Key="string_ASIManager">ASI Manager</system:String>
-	<system:String x:Key="string_ASIManagerTopDescription" xml:space="preserve">ASI-моды - это моды на исходном коде, загружаемые при запуске игры. Они позволяют модифицировать игру путями, недоступными пакетным файлам. ASI-моды не должны входить в состав обычных публикаций модов и могут быть включены в моды Mod Manager.&#10;Mod Manager автоматически установит требуемые ASI-моды для модов, изменяющих баланс ME3 и для ME1 DLC-модов.</system:String>
+	<system:String x:Key="string_ASIManagerTopDescription" xml:space="preserve">ASI-моды - это моды на исходноMod Manager автоматически установит требуемые ASI-моды, необходимые для работы модов.</system:String>
 	<system:String x:Key="string_installingEllipse">Установка...</system:String>
 	<system:String x:Key="string_tooltip_viewSourceCodeForThisASIMod">Посмотреть исходный код данного ASI-мода</system:String>
 	<system:String x:Key="string_viewSourceCode">Посмотреть исходный код</system:String>
 	<system:String x:Key="string_interp_anErrorOccuredDeletingTheASI">Возникла ошибка при удалении ASI: {0}</system:String>
 	<system:String x:Key="string_errorDeletingASI">Ошибка удаления ASI</system:String>
-	<system:String x:Key="string_backupsAreShared">Архивы могут быть использованы различными средствами моддинга, включая Mass Effect Randomizer, ALOT Installer и Legendary Explorer.</system:String>
+	<system:String x:Key="string_interp_errorRestoringFromBackupX">Возникла ошибка при восстановлении из архива: {0}</system:String>
+	<system:String x:Key="string_backupsAreShared">Архивы могут быть использованы различными средствами моддинга, включая Mass Effect Randomizer, Legendary Explorer и другие.</system:String>
 	<system:String x:Key="string_backupsMustBeCreatedFresh">Архивы должны создаваться из свежеустановленной, оригинальной копии игры. Модифицированные архивы не поддерживаются.</system:String>
 	<system:String x:Key="string_backUp">Архивировать</system:String>
 	<system:String x:Key="string_backupsAreUsedToRestoreYourGame" xml:space="preserve">Архивы используются для восстановления файлов игры и являются важным шагом в процессе моддинга. Чтобы отвязать архив от игры и удалить запись о нем в инструментах моддинга нажмите кнопку 'Отвязать архив'. Для восстановления из архива используйте опцию Восстановление в меню Архивация и Восстановление или нажмите кнопку Настройка Игры в основном окне.&#10;&#10;Архивы также используются как источники оригинальных файлов в определенных операциях. Некоторые продвинутые функции требуют наличия архива, поскольку требуется доступ к оригинальным файлам.</system:String>
@@ -166,7 +168,7 @@
 	<system:String x:Key="string_dialog_selectWhichLanguagesToIncludeInBackup">Выберите языки для включения в архив. Неотмеченные языки не будут заархивированы; если вы выберете восстановление игры, эти языки будут загружены заново.</system:String>
 	<system:String x:Key="string_selectLanguages">Выбор языков</system:String>
 	<system:String x:Key="string_selectDestinationLocation">Выбрать путь назначения</system:String>
-	<system:String x:Key="string_packageFile">Файл архива</system:String>
+	<system:String x:Key="string_packageFile">Пакетный файл</system:String>
 	<system:String x:Key="string_interp_fileFetchedAndWrittenToX">Файл выгружен и записан в {0}</system:String>
 	<system:String x:Key="string_fileFetched">Файл выгружен</system:String>
 	<system:String x:Key="string_backupFileFetcherCanBeUsedToQuicklyFetchVanillaVersionsOfFilesFromBackups">Backup File Fetcher может быть использован для быстрой выгрузки оригинальных версий файлов из архивов.</system:String>
@@ -202,13 +204,25 @@
 	<system:String x:Key="string_notConfigured">Не настроено</system:String>
 	<system:String x:Key="string_reconfigurationRequired">Требуется перенастройка</system:String>
 	<system:String x:Key="string_interp_configuredTimestamp">Настроено {0}</system:String>
+	<system:String x:Key="string_uiImportInstallGroupPrefix" xml:space="preserve">Моды, которые будут установлены группой:\n</system:String>
+	<system:String x:Key="string_interp_xContentMod" xml:space="preserve">- {0} {1} (Контент-мод)\n</system:String>
+	<system:String x:Key="string_interp_xTextureMod" xml:space="preserve">- {0} (Текстурный мод)\n</system:String>
+	<system:String x:Key="string_interp_xASIMod" xml:space="preserve">- {0} (ASI-мод)\n</system:String>
+	<system:String x:Key="string_uiImportInstallGroupSuffix" xml:space="preserve">Импортирование добавит данную группу установки в Batch Installer. Моды из списка импортироваться не будут.</system:String>
+	<system:String x:Key="string_tooltip_standaloneBQ">У данного мода нет настраиваемых опций. Он всегда устанавливается одинаково.</system:String>
+	<system:String x:Key="string_tooltip_noSavedOptionsBQ">У данного мода есть настраиваемые опции, но настройки не были сохранены. Установите группу для сохранения настроек в следующий раз.</system:String>
+	<system:String x:Key="string_tooltip_reconfigurationBQ">Данный мод изменился с момента сохранения настраиваемых опций. При повтороной установке данной группы нужно будет выбрать опции заново</system:String>
+	<system:String x:Key="string_tooltip_timestampBQ">Метка времени выбора настраиваемых опций</system:String>
+	<system:String x:Key="string_selectDeploymentDestination">Выбор конечного пути преобразования</system:String>
+	<system:String x:Key="string_tooltip_createSharableVersionOfThisInstallGroup">Создание общедоступной версии данной группы установки</system:String>
+	<system:String x:Key="string_shareGroup">Поделиться группой</system:String>
 	<system:String x:Key="string_batchModInstaller">Групповой Установщик Модов</system:String>
 	<system:String x:Key="string_description_batchModInstallerAllowsSerialInstall">Групповой Установщик Модов позволяет устанавливать группу модов подряд. позволяя быстро воссоздавать определенную конфигурацию игры.</system:String>
 	<system:String x:Key="string_createANewInstallGroup">Создать новую группу установки</system:String>
 	<system:String x:Key="string_installGroups">Группы установки</system:String>
 	<system:String x:Key="string_groupInformation">Информация о группе</system:String>
 	<system:String x:Key="string_installThisGroup">Установить данную группу</system:String>
-	<system:String x:Key="string_editGroup">Редактировать группу</system:String>
+	<system:String x:Key="string_edit">Редактировать</system:String>
 	<system:String x:Key="string_tooltip_targetToInstallThisModGroupTo">Путь установки данной группы модов</system:String>
 	<system:String x:Key="string_deleteGroup">Удалить группу</system:String>
 	<system:String x:Key="string_interp_deleteTheSelectedBatchQueue">Удалить группу установки '{0}'?</system:String>
@@ -218,7 +232,7 @@
 	<system:String x:Key="string_batchQueueDesync">Десинхронизация Очереди Установки</system:String>
 	<system:String x:Key="string_usePreviouslySavedModOptionsQuestion">Использовать ранее сохраненные опции модов?</system:String>
 	<system:String x:Key="string_savedOptionsFound">Найдены сохраненные опции</system:String>
-	<system:String x:Key="string_duplicateGroup">Дублировать группу</system:String>
+	<system:String x:Key="string_duplicate">Дублировать</system:String>
 	<system:String x:Key="string_tooltip_bml_downloadMod">Нажмите для перехода на страницу скачивания мода</system:String>
 	<system:String x:Key="string_downloadMod">Скачать мод</system:String>
 	<system:String x:Key="string_enterANewNameForTheDuplicatedInstallGroup">Введите новое имя для дубликата группы установки.</system:String>
@@ -230,6 +244,7 @@
 	<system:String x:Key="string_gameSelector">Выбор игры</system:String>
 	<system:String x:Key="string_dialog_selectGameInstallGroup">Выберите игру для создания группы установки.</system:String>
 	<system:String x:Key="string_debugTriggerDataReload">Отладка: Перезагрузка данных триггера</system:String>
+	<system:String x:Key="string_gameRestore">Восстановление игры</system:String>
 	<system:String x:Key="string_thereIsNoBackupAvailableToQuery2DAsFrom">Отсутствует доступный архив для запроса  таблиц 2DA.</system:String>
 	<system:String x:Key="string_2da_errorReading2DAs">Ошибка чтения таблиц 2DA из игры: {0}</system:String>
 	<system:String x:Key="string_errorReadingTables">Ошибка чтения таблиц</system:String>
@@ -271,6 +286,9 @@
 	<system:String x:Key="string_test7z">Тест 7z</system:String>
 	<system:String x:Key="string_originalTrilogy">Оригинальная Трилогия</system:String>
 	<system:String x:Key="string_legendaryEdition">Legendary Edition</system:String>
+	<system:String x:Key="string_autobootLE2Test">Тест автозагрузки LE2</system:String>
+	<system:String x:Key="string_mEMVanillaDBViewer">MEM Vanilla DB Viewer</system:String>
+	<system:String x:Key="string_showBasegameFileIdentificationServiceViewer">Показать Basegame File Identification Service Viewer</system:String>
 	<system:String x:Key="string_tooltip_multithreadDeployment" xml:space="preserve">Многопоточное сжатие значительно быстрее однопоточного, но требует намного больше памяти.&#10;В случае мода большого размера (>600MB) рекомендуется отключить эту функцию, если у вас менее 16GB доступной памяти.</system:String>
 	<system:String x:Key="string_multiThreadedCompression">Многопоточное сжатие</system:String>
 	<system:String x:Key="string_deploy">Преобразовать в .7z</system:String>
@@ -280,10 +298,10 @@
 	<system:String x:Key="string_verifyModVersion">Проверка корректности версии мода</system:String>
 	<system:String x:Key="string_recommendedVersionFormatNotFollowed">Не соблюден рекомендуемый формат версии ({0})</system:String>
 	<system:String x:Key="string_moddescMissingModsite">moddesc.ini отсутствует в дескрипторе modsite</system:String>
-	<system:String x:Key="string_noModWebsiteSet">Не задан URL страницы мода - обычно дескриптор modsite ModInfo должен указывать на страницу загрузки мода, например NexusMods. Ссылка NexusMods также дает пользователям возможность одобрить ваш мод на NexusMods через ModManager. Моды без modsite вряд ли попадут в Third Pary Identification Service, что может вызвать конфликты добавления вашего мода.</system:String>
+	<system:String x:Key="string_noModWebsiteSet">Не задан URL страницы мода - обычно дескриптор modsite ModInfo должен указывать на страницу загрузки мода, например NexusMods. Ссылка NexusMods также дает пользователям возможность одобрить ваш мод на NexusMods через ModManager. Моды без modsite вряд ли попадут в Third Pary Identification Service, что может вызвать конфликты подключения вашего мода.</system:String>
 	<system:String x:Key="string_interp_invalidAudioPointerOutsideAFC">Обнаружен недопустимый указатель аудио со ссылкой за границы целевого файла: {0} Export {1} {2} указывает на смещение {3} в AFC-файле {4}, но размер AFC составляет только {5} байт.</system:String>
 	<system:String x:Key="string_verifyURLIsCorrect">Проверка корректности URL:</system:String>
-	<system:String x:Key="string_validation_badUrl">Валидация не удалась, URL мода не прошел проверку. URL мода облегчает пользователям поиск вашего мода после импорта в случае необходимости помощи. Корректный NexusMods URL требуется, если вы хотите получать одобрения мода через программу без использования дескриптора [ModInfo] NexusCode.</system:String>
+	<system:String x:Key="string_validation_badUrl">Валидация не удалась, URL мода не прошел проверку. URL мода облегчает пользователям поиск вашего мода после импорта в случае необходимости помощи. Корректный NexusMods URL требуется, если вы хотите получать одобрение мода через программу без использования дескриптора [ModInfo] NexusCode.</system:String>
 	<system:String x:Key="string_modUrlErrorsWereFound">Обнаружены ошибки в URL мода</system:String>
 	<system:String x:Key="string_verifyModDescription">Проверка точности описания мода</system:String>
 	<system:String x:Key="string_sfarFilesCheck">Проверка файлов SFAR</system:String>
@@ -302,6 +320,9 @@
 	<system:String x:Key="string_emptyOrInvalidModUrl">Пустой или недопустимый URL</system:String>
 	<system:String x:Key="string_validationFailed">Валидация не удалась</system:String>
 	<system:String x:Key="string_interp_modURLOK">URL мода верна: {0}</system:String>
+	<system:String x:Key="string_interp_nexusModsPageX">Страница NexusMods: {0}</system:String>
+	<system:String x:Key="string_dialog_thisIsPrereleaseBuildDeployement">Это предрелизная сборка Mod Manager. Если вы преобразуете мод для публикации, УДОСТОВЕРЬТЕСЬ, ЧТО ОН РАБОТАЕТ НА ВЕРСИИ MOD MANAGER, ИСПОЛЬЗУЕМОЙ СООБЩЕСТВОМ.</system:String>
+	<system:String x:Key="string_prereleaseBuild">Предрелизная сборка</system:String>
 	<system:String x:Key="string_validationOK">Валидация пройдена</system:String>
 	<system:String x:Key="string_languageCheckInProgress">Проверка языковой поддержки в процессе</system:String>
 	<system:String x:Key="string_interp_customDLCMissingLocalizedTLK">TLK для языка {1} отсутствует в {0}. Данный DLC не загрузится, если в игре будет выставлен этот язык. Некоторые версии игры не имеют возможности изменить язык, что не позволит использовать данный мод вместе с ними.</system:String>
@@ -407,7 +428,7 @@
 	<system:String x:Key="string_interp_warningImportLinkOutideOfTables">{0}, Import {1} имеет недопустимое значение ссылки за пределами таблицы Import/Export: {2}</system:String>
 	<system:String x:Key="string_interp_dialog_dlcFolderNotInTPMI" xml:space="preserve">Следующие моды содержат папки DLC не входящие в Third Party Mod Identification Service (TPMI). Если мод готовится к выпуску, нужно подключить телеметрию для данного мода, чтобы он мог быть идентифицирован различными инструментами, такими как диагностика ALOT Installer/Mod Manager, быть в базе данных DLC-модов и определяться Mod Mananer.\n\n{0}\n\nМоды добавляются в базу только если у них есть открытая страница мода.</system:String>
 	<system:String x:Key="string_interp_gamenameValidationTarget">{0} объект валидации</system:String>
-	<system:String x:Key="string_deploymentValidationTargetDesc">Объекты валидации используются при проверке согласованности конфигурации вашего мода с прочими, от которых он может зависеть, например патчи совместимости, ссылающиеся на текстуры в другом моде. Установите данные моды в целевую игру, чтобы Mod Manager мог проверить такие ссылки. Цели валидации не допускают модификации текстур.</system:String>
+	<system:String x:Key="string_deploymentValidationTargetDesc">Объекты валидации используются при проверке согласованности конфигурации вашего мода с прочими, от которых он может зависеть, например патчи совместимости, ссылающиеся на текстуры в другом моде. Установите данные моды в целевую игру, чтобы Mod Manager мог проверить такие ссылки.</system:String>
 	<system:String x:Key="string_validationTargetsCannotBeTextureModdedOT">Объекты валидации не могут подвергаться модификации текстур.</system:String>
 	<system:String x:Key="string_interp_noValidationTarget">Нет доступного объекта валидации для {0}!</system:String>
 	<system:String x:Key="string_errorOccurredCheckingReferences">Возникла ошибка при проверке ссылок во время преобразования</system:String>
@@ -427,6 +448,22 @@
 	<system:String x:Key="string_validatingArchiveFile">Валидация файла архива</system:String>
 	<system:String x:Key="string_deploymentFailed">Ошибка преобразования</system:String>
 	<system:String x:Key="string_interp_dialog_deploymentFailedWrongNumMods" xml:space="preserve">Преобразование мода не удалось: Количество модов в архиве не совпадает с количеством прошедших парсинг.\nОжидалось: {0}\nОбнаружено: {1}Пожалуйста, сообщите об этом Mgamerz на ME3Tweaks Discord</system:String>
+	<system:String x:Key="string_importFailed">Ошибка импорта</system:String>
+	<system:String x:Key="string_scanning">Сканирование</system:String>
+	<system:String x:Key="string_importQueued">Импорт в очереди</system:String>
+	<system:String x:Key="string_importingMods">Импортирование модов</system:String>
+	<system:String x:Key="string_importComplete">Импорт завершен</system:String>
+	<system:String x:Key="string_overlayDisablerInstalled">Выключатель оверлея установлен</system:String>
+	<system:String x:Key="string_uninstallDisabler">Удалить выключатель</system:String>
+	<system:String x:Key="string_otherD3d9dllInstalledOverlayDisabled">Установлен другой d3d9.dll, оверлей отключен</system:String>
+	<system:String x:Key="string_cannotUninstallOtherD3d9File">Невозможно удалить другой файл d3d9</system:String>
+	<system:String x:Key="string_overlayDisablerNotInstalled">Выключатель оверлея не установлен</system:String>
+	<system:String x:Key="string_installDisabler">Установить выключатель</system:String>
+	<system:String x:Key="string_noTargetSelected">Целевая игра не выбрана</system:String>
+	<system:String x:Key="string_noOriginBasedGameTargets">Целевые игры EA App отсутствуют</system:String>
+	<system:String x:Key="string_origin">EA App</system:String>
+	<system:String x:Key="string_oigPanelHeader" xml:space="preserve">Внутриигровой оверлей EA App является известной причиной значительной потери производительности в оригинальной трилогии Mass Effect. Хотя он может быть отключен в настройках EA App, это не работает для Steam-версии Mass Effect 3. Вы можете установить d3d9-прокси, принудительно отключающий оверлей в целевой игре.&#10;&#10;Использование других d3d9-прокси, таких как Reshade, также отключит оверлей.</system:String>
+	<system:String x:Key="string_noOriginBasedTargetsInstalledForThisGame">Целевые игры EA App данного типа не установлены</system:String>
 	<system:String x:Key="string_interp_downloadingX">Скачивание {0}</system:String>
 	<system:String x:Key="string_interp_extractingX">Распаковка {0}</system:String>
 	<system:String x:Key="string_checkingForUpdates">Проверка обновлений</system:String>
@@ -445,12 +482,12 @@
 	<system:String x:Key="string_theFollowingModsFailedToLoad">Не удалось загрузить следующие моды из библиотеки. Выберите мод, чтобы узнать причину.</system:String>
 	<system:String x:Key="string_failedMods">Проблемные моды</system:String>
 	<system:String x:Key="string_failureInformation">Информация о проблеме</system:String>
-	<system:String x:Key="string_debugReload">Перезагрузка отладки</system:String>
 	<system:String x:Key="string_deleteFromLibrary">Удалить из библиотеки</system:String>
 	<system:String x:Key="string_visitWebsite">Посетить веб-сайт</system:String>
+	<system:String x:Key="string_reloadMod">Перезагрузить мод</system:String>
+	<system:String x:Key="string_forceUpdateCheck">Принудительная проверка обновлений</system:String>
 	<system:String x:Key="string_autobootSave">Сохранение автозагрузки</system:String>
 	<system:String x:Key="string_interp_invalidTargetMissingFile">Недопустимый путь: {0} не обнаружен в папке игры.</system:String>
-	<system:String x:Key="string_invalidTargetProtectedByCmmvanilla">Недопустимый путь: Отмечен как архивный наличием файла cmm_vanilla</system:String>
 	<system:String x:Key="string_dialog_cannotRemoveActiveTarget" xml:space="preserve">Невозможно убрать из списка игру, выбранную в качестве загружаемой.\nВыберите другую загружаемую игру в главном окне, что эту можно было убрать из списка.</system:String>
 	<system:String x:Key="string_tooltip_removeTargetFromM3">Убирает эту игру из списка доступных для моддинга в Mod Manager's</system:String>
 	<system:String x:Key="string_unpacked">Распаковано</system:String>
@@ -502,8 +539,8 @@
 	<system:String x:Key="string_defaultDescriptionForImportedMod">Этот мод был импортирован из установки {0} в {1}</system:String>
 	<system:String x:Key="string_dlcImportingNexusModsWatermark">https://nexusmods.com/masseffect... (рекомендовано)</system:String>
 	<system:String x:Key="string_conflictDetector">Conflict Detector</system:String>
-	<system:String x:Key="string_conflictDetectorDescription">Когда в нескольких DLC находятся файлы с одинаковыми именами игра будет использовать файл из DLC с наивысшим приоритетом загрузки. Conflict Detector показывает конфликты файлы между вашими DLC-модами. Это инструмент ТОЛЬКО ДЛЯ РАЗРАБОТЧИКОВ, не пытайтесь интерпретировать эти результаты, если вы не понимаете как устроены файлы игры!</system:String>
-	<system:String x:Key="string_interp_mountPriorityX">Приоритет Загрузки {0}</system:String>
+	<system:String x:Key="string_conflictDetectorDescription">Когда в нескольких DLC находятся файлы с одинаковыми именами игра будет использовать файл из DLC с наивысшим приоритетом  подключения. Conflict Detector показывает конфликты файлы между вашими DLC-модами. Это инструмент ТОЛЬКО ДЛЯ РАЗРАБОТЧИКОВ, не пытайтесь интерпретировать эти результаты, если вы не понимаете как устроены файлы игры!</system:String>
+	<system:String x:Key="string_interp_mountPriorityX">Приоритет Подключения {0}</system:String>
 	<system:String x:Key="string_interp_XModsSuperceded">Модов замещено: {0}</system:String>
 	<system:String x:Key="string_dialog_cannotImportModTextureMarkersFound">Данный мод содержит файлы, отмеченные как часть установки с модифицированными текстурами. Моды, подвергнутые модификациям текстур посредством других модов, не могут быть импортированы.</system:String>
 	<system:String x:Key="string_cannotImportMod">Невозможно импортировать мод</system:String>
@@ -530,6 +567,29 @@
 	<system:String x:Key="string_interp_dialog_memForDifferentGame">Выбранный файл .mem не для {0} - он для {1}. Этот файл .mem не может быть использован в данной группе установки.</system:String>
 	<system:String x:Key="string_wrongGame">Неверная игра</system:String>
 	<system:String x:Key="string_selectATextureMod">Выберите текстурный мод</system:String>
+	<system:String x:Key="string_checkForIssues">Проверка проблем</system:String>
+	<system:String x:Key="string_required">Требуется</system:String>
+	<system:String x:Key="string_sortByMountPriority">Сортировка по приоритету подключения</system:String>
+	<system:String x:Key="string_tooltip_restoreBeforeInstall" xml:space="preserve">Перед установкой данной batch-группы, пользователю будет предложено откатить игру до исходного состояния.&#10;Это помогает обеспечить целостность результата</system:String>
+	<system:String x:Key="string_restoreGameBeforeInstall">Восстановить игру до установки</system:String>
+	<system:String x:Key="string_tooltip_closeSearchPanel">Закрыть панель поиска</system:String>
+	<system:String x:Key="string_typeToSearchCTRLF">Введите для поиска (CTRL + F)</system:String>
+	<system:String x:Key="string_tooltip_lowestMountPriority">Низжий приоритет подключения данного мода (если применимо)</system:String>
+	<system:String x:Key="string_dialog_sortByMountPriority">Сортировка переопределит порядок контент-модов в вашей группе установки. Это экспериментальная функция и ваши моды могуть отсортированы некорректно.</system:String>
+	<system:String x:Key="string_experimentalFeature">Экспериментальная функция</system:String>
+	<system:String x:Key="string_interp_bqissue_modNotCompatible">{0} не совместим с модом {1}</system:String>
+	<system:String x:Key="string_possibleIssuesFound">Обнаружены возможные проблемы</system:String>
+	<system:String x:Key="string_bqe_issuesFound">Mod Manager обнаружил потенциальные проблемы с вашей группой установки. Это лишь вероятность; результат может быть неточным и обнаруживаются лишь простые проблемы.</system:String>
+	<system:String x:Key="string_bqe_noIssues">Mod Manager не обнаружил проблем с вашей группой установки. Это лишь вероятность; реультат может быть неточным и обнаруживаются лишь простые проблемы.</system:String>
+	<system:String x:Key="string_noIssuesDetected">Проблем не обнаружено</system:String>
+	<system:String x:Key="string_groupNameCannotBeEmpty">Имя группы не может быть пустым.</system:String>
+	<system:String x:Key="string_groupDescriptionCannotBeEmpty">Описание группы не может быть пустым.</system:String>
+	<system:String x:Key="string_interp_existingInstallGroupFile" xml:space="preserve">Группа установки с именем '{0}' уже существует. Сохранение перезапишет данную группу.\n\nПродолжить сохранение группы?</system:String>
+	<system:String x:Key="string_fileAlreadyExists">Файл уже существует</system:String>
+	<system:String x:Key="string_description_restoreGameBeforeBatchInstall">Восстанавливает игру до исходного состояния из архива. Вам будет предложено подтвердить восстановление до его начала.</system:String>
+	<system:String x:Key="string_interp_bqissue_minimumVersionNotFound">{0} требует предварительной установки мода {1}{2}, но его нет в данной группе установки</system:String>
+	<system:String x:Key="string_withMinimumVersion">с минимальной версией</system:String>
+	<system:String x:Key="string_tooltip_addMemFilesFromFilesystem">Добавить файлы .mem из файловой системы</system:String>
 	<system:String x:Key="string_dialogRestoringFilesWhileAlotIsInstalledNotAllowed">Восстановление файлов при установленных текстурных модах запрещено, поскольку это приведет к внесению недопустимых указателей текстур в установку игры.</system:String>
 	<system:String x:Key="string_cannotRestoreSfarFiles">Невозможно восстановить файлы SFAR</system:String>
 	<system:String x:Key="string_dialogRestoringFilesWhileAlotIsInstalledNotAllowedDevMode">Восстановление файлов при установленных текстурных модах внесет недопустимые указатели текстур в установку игры, что приведет к отсутствующим текстурам и, возможно, к падению игры. Пожалуйста, убедитесь что вы знаете, что делаете, перед тем как продолжить.</system:String>
@@ -544,8 +604,8 @@
 	<system:String x:Key="string_interp_backupAtX">Архив по адресу {0}</system:String>
 	<system:String x:Key="string_noBackupForThisGame">Отсутствует архив для данной игры</system:String>
 	<system:String x:Key="string_interp_cannotDeleteModsWhileXIsRunning">Невозможно удалить моды, пока {0} запущен.</system:String>
-	<system:String x:Key="string_interp_deletingXwhileAlotInstalledUnsupported" xml:space="preserve">Удаление {0} пока ALOT установлен не приведет к повреждению игры, однако вы не сможете устанавливать обновления ALOT без его полной переустановки (неподдерживаемая конфигурация).\n\nВы уверены, что хотите удалить DLC-мод?</system:String>
-	<system:String x:Key="string_deletingWillPutAlotInUnsupportedConfig">Удаление приведет к неподдерживаемой конфигурации игры</system:String>
+	<system:String x:Key="string_interp_deletingXwhileTexturesInstalled" xml:space="preserve">Удаление {0}, пока установлены текстурные моды, не сломает игру, но установка других текстурных модов будет невозможна до восстановления из архива или полного удаления и чистой установки игры.\n\nВы уверены, что хотите удалить данный DLC-мод?</system:String>
+	<system:String x:Key="string_deletingWillPutGameInUnsupportedConfig">Удаление приведет к неподдерживаемой конфигурации игры</system:String>
 	<system:String x:Key="string_interp_removeXFromTheGameInstallationQuestion">Удалить {0} из установленной игры?</system:String>
 	<system:String x:Key="string_interp_cannotRestoreFilesWhileXIsRunning">Невозможно восстановить файлы пока {0} запущен.</system:String>
 	<system:String x:Key="string_interp_restoringXWhileAlotInstalledIsNotAllowed">Восстановление {0} при установленных текстурных модах запрещено, поскольку это приведет к внесению недопустимых указателей текстур в установку игры.</system:String>
@@ -556,7 +616,7 @@
 	<system:String x:Key="string_interp_installedByX">Установлено через {0}</system:String>
 	<system:String x:Key="string_notInstalledByModManager">Не установлено через Mod Manager</system:String>
 	<system:String x:Key="string_installationInformation">Информация об Установке</system:String>
-	<system:String x:Key="string_installationInformationSubheader">Файлы, установленные в базовой игре и официальные DLC отслеживаются только в случае их установки через ME3Tweaks Mod Manager</system:String>
+	<system:String x:Key="string_installationInformationSubheader">Файлы базовой игры, которые были модифицированы, отслеживаются только в случае их установки через ME3Tweaks Mod Manager</system:String>
 	<system:String x:Key="string_installedDLCmods">Установленные DLC-моды</system:String>
 	<system:String x:Key="string_delete">Удалить</system:String>
 	<system:String x:Key="string_modifiedBasegameFiles">Модифицированные файлы базовой игры</system:String>
@@ -601,12 +661,19 @@
 	<system:String x:Key="string_addModToDeployment">Добавить мод к преобразованию</system:String>
 	<system:String x:Key="string_validationTargets">Объекты валидации</system:String>
 	<system:String x:Key="string_tooltip_rerunCheckOnMod">Перепроверить мод</system:String>
-	<system:String x:Key="string_cannotShowModifiedBasegameFilesTextureModded">Невозможно отобразить модифицированные файлы базовой игры в игре с измененными текстурами, поскольку тогда все файлы будут модифицированы</system:String>
 	<system:String x:Key="string_showInstalledOptions">Показать установленные опции</system:String>
-	<system:String x:Key="string_hideInstalledOptions">Скрть установленные опции</system:String>
+	<system:String x:Key="string_hideInstalledOptions">Скрыть установленные опции</system:String>
 	<system:String x:Key="string_noTextureModsAreInstalled">Текстурные моды не установлены</system:String>
-	<system:String x:Key="string_textureModded_packagesAndTFCsHidden">Пакетные и TFC-файлы не отображаются из-за моддинга текстур данной игры. Все пакетные файлы модифицированы, а TFC не могут быть модифицированы в случае моддинга текстур игры.</system:String>
+	<system:String x:Key="string_textureModded_packagesAndTFCsHidden">Текстурные пакетные файлы не отображаются, так как все текстурны в пакетных файлах будут модифицированы при текстурном моддинге игры. Файлы с модифицированными текстурами не могут быть восстановлены, вам требуется восстановить игру из архива.</system:String>
 	<system:String x:Key="string_loading">Загрузка</system:String>
+	<system:String x:Key="string_tooltip_dlcModsTab">Моды должны быть установлены в папки DLC игры</system:String>
+	<system:String x:Key="string_enableAll">Включить все</system:String>
+	<system:String x:Key="string_disableAll">Отключить все</system:String>
+	<system:String x:Key="string_tooltip_modifiedBasegameFilesTab" xml:space="preserve">Оригинальные файлы BioWare, подвергшиеся модификации, будут отображены здесь,&#10;например, через mergemod, TLK-merge, config merge, etc.</system:String>
+	<system:String x:Key="string_tooltip_modifiedSFARsTab">Официальные DLC ME3 хранятся в файлах SFAR. Некоторые инструменты моддинга распакуют данные файлы, другие интегрируются в них напрямую</system:String>
+	<system:String x:Key="string_tooltip_installedDLCTab">Список установленных DLC</system:String>
+	<system:String x:Key="string_tooltip_texturesTab">Список всех текстурных модов, которые были установлены посредством данных инструментов текстурного моддинга</system:String>
+	<system:String x:Key="string_tooltip_otherTab">Дополнительная информация о данной установке игры</system:String>
 	<system:String x:Key="string_next">Далее</system:String>
 	<system:String x:Key="string_previous">Назад</system:String>
 	<system:String x:Key="string_skipTutorial">Пропустить обучение</system:String>
@@ -639,28 +706,31 @@
 	<system:String x:Key="string_tooltip_autoResume">Включает в игре попытку автоматической загрузки последнего сохранения</system:String>
 	<system:String x:Key="string_noForceFeedback">Без обратной связи</system:String>
 	<system:String x:Key="string_tooltip_disablesControllerVibration">Отключает вибрацию контроллера</system:String>
-	<system:String x:Key="string_dialog_firstCoalescedMerge" xml:space="preserve">ME3Tweaks Mod Manager автоматически заменяет  Coalesced_INT.bin файл базовой игры, чтобы моды могли использовать функцию Слияния LE1 Coalesced файлов. Установленные вручную/ отредактированные модами Coalesced_INT.bin файлы будут перезаписаны этой функцией; можно отключить в настройках мод-менеджера.\n\nОтключение функции Слияния LE1 Coalesced файлов испортит все моды, которые от неё зависят.</system:String>
+	<system:String x:Key="string_enableProcessMinidumps">Включение обработки минидампов</system:String>
+	<system:String x:Key="string_tooltip_enableMinidumps" xml:space="preserve">Включает создание дампов при возникновении ошибок в игре.\nНе включайте, если этого не просит разработчик, так как снизится производительность</system:String>
+	<system:String x:Key="string_english">Английский</system:String>
+	<system:String x:Key="string_french">Французский</system:String>
+	<system:String x:Key="string_frenchTextEnglishVoiceover">Французский текст, Английская озвучка</system:String>
+	<system:String x:Key="string_german">Немецкий</system:String>
+	<system:String x:Key="string_germanTextEnglishVoiceover">Немецкий текст, Английская озвучка</system:String>
+	<system:String x:Key="string_italian">Итальянский</system:String>
+	<system:String x:Key="string_italianTextEnglishVoiceover">Итальянский текст, Английская озвучка</system:String>
+	<system:String x:Key="string_spanishTextEnglishVoiceover">Испанский текст, Английская озвучка</system:String>
+	<system:String x:Key="string_japaneseTextEnglishVoiceover">Японский текст, Английская озвучка</system:String>
+	<system:String x:Key="string_polish">Польский</system:String>
+	<system:String x:Key="string_polishTextEnglishVoiceover">Польский текст, Английская озвучка</system:String>
+	<system:String x:Key="string_russian">Русский</system:String>
+	<system:String x:Key="string_russianTextEnglishVoiceover">Русский текст, Английская озвучка</system:String>
+	<system:String x:Key="string_czechTextPartialEnglishVoiceover">Чешский текст (частично), Английская озвучка</system:String>
+	<system:String x:Key="string_hungarianTextPartialEnglishVoiceover">Венгерский текст (частично), Английская озвучка</system:String>
+	<system:String x:Key="string_dialog_firstCoalescedMerge" xml:space="preserve">ME3Tweaks Mod Manager автоматически заменяет  Coalesced_INT.bin файл базовой игры, чтобы моды могли использовать функцию LE1 Coalesced Merge файлов. Установленные вручную/ отредактированные модами Coalesced_INT.bin файлы будут перезаписаны этой функцией; можно отключить в настройках мод-менеджера.\n\nОтключение функции Слияния LE1 Coalesced файлов испортит все моды, которые от неё зависят.</system:String>
 	<system:String x:Key="string_information">Информация</system:String>
-	<system:String x:Key="string_m3ConsoleKeybinds">M3 Console Keybinds</system:String>
 	<system:String x:Key="string_interp_lexNightlyFailedToDownload">Ошибка загрузки Legendary Explorer Nightly: {0}</system:String>
 	<system:String x:Key="string_licenseViewer">Licence Viewer</system:String>
 	<system:String x:Key="string_dialogCouldNotSetDataToClipboard" xml:space="preserve">Невозможно скопировать данные в буфер обмена:\n</system:String>
 	<system:String x:Key="string_errorCopyingDataToClipboard">Ошибка копирования данных в буфер обмена</system:String>
 	<system:String x:Key="string_copyItemsToClipboard">Скопировать объекты в буфер обмена</system:String>
 	<system:String x:Key="string_copiedToClipboard">Скопировано в буфер обмена</system:String>
-	<system:String x:Key="string_preparingToCollectDiagnosticInfo">Подготовка к сбору данных диагностики</system:String>
-	<system:String x:Key="string_interp_preparingMEMNoGUIX">Подготовка MEM No GUI {0}%</system:String>
-	<system:String x:Key="string_collectingGameInformation">Сбор игровых данных</system:String>
-	<system:String x:Key="string_collectingSystemInformation">Сбор системных данных</system:String>
-	<system:String x:Key="string_collectingDLCInformation">Сбор данных DLC</system:String>
-	<system:String x:Key="string_collectingTFCFileInformation">Сбор данных TFC</system:String>
-	<system:String x:Key="string_checkingTextureMapGameConsistency">Проверка текстурных карт &lt;-&gt; целостности игры</system:String>
-	<system:String x:Key="string_interp_performingFullTexturesCheckX">Выполнение полной проверки текстур {0}%</system:String>
-	<system:String x:Key="string_collectingASIFileInformation">Сбор данных ASI</system:String>
-	<system:String x:Key="string_collectingME1ApplicationLogs">Сбор логов ME1</system:String>
-	<system:String x:Key="string_collectingEventLogs">Сбор логов событий</system:String>
-	<system:String x:Key="string_collectingME3SessionLog">Сбор лога сессии ME3</system:String>
-	<system:String x:Key="string_gettingTextureInfo">Получение информации об установке текстурного мода</system:String>
 	<system:String x:Key="string_selectALogToView">Выберите лог для анализа с помощью сервиса просмотра логов</system:String>
 	<system:String x:Key="string_collectingLogInformation">Сбор информации для лога</system:String>
 	<system:String x:Key="string_interp_serverRejectedTheUpload">Сервер отказал в загрузке. Полученный ответ: {0}</system:String>
@@ -687,6 +757,16 @@
 	<system:String x:Key="string_saveFile">Файл сохранения</system:String>
 	<system:String x:Key="string_description_saveFile">Вы можете опционально включить ваш файл сохрания в диагностику игры. Требуется только выбор сохранения.</system:String>
 	<system:String x:Key="string_selectSaveFile">Выбор сохранения</system:String>
+	<system:String x:Key="string_validation_m3ASIVersionWrongValueCount">Недопустимые данные M3ASIVersion в moddesc. В основном структура M3ASIVersion может содержать 1 или 2 значения: GroupID и опционально Version. Здесь содержится {0} записей. Данные: {1}</system:String>
+	<system:String x:Key="string_interp_m3ASIVersionMissingKey">Недопустимые данные M3ASIVersion в moddesc. Ключ '{0}' отсутствует. Данные: {1}</system:String>
+	<system:String x:Key="string_interp_m3ASIVersionNotAnInteger">Недопустимые данные M3ASIVersion в moddesc. Значение ключа '{0}' не является целым. Данные: {1}</system:String>
+	<system:String x:Key="string_interp_m3ASIVersionMustBeGTOne">Значение {0} не может быть меньше или равным 0 в структуре M3ASIVersion. Недопустимое значение: {1}</system:String>
+	<system:String x:Key="string_interp_m3ASIVersionValueMustBeInteger">Значение ключа {0} должно быть целым в структуре M3ASIVersion. Недопустимое значение: {1}</system:String>
+	<system:String x:Key="string_interp_determiningInstalledModsX">Определение списка установленных модов ({0})</system:String>
+	<system:String x:Key="string_dialog_pickLibraryType" xml:space="preserve">Использовать общую библиотеку, работающую во всех копиях Mod Manager, или использовать локальную для данной копии?\n\nОбычно использование локальной версии требуется только тестировщикам Mod Manager.</system:String>
+	<system:String x:Key="string_selectLibraryType">Выбор типа библиотеки</system:String>
+	<system:String x:Key="string_shared">Общая</system:String>
+	<system:String x:Key="string_local">Локальная</system:String>
 	<system:String x:Key="string_importingSaveFileFromME3Tweaks">Импортирование файла сохранения из ME3Tweaks</system:String>
 	<system:String x:Key="string_importedSaveFileFromME3Tweaks">Файл сохранения их ME3Tweaks импортирован</system:String>
 	<system:String x:Key="string_interp_errorImportingSaveFileX">Ошибка импортирования файла сохранения: {0}</system:String>
@@ -699,6 +779,9 @@
 	<system:String x:Key="string_textureLibrary">Библиотека текстур</system:String>
 	<system:String x:Key="string_interp_XpartOfY" xml:space="preserve">{0}\n\nВ составе {1}</system:String>
 	<system:String x:Key="string_interp_XpartOfTextureLibrary" xml:space="preserve">{0}\n\nВ составе библиотеки текстур</system:String>
+	<system:String x:Key="string_invalidMagic_m3za">Недопустимый magic-номер CompressedTLKMergeFile!</system:String>
+	<system:String x:Key="string_interp_tooNewM3ZAFile">Данная сборка Mod Manager не может прочитать версии файлов M3ZA выше, чем {0}, будет открыта версия {1}</system:String>
+	<system:String x:Key="string_interp_m3zaMissingTlkOptionKey">Ошибка валидации мода: CombinedTLKMergeData.m3za не содержит указанный ключ опции TLK '{0}', на который ссылается объект AlternateDLC {1}. Пожалуйста, свяжитесь с разработчиком.</system:String>
 	<system:String x:Key="string_AvailableMods">Библиотека Модов</system:String>
 	<system:String x:Key="string_Language">Язык</system:String>
 	<system:String x:Key="string_Actions">Действия</system:String>
@@ -721,7 +804,7 @@
 	<system:String x:Key="string_LogModMakerCompiler">Логирование ModMaker Compiler</system:String>
 	<system:String x:Key="string_LogModUpdater">Логирование Mod Updater</system:String>
 	<system:String x:Key="string_Checkforcontentupdates">Обновить службы ME3Tweaks</system:String>
-	<system:String x:Key="string_ChecksME3Tweaksforupdatestovariousservices">Загружает актуальную служебную информацию ME3Tweaks.com, используемую для таких вещей как идентификация модов, ASI, и т.д.&#10;Это производится автоматически, раз в день</system:String>
+	<system:String x:Key="string_ChecksME3Tweaksforupdatestovariousservices">Загружает актуальную служебную информацию ME3Tweaks.com, используемую для таких вещей как идентификация модов, ASI, и т.д.&#10;Это производится автоматически каждые нескоолько часов</system:String>
 	<system:String x:Key="string_Reloadsmodsfromthemodlibrary">Обновить библиотеку модов</system:String>
 	<system:String x:Key="string_tooltip_reloadModsFromLibrary">Обновляет список доступных модов в библиотеке</system:String>
 	<system:String x:Key="string_Exit">Выход</system:String>
@@ -764,21 +847,20 @@
 	<system:String x:Key="string_Binkw32Bypasses">Байпасы Binkw32</system:String>
 	<system:String x:Key="string_Grantwriteaccesstogamedirectories">Разрешить запись в директории игры</system:String>
 	<system:String x:Key="string_Grantswritepermissionstogamedirectories">Дает доступ на запись в директории игры</system:String>
-	<system:String x:Key="string_RunAutoTOC">Запустить AutoTOC для игры (ME3)</system:String>
-	<system:String x:Key="string_RunsAutoTOCToolTip">Запустить AutoTOC для текущей выбранной ME3 (или для первой ME3 в списке, если выбранная игра не является ME3)</system:String>
+	<system:String x:Key="string_RunsAutoTOCToolTip">Обновляет файлы Table Of Contents (TOC) игр из списка</system:String>
 	<system:String x:Key="string_consoleCommandKeybinder">Console Key Keybinder</system:String>
 	<system:String x:Key="string_tooltip_consoleCommandKeybinder">Позволяет настроить клавиши открытия консоли для каждой игры</system:String>
 	<system:String x:Key="string_Additionalmoddingtools">Дополнительные инструменты моддинга</system:String>
 	<system:String x:Key="string_ALOTInstaller">ALOT Installer</system:String>
-	<system:String x:Key="string_ALOTInstallerTooltip">Устанавливает A Lot Of Textures, мод обновления графики, предназначенный для всех трех игр</system:String>
+	<system:String x:Key="string_ALOTInstallerTooltip">Установщик A Lot Of Textures, мод обновления графики, предназначенный для всех трех игр Оригинальной Трилогии</system:String>
 	<system:String x:Key="string_MassEffectINIModder">Mass Effect INI Modder</system:String>
-	<system:String x:Key="string_MEIMTooltip">Инструмент для редактирования различных настроек Mass Effect</system:String>
+	<system:String x:Key="string_MEIMTooltip">Инструмент для редактирования различных настроек оригинального Mass Effect (2008)</system:String>
 	<system:String x:Key="string_MassEffectModder">Mass Effect Modder</system:String>
 	<system:String x:Key="string_Texturebrowserandinstaller">Браузер и установщик текстур</system:String>
-	<system:String x:Key="string_MassEffectRandomizer">Mass Effect Randomizer</system:String>
-	<system:String x:Key="string_RandomizerforthefirstMassEffectgame">Randomizer для первой части Mass Effect</system:String>
-	<system:String x:Key="string_me2r">Mass Effect 2 Randomizer</system:String>
-	<system:String x:Key="string_tooltip_me2r">Randomizer для Mass Effect 2</system:String>
+	<system:String x:Key="string_MassEffectRandomizer">Mass Effect Randomizer (для Оригинальной Трилогии)</system:String>
+	<system:String x:Key="string_RandomizerforthefirstMassEffectgame">Randomizer для Mass Effect (2008)</system:String>
+	<system:String x:Key="string_me2r">Mass Effect 2 Randomizer (для Оригинальной Трилогии)</system:String>
+	<system:String x:Key="string_tooltip_me2r">Randomizer для Mass Effect 2 (2010)</system:String>
 	<system:String x:Key="string_LegendaryExplorerStable">Legendary Explorer (Стабильная сборка)</system:String>
 	<system:String x:Key="string_LegendaryExplorerBeta">Legendary Explorer (Ночная сборка)</system:String>
 	<system:String x:Key="string_ME3ExplorerME3TweaksForkTooltip" xml:space="preserve">Набор инструментов для разработки модов Mass Effect (OT + LE).&#10;Это стабильная версия, обычно возрастом в несколько месяцев</system:String>
@@ -791,8 +873,8 @@
 	<system:String x:Key="string_Help">Справка</system:String>
 	<system:String x:Key="string_DynamicHelp">Динамическая Справка</system:String>
 	<system:String x:Key="string_Diagnostics">Диагностика</system:String>
-	<system:String x:Key="string_ModManagerLogsDiagnostics">Логи и Диагностика Mod Manager</system:String>
-	<system:String x:Key="string_TroubleshootingtoolsforME3Tweaks">Средства устранения проблем ME3Tweaks</system:String>
+	<system:String x:Key="string_ModManagerLogsDiagnostics">Логи Mod Manager &amp; Диагностика Игры</system:String>
+	<system:String x:Key="string_TroubleshootingtoolsforME3Tweaks" xml:space="preserve">Инструменты устранения проблем игр и Mod Manager.&#10;Данный инструмент активном использует как пользователями, так и разработчиками</system:String>
 	<system:String x:Key="string_About">Дополнительно</system:String>
 	<system:String x:Key="string_moddescfileformatspecification">Документация Mod Manager для разработчиков</system:String>
 	<system:String x:Key="string_ReferenceinformationModdesc">Справочная информация по спецификации moddesc.ini</system:String>
@@ -804,7 +886,7 @@
 	<system:String x:Key="string_selectModOnLeftToGetStarted">Выберите мод слева, чтобы начать.</system:String>
 	<system:String x:Key="string_applyMod">Применить Мод</system:String>
 	<system:String x:Key="string_addTarget">Добавить Игру</system:String>
-	<system:String x:Key="string_startGame">Запустить Игру</system:String>
+	<system:String x:Key="string_startGame">Запуск Игры</system:String>
 	<system:String x:Key="string_installationTarget">Целевая игра:</system:String>
 	<system:String x:Key="string_binkAsiBypassNotInstalled">Байпас Binkw32 ASI не установлен</system:String>
 	<system:String x:Key="string_binkAsiBypassInstalled">Байпас Binkw32 ASI установлен</system:String>
@@ -823,8 +905,8 @@
 	<system:String x:Key="string_modEndorsed">&#x1F44D; Мод одобрен</system:String>
 	<system:String x:Key="string_loginToNexusMods">Войти в NexusMods</system:String>
 	<system:String x:Key="string_nexusLoggedIn">Вход выполнен</system:String>
-	<system:String x:Key="string_endorsing">Оправка одобрения</system:String>
-	<system:String x:Key="string_unendorsing">Отмена одобрения</system:String>
+	<system:String x:Key="string_endorsing">Оправка поддержки</system:String>
+	<system:String x:Key="string_unendorsing">Отмена поддержки</system:String>
 	<system:String x:Key="string_dialogConsoleEnabled" xml:space="preserve">Консоль включена.\nНажмите ~ для открытия полноразмерной консоли.\nНажмите TAB для открытия мини-консоли.</system:String>
 	<system:String x:Key="string_consoleEnabled">Консоль включена.</system:String>
 	<system:String x:Key="string_couldNotEnableConsole">Невозможно включить консоль</system:String>
@@ -852,19 +934,12 @@
 	<system:String x:Key="string_checkingForModManagerUpdates">Поиск обновлений Mod Manager</system:String>
 	<system:String x:Key="string_completedModManagerUpdateCheck">Поиск обновлений Mod Manager завершен</system:String>
 	<system:String x:Key="string_failedToCheckForUpdates">Не удалось проверить обновления</system:String>
-	<system:String x:Key="string_dialogCouldNotDownloadStaticAssets">Невозможно скачать статические файлы для ME3Tweaks Mod Manager. Mod Manager может работать нестабильно из-за отсутствия данных файлов. Проверьте доступность GitHub.com для возможности скачивания данных ресурсов.</system:String>
-	<system:String x:Key="string_missingAssets">Недостающие ресурсы</system:String>
-	<system:String x:Key="string_failedToDownloadStaticFiles">Ошибка получения статических компонентов</system:String>
-	<system:String x:Key="string_downloadingStaticFiles">Получение статических компонентов</system:String>
-	<system:String x:Key="string_staticFilesDownloaded">Статические компоненты получены</system:String>
 	<system:String x:Key="string_dialogTurningOffTelemetry" xml:space="preserve">Отключение телеметрии затрудняет исправление багов и разработку новых возможностей ME3Tweaks Mod Manager. Сбор данных телеметрии проводится для определения вылетов, ошибок, необходимых доработок для поддержки различных модов и трудностей, встреченных пользователями при выполнении задач (например, отсутствие подсказок по определенному правилу моддинга).\n\nВы можете оставить телеметрию выключенной, но она обеспечивает ценной статистикой разработчиков данной программы, а с ними и все сообщество моддинга.\n\nОтключить телеметрию?</system:String>
 	<system:String x:Key="string_turningOffTelemetry">Отключение телеметрии</system:String>
 	<system:String x:Key="string_selectModLibraryFolder">Выбрать папку библиотеки модов</system:String>
 	<system:String x:Key="string_runningAutoTOC">Запуск AutoTOC</system:String>
 	<system:String x:Key="string_ranAutoTOC">AutoTOC запущен</system:String>
 	<system:String x:Key="string_nonModManagerModFound">Обнаружен мод, не предназначенный для Mod Manager</system:String>
-	<system:String x:Key="string_dialogCriticalFilesMissing" xml:space="preserve">"Mod Manager не смог получить файлы, необходимые для надлежащей работы программы\nПожалуйста, проверьте подключение к Интернету и доступность GitHub и ME3Tweaks.\nMod Manager будет закрыт. Если вам нужна помощь, пожалуйста обратитесь на ME3Tweaks Discord.</system:String>
-	<system:String x:Key="string_requiredFilesNotDownloaded">Невозможно скачать требуемые файлы</system:String>
 	<system:String x:Key="string_checkingWritePermissions">Проверка разрешений на запись</system:String>
 	<system:String x:Key="string_checkedUserWritePermissions">Разрешения пользователя на запись проверены</system:String>
 	<system:String x:Key="string_loadingPackageInfoDatabases">Загрузка баз данных информации о пакете</system:String>
@@ -874,28 +949,27 @@
 	<system:String x:Key="string_loadingThirdPartyServices">Загрузка служб Third Party</system:String>
 	<system:String x:Key="string_loadedThirdPartyServices">Службы Third Party загружены</system:String>
 	<system:String x:Key="string_loadingDynamicHelp">Загрузка Динамической Справки</system:String>
-	<system:String x:Key="string_confirmUnendorsement">Подтвердить Отмену Одобрения</system:String>
+	<system:String x:Key="string_confirmUnendorsement">Подтвердить Отзыв Одобрения</system:String>
 	<system:String x:Key="string_loadedDynamicHelp">Динамическая Справка Загружена</system:String>
 	<system:String x:Key="string_selectModArchive">Выбрать архив мода</system:String>
 	<system:String x:Key="string_selectGameExecutable">Выбрать исполняемый файл игры</system:String>
-	<system:String x:Key="string_interp_unendorseMod">Отменить Одобрение {0}?</system:String>
+	<system:String x:Key="string_interp_unendorseMod">Отозвать Одобрение {0}?</system:String>
 	<system:String x:Key="string_interp_unableToModifyBioinputIni">Невозможно модифицировать BioInput.ini: {0}</system:String>
 	<system:String x:Key="string_interp_dialogDeleteSelectedModFromLibrary">Удалить {0} из библиотеки модов? Это удалит мод только из локальной библиотеки Mod Manager, но не затронет установленную игру.</system:String>
-	<system:String x:Key="string_interp_modManagerHasBeenUpdatedTo">Mod Manager был обновлен с версии {0} до версии {1}.</system:String>
 	<system:String x:Key="string_interp_launching">{0} запускается.</system:String>
 	<system:String x:Key="string_interp_launched">{0} запущен.</system:String>
 	<system:String x:Key="string_interp_cannotInstallModGameNotInstalled">Невозможно установить мод: {0} не установлен.</system:String>
 	<system:String x:Key="string_interp_dialog_installingTextureMod" xml:space="preserve">Файлы {0} не могут быть установлены вместе с ALOT Installer или Mass Effect Modder (MEM), доступными в меню Инструменты.\n\nВНИМАНИЕ: Такой тип модов изменяет указатели файлов игры. Они должны устанавливаться ПОСЛЕ всех остальных DLC/сюжетных модов. Последующая установка DLC/сюжетных модов вызовет различные проблемы в игре. Если один из данных типов модов установлен, ME3Tweaks Mod Manager откажется устанавливать остальные моды без восстановления игры.</system:String>
 	<system:String x:Key="string_interp_minorUpdateAvailableMessage">Доступно обновление ME3Tweaks Mod Manager Версия {0}. Мелкие обновления обычно исправляют небольшие баги в программе, не требующие полного перевыпуска.</system:String>
 	<system:String x:Key="string_interp_dialogUnableToCreateModLibraryNoPermissions" xml:space="preserve">"Невозможно создать директорию мода для библиотеки: {0}\nВыберите директорию с доступом на запись.</system:String>
-	<system:String x:Key="string_interp_dialogCannotInstallModsWhileGameRunning">Невозможно установить моды, пока запущен {0}. Обратите внимание, что Mass Effect 2 и 3 имеют имена исполняемых файлов идентичные для Оригинальной Трилогии/Legendary Edition, поэтому данные версии тоже должны быть закрыты.</system:String>
+	<system:String x:Key="string_interp_dialogCannotInstallModsWhileGameRunning">Невозможно установить моды, пока запущен {0}.</system:String>
 	<system:String x:Key="string_interp_failedToInstallMod">Не удалось установить {0}</system:String>
 	<system:String x:Key="string_interp_installingMod">{0} устанавливается.</system:String>
 	<system:String x:Key="string_interp_installedMod">{0} установлен.</system:String>
 	<system:String x:Key="string_interp_dialogUnableToAddGameTarget" xml:space="preserve">Невозможно добавить данную игру в качестве целевой:\n{0}</system:String>
 	<system:String x:Key="string_gameExecutable">Исполняемый файл игры</system:String>
 	<system:String x:Key="string_interp_dialogCannotInstallBinkWhileGameRunning">Невозможно модифицировать файлы binkw32 пока запущен {0}</system:String>
-	<system:String x:Key="string_tooltip_launchCurrentlySelectedTarget" xml:space="preserve">Запустить выбранную игру.&#10;Если это копия Origin, игра может перезагрузиться в версию Origin вместо выбранной</system:String>
+	<system:String x:Key="string_tooltip_launchCurrentlySelectedTarget" xml:space="preserve">Запустить выбранную игру.&#10;Если это копия EA App, игра может перезагрузиться в версию EA App вместо выбранной</system:String>
 	<system:String x:Key="string_tooltip_applyThisModToTheGame">Применить данный мод к игре</system:String>
 	<system:String x:Key="string_tooltip_currentTarget">Текущая цель моддинга</system:String>
 	<system:String x:Key="string_tooltip_filterME1">Нажмите для переключения видимости модов Mass Effect</system:String>
@@ -922,7 +996,7 @@
 	<system:String x:Key="string_importAndManageMods">Импорт + управление модами</system:String>
 	<system:String x:Key="string_libraryManagement">Управление библиотекой</system:String>
 	<system:String x:Key="string_optIntoBetaUpdates">Разрешить бета-обновления</system:String>
-	<system:String x:Key="string_tooltip_optIntoBetaUpdates" xml:space="preserve">Включает бета-обновления, игнорируя настройки бета-тестирования с ME3Tweaks. Эти сборки могут быть менее стабильными, но содержат функции, которые нужно протестировать.</system:String>
+	<system:String x:Key="string_tooltip_optIntoBetaUpdates" xml:space="preserve">Включает бета-режим, переопределяя порты нагрузочного тестирования с ME3Tweaks и включая экспериментальные функции. Эти сборки могут быть менее стабильными, но содержать функции, которые нужно протестировать. Для применения требуется перезапуск программы.</system:String>
 	<system:String x:Key="string_tooltip_toggleTelemetry">Включает/отключает отправку аналитики и отчётов об ошибках.</system:String>
 	<system:String x:Key="string_tooltip_logModLoading">Логирование детальной информации о загрузке модов из библиотеки или архивов</system:String>
 	<system:String x:Key="string_tooltip_logModMakerCompiler">Логирование детальной информации работы ModMaker compiler</system:String>
@@ -963,7 +1037,7 @@
 	<system:String x:Key="string_tooltip_manageNexusModsIntegration">Управление интеграцией с NexusMods</system:String>
 	<system:String x:Key="string_interp_visitSelectedModWebSite">Посетить сайт {0}</system:String>
 	<system:String x:Key="string_openModdesciniFile">Открыть файл moddesc.ini</system:String>
-	<system:String x:Key="string_tooltip_openModdescIniFile">Открыть moddesc.ini данного мода для редактирования</system:String>
+	<system:String x:Key="string_tooltip_openModdescIniFile">Открыть moddesc.ini данного мода в текстовом редакторе</system:String>
 	<system:String x:Key="string_autoUpdateLODs2K">Автообновление LOD (2K, хорошее качество)</system:String>
 	<system:String x:Key="string_autoUpdateLODs4K">Автообновление LOD (4K, лучшее качество)</system:String>
 	<system:String x:Key="string_tooltip_autoLods2K" xml:space="preserve">Данная настройка обеспечит средний уровень улучшения относительно настроек по умолчанию при совмещении с модом текстур высокого разрешения, например ALOT. Данная опция использует меньше памяти и повышает стабильность игры при использовании больших модов.</system:String>
@@ -1005,13 +1079,12 @@
 	<system:String x:Key="string_errorReadingXmlFile">Ошибка чтения файла xml</system:String>
 	<system:String x:Key="string_checkModsForUpdates">Проверить обновления модов</system:String>
 	<system:String x:Key="string_tooltip_checksForUpdatesToModsThatSupportCheckingForUpdates">Проверяет обновления для модов, поддерживающих обновления</system:String>
-	<system:String x:Key="string_mEMVanillaDBViewer">MEM Vanilla DB Viewer</system:String>
 	<system:String x:Key="string_autoInjectCustomKeybindsIntoModMakerMods">Автоинтеграция пользовательских привязок клавиш в моды ModMaker</system:String>
 	<system:String x:Key="string_tooltip_autoInjectCustomKeybinds" xml:space="preserve">Автоматическая интеграция пользовательского файла me3-BioInput.xml (при наличии) в директорию keybindsoveride. Определите привязки через Custom Keybinds Injector в меню Инструменты. Не выбирайте данную опцию при использовании контроллера.</system:String>
 	<system:String x:Key="string_customKeybindsInjectorMenuItem">Custom Keybinds Injector (ME3)</system:String>
 	<system:String x:Key="string_tooltip_installsCustomKeybindsOfYourDesignIntoTheGame">Устанавливает пользовательские привязки клавиш в вашу конфигурацию игры</system:String>
-	<system:String x:Key="string_originIngameOverlayDisabler">Выключатель внутриигрового оверлея Origin</system:String>
-	<system:String x:Key="string_tooltip_oigDisabler">Устанавливает файл, принудительно отключающий внутриигровой оверлей Origin</system:String>
+	<system:String x:Key="string_originIngameOverlayDisabler">Выключатель внутриигрового оверлея EA App</system:String>
+	<system:String x:Key="string_tooltip_oigDisabler">Устанавливает файл, принудительно отключающий внутриигровой оверлей EA App</system:String>
 	<system:String x:Key="string_selectMod">Выбрать мод</system:String>
 	<system:String x:Key="string_noTarget">Нет целевых игр</system:String>
 	<system:String x:Key="string_cannotInstallToThisGame">Невозможно установить в данную игру</system:String>
@@ -1027,9 +1100,8 @@
 	<system:String x:Key="string_interp_dialog_cannotDeployModNoTarget">Установленная игра {0} не обнаружена. Преобразование мода требует установленной игры для проверки данных, которые будут недоступны в другой установке.</system:String>
 	<system:String x:Key="string_cannotDeployMod">Невозможно преобразовать мод</system:String>
 	<system:String x:Key="string_interp_dialog_cannotDeployModNoBackup">Архив {0} недоступен. Преобразование мода требует наличия архива игры в которую будет устанавливаться мод, поэтому проверка проводится относительно оригинальной игры.</system:String>
-	<system:String x:Key="string_preparingToScanGame">Подготовка к сканированию игры</system:String>
 	<system:String x:Key="string_pleaseWait">Пожалуйста, подождите</system:String>
-	<system:String x:Key="string_pleaseWait_startup">Mod Manager запускается, библиотека модов будет сейчас станет доступна</system:String>
+	<system:String x:Key="string_pleaseWait_startup">Mod Manager запускается, библиотека модов сейчас станет доступна</system:String>
 	<system:String x:Key="string_listFilesThisModCanInstall">Список файлов, доступных к установке модом</system:String>
 	<system:String x:Key="string_tooltip_listFilesThisModCanInstall">Список всех файлов, потенциально доступных к установке модом</system:String>
 	<system:String x:Key="string_editModInfo">Редактировать информацию о моде</system:String>
@@ -1039,28 +1111,19 @@
 	<system:String x:Key="string_tooltip_nexusFileSearch">Поиск файлов, содержащихся в архиве, на NexusMods</system:String>
 	<system:String x:Key="string_interp_allInstallableFiles">Все файлы, устанавливаемые {0}</system:String>
 	<system:String x:Key="string_description_allInstallableFiles">Следующие файлы могут быть потенциально установлены модом в игру. Учтите, что некоторые из них могут быть установлены только при выборе определенных опций.</system:String>
-	<system:String x:Key="string_setting_launchThroughOrigin">Запуск Origin-игр через Origin</system:String>
-	<system:String x:Key="string_setting_tooltip_launchThroughOrigin">Запускает Origin-игры через клиент Origin, для подтверждения лицензии и игрового времени. Это влияет только ME1/ME2 Origin версии, для ME3 это обязательно.</system:String>
+	<system:String x:Key="string_setting_launchThroughOrigin">Запуск EA App-игр через EA App</system:String>
+	<system:String x:Key="string_setting_tooltip_launchThroughOrigin">Запускает EA App-игры через клиент EA App, для подтверждения лицензии и игрового времени. Это влияет только ME1/ME2 Origin версии, для ME3 это обязательно.</system:String>
 	<system:String x:Key="string_loadingTargets">Загрузка списка игр</system:String>
 	<system:String x:Key="string_configureNxmHandlerOnBoot">Настройка обработчика nxm:// при загрузке</system:String>
 	<system:String x:Key="string_tooltip_configureNxmHandlerOnBoot" xml:space="preserve">Настравивает обработчик nxm:// NexusMods, чтобы 'Download with Manager' на NexusMods загружала ME3Tweaks Mod Manager. При отключении можно включить повторно в панели NexusMods</system:String>
 	<system:String x:Key="string_dialog_nexusLoginRequiredForDownload">ME3Tweaks Mod Manager должен быть привязан к вашему аккаунту NexusMods для прямой загрузки с NexusMods. Нажмите OK для перехода на страницу авторизации NexusMods и привязки приложения.</system:String>
 	<system:String x:Key="string_notSignedIn">Вход не выполнен</system:String>
 	<system:String x:Key="string_couldNotEndorseFile">Невозможно одобрить файл</system:String>
-	<system:String x:Key="string_configuringNxmhandler">Настройка nxmhandler</system:String>
-	<system:String x:Key="string_configuredNxmhandler">Nxmhandler настроен</system:String>
-	<system:String x:Key="string_interp_downloadingNxmhandlerX">Загрузка nxmhandler {0}%</system:String>
 	<system:String x:Key="string_autoTOC">AutoTOC</system:String>
 	<system:String x:Key="string_runAutoTOCOnMassEffect3">Запустить AutoTOC для Mass Effect 3</system:String>
 	<system:String x:Key="string_runAutoTOCOnMassEffectLegendaryEdition">Запустить AutoTOC для Mass Effect (Legendary Edition)</system:String>
 	<system:String x:Key="string_runAutoTOCOnMassEffect2LegendaryEdition">Запустить AutoTOC для Mass Effect 2 (Legendary Edition)</system:String>
 	<system:String x:Key="string_runAutoTOCOnMassEffect3LegendaryEdition">Запустить AutoTOC для Mass Effect 3 (Legendary Edition)</system:String>
-	<system:String x:Key="string_syncPlotManager">Синхронизация PlotManager</system:String>
-	<system:String x:Key="string_syncPlotManagerForMassEffect">Синхронизация PlotManager для Mass Effect</system:String>
-	<system:String x:Key="string_syncPlotManagerForMassEffect2">Синхронизация PlotManager для Mass Effect 2</system:String>
-	<system:String x:Key="string_syncPlotManagerForMassEffectLegendaryEdition">Синхронизация PlotManager для Mass Effect (Legendary Edition)</system:String>
-	<system:String x:Key="string_syncPlotManagerForMassEffect2LegendaryEdition">Синхронизация PlotManager для Mass Effect 2 (Legendary Edition)</system:String>
-	<system:String x:Key="string_tooltip_syncPlotManager">Синхронизирует обновления Plot Manager из DLC-модов с файлом основного сюжета</system:String>
 	<system:String x:Key="string_massEffectModderForLegendaryEdition">Mass Effect Modder (Legendary Edition)</system:String>
 	<system:String x:Key="string_prereleaseNotice">Это предрелизная сбока ME3Tweaks Mod Manager. Не публикуйте моды из данной сборки. Здесь могут присутствовать критические изменения, из-за которых моды, сделанные для данной сборки, не будут работать на последующих сборках.</system:String>
 	<system:String x:Key="string_failedToCompileCoalescedFile">Компиляция файла coalesced не удалась</system:String>
@@ -1090,7 +1153,7 @@
 	<system:String x:Key="string_tooltip_decompileCoalGameLE1LE2">Декомпилировать файл Coalesced в отдельные ini-файлы для редактирования</system:String>
 	<system:String x:Key="string_tooltip_compileCoalGame3">Cкомпилировать файл Coalesced из отдельных xml-файлов</system:String>
 	<system:String x:Key="string_tooltip_compileCoalGameLE1LE2">Cкомпилировать файл Coalesced из отдельных ini-файлов</system:String>
-	<system:String x:Key="string_installMemFile">Установить файл .mem</system:String>
+	<system:String x:Key="string_installMemFile">Установить файл(ы) .mem</system:String>
 	<system:String x:Key="string_selectCoalescedFile">Выбрать файл Coalesced</system:String>
 	<system:String x:Key="string_errorDecompilingCoalescedFile">Ошибка декомпиляции файла Coalesced</system:String>
 	<system:String x:Key="string_interp_errorDecompilingCoalescedFile" xml:space="preserve">Возникла ошибка декомпиляции файла Coalesced:\n{0}</system:String>
@@ -1114,7 +1177,7 @@
 	<system:String x:Key="string_failedToInstallBinkASILoader">Ошибка установки загрузчика bink ASI</system:String>
 	<system:String x:Key="string_beta">Бета</system:String>
 	<system:String x:Key="string_selectLaunchOptions">Выбор опций запуска</system:String>
-	<system:String x:Key="string_saveChosenOptionsToThisBatchGroup">Сохранить выбранные опции в данной группе установки?</system:String>
+	<system:String x:Key="string_saveChosenOptionsToThisBatchGroup">Сохранить выбранные опции в группе установки?</system:String>
 	<system:String x:Key="string_saveOptions">Сохранить опции</system:String>
 	<system:String x:Key="string_changeCurrentLaunchConfiguration">Изменить текущую конфигурацию запуска</system:String>
 	<system:String x:Key="string_launchConfigurationOptionsNotAvailableForThisGame">Опции конфигурации запуска недоступны в данной игре</system:String>
@@ -1126,13 +1189,9 @@
 	<system:String x:Key="string_addStarterKitContent">Добавление контента starter-kit в DLC-мод</system:String>
 	<system:String x:Key="string_tooltip_addStarterKitContent">Позволяет добавить в DLC-мод контент, который обычно добавляется при использовании Starter Kit, например файл запуска</system:String>
 	<system:String x:Key="string_installStandaloneFiles">Установка автономных файлов</system:String>
-	<system:String x:Key="string_runLE1CoalescedMerge">Запуск LE1 Coalesced Merge</system:String>
-	<system:String x:Key="string_tooltip_runLE1CoalescedMerge">Объединяет все файлы DLC M3 Coalesced Delta с основным файлом LE1 Coalesced</system:String>
 	<system:String x:Key="string_trilogySaveEditor">Trilogy Save Editor</system:String>
 	<system:String x:Key="string_tooltip_trilogySaveEditor">Редактор сохранений для Mass Effect Trilogy и Legendary Edition</system:String>
 	<system:String x:Key="string_blankItemToAvoidBreakingTheInterface">Пустая строка для нормальной работы интерфейса</system:String>
-	<system:String x:Key="string_autobootLE2Test">Тест автозагрузки LE2</system:String>
-	<system:String x:Key="string_showBasegameFileIdentificationServiceViewer">Показать Basegame File Identification Service Viewer</system:String>
 	<system:String x:Key="string_tooltip_installHeadmorph">Устанавливает headmorph из данного мода в существующее сохранение игры</system:String>
 	<system:String x:Key="string_bootIntoSpecificSaveFile">Загрузка выборочного сохранения</system:String>
 	<system:String x:Key="string_selectHeadmorphFile">Выбор файла headmorph</system:String>
@@ -1147,7 +1206,7 @@
 	<system:String x:Key="string_textureModsImported">Текстурный(-е) мод(ы) импортирован(ы)</system:String>
 	<system:String x:Key="string_mergingCoalescedFiles">Объединение файлов Coalesced</system:String>
 	<system:String x:Key="string_mergedCoalescedFiles">Файлы Coalesced объединены</system:String>
-	<system:String x:Key="string_selectMemFile">Выбор файла .mem</system:String>
+	<system:String x:Key="string_selectMemFile">Выбор файлов .mem</system:String>
 	<system:String x:Key="string_interp_headmorphRequiresDLCCouldNotDetermine">Данный headmoprh требует установки {0} версии {1} или выше, но Mod Manager не может определить установленную версию. Установите {0} через Mod Manager, затем установите headmorph.</system:String>
 	<system:String x:Key="string_interp_headmorphRequiresDLCBadVersionString">Данный headmoprh требует установки {0} версии {1} или выше, но Mod Manager не может определить установленную версию в строке версии {2}. Свяжитесь с разработчиком данного мода для исправления проблемы.</system:String>
 	<system:String x:Key="string_interp_headmorphRequiresDLCMinimumReqNotMet" xml:space="preserve">Данный headmoprh требует установки {0} версии {1} или выше. Текущая установленная версия не соответствует данному требованию.\n\nУстановленная версия: {2}\nМинимальная требуемая версия: {1}</system:String>
@@ -1160,6 +1219,78 @@
 	<system:String x:Key="string_dialog_errorGeneratingMergeDLC" xml:space="preserve">Ошибка генерации Merge DLC: {0}Моды могут работать неправильно - удалите вручную Merge DLC (если есть) через панель 'Настройка Игры'.</system:String>
 	<system:String x:Key="string_errorGeneratingMergeDLC">Ошибка генерации Merge DLC</system:String>
 	<system:String x:Key="string_someASIModsWereNotInstalled">Некоторые ASI-моды не были установлены; подробнее в логах</system:String>
+	<system:String x:Key="string_dialog_importedBatchInstallGroup">Группы установки можно найти в Batch Installer, расположенном в меню Управление Модами</system:String>
+	<system:String x:Key="string_installGroupImported">Группы установки импортированы</system:String>
+	<system:String x:Key="string_youMustBeAuthenticatedToNexusModsInME3TweaksModManagerToUseThisFeature">Вы должны быть авторизованы в NexusMods через ME3Tweaks Mod Manager для использования данной функции.</system:String>
+	<system:String x:Key="string_notLoggedIn">Нет авторизации</system:String>
+	<system:String x:Key="string_interp_selectedModNoAltKeysNoCUSTOMDLCTask">{0} не использует заголовок задания CUSTOMDLC.</system:String>
+	<system:String x:Key="string_message">Сообщение</system:String>
+	<system:String x:Key="string_interp_modDoesNotHaveAlternatesOnCustomDLC">{0} не содержит ни одного alternate в своем заголовке задания CUSTOMDLC</system:String>
+	<system:String x:Key="string_interp_modNameDLCOptionKeys">{0} Ключей Опций DLC</system:String>
+	<system:String x:Key="string_dialog_modUsesTheseOptionKeys">{0} используюет следующие ключи опций в своем задании CUSTOMDLC. Вы можете использовать данные ключи для обнаружения, если эти опции были выбраны при установке мода.</system:String>
+	<system:String x:Key="string_interp_checkingPackagesXY">Проверка пакетных файлов {0}/{1}</system:String>
+	<system:String x:Key="string_interp_finishedPackageCheckIssuesCountIssuesFound">Проверка пакетных файлов завершена: {0} проблем обнаружено</system:String>
+	<system:String x:Key="string_checkingPackages">Проверка пакетных файлов</system:String>
+	<system:String x:Key="string_finishedCheckingPackages">Проверка пакетных файлов завершена</system:String>
+	<system:String x:Key="string_packageCheckFoundIssues">Проверка пакетных файлов выявила ошибки</system:String>
+	<system:String x:Key="string_theFollowingPackagesFailedToOpen">Следующие пакетные файлы не открылись:</system:String>
+	<system:String x:Key="string_dialog_restoreRequestedButUnavailable" xml:space="preserve">{0} предполагает восстановление вашей игры перед установкой, однако архив недоступен. Это может привести к нежелательному поведению из-за различий в состоянии игры на момент установки.\n\nПродолжить установку без восстановления архива?</system:String>
+	<system:String x:Key="string_dialog_restoreRequestedConfirmation" xml:space="preserve">{0} предполагает восстановление вашей игры перед установкой. Восстановление игры из архива удалит все модификации из игры (сохранненые игры останутся нетронутыми).\n\nВосстановить игру перед установкой?</system:String>
+	<system:String x:Key="string_gameRestoreRequested">Запрошено восстановление игры</system:String>
+	<system:String x:Key="string_continueClosingTheApplicationQuestion">Продолжить выход из программы?</system:String>
+	<system:String x:Key="string_backgroundProcessRunning">Фоновый процесс запущен</system:String>
+	<system:String x:Key="string_cleaningUpPleaseWait">Очистка, пожалуйста подождите</system:String>
+	<system:String x:Key="string_modManagerIsPerformingCleanupOptionsAndWillAutomaticallyCloseWhenCompletennYouCanForciblyCloseModManagerIfNecessaryByHoldingLeftShiftWhenClickingTheXButtonIfItGetsIntoAStateWhereItDoesntWantToClose" xml:space="preserve">Mod Manager выполняется операции по очистке и автоматически закроется по завершении.\n\nВы можете принудительно закрыть Mod Manager при необходимости, удерживая левый Shift и нажав крестик закрытия окна, если оно откажется закрываться.</system:String>
+	<system:String x:Key="string_operationInProgress">Операция в процессе</system:String>
+	<system:String x:Key="string_modManagerWillCompleteItsCurrentTaskAndThenCloseAutomaticallynnYouCanForciblyCloseModManagerIfNecessaryByHoldingLeftShiftWhenClickingTheXButtonIfItGetsIntoAStateWhereItDoesntWantToClose" xml:space="preserve">Mod Manager завершит текущее задание и закроется автоматически.\n\nВы можете принудительно закрыть Mod Manager при необходимости, удерживая левый Shift и нажав крестик закрытия окна, если оно откажется закрываться.</system:String>
+	<system:String x:Key="string_useExperimentalDownloadManagerForThisLinkQuestion">Использовать экспериментальный менеджер загрузок для данной ссылки?</system:String>
+	<system:String x:Key="string_useExperiment">Использовать эксперимент</system:String>
+	<system:String x:Key="string_importOrInstallTheseMemFilesQuestion">Импортировать или установить данные файлы .mem?</system:String>
+	<system:String x:Key="string_importOrInstall">Импорт или установка</system:String>
+	<system:String x:Key="string_import">Импорт</system:String>
+	<system:String x:Key="string_importingTextureModsToLibrary">Импортирование текстурных модов в библиотеку</system:String>
+	<system:String x:Key="string_importedTextureMods">Импортированные текстурные моды</system:String>
+	<system:String x:Key="string_interp_errorDecompilingM3MMessage">Ошибка декомпиляции файла m3m: {0}</system:String>
+	<system:String x:Key="string_errorDecompilingM3m">Ошибка декомпиляции m3m</system:String>
+	<system:String x:Key="string_merging2DATables">Объединение таблиц 2DA</system:String>
+	<system:String x:Key="string_merged2DATables">Объединенные таблицы 2DA</system:String>
+	<system:String x:Key="string_allMemFilesMustBeForTheSameGame">Все файлы .mem должны соответствовать одной игре.</system:String>
+	<system:String x:Key="string_error">Ошибка!</system:String>
+	<system:String x:Key="string_tooltip_moddescEditor">Редактор Mod Manager для файлов moddesc.ini</system:String>
+	<system:String x:Key="string_listOptionKeys">Перечислить DLC Alternate OptionKeys</system:String>
+	<system:String x:Key="string_tooltip_listOptionKeys" xml:space="preserve">Перечисляет OptionKeys для каждого alternate, которые может устанавливать данный мод (только для DLC-модов).&#10;Это может быть использовано в других модах для изменения поведения при установке, когда эти опции выбраны в данном моде при условии его предварительной установки.</system:String>
+	<system:String x:Key="string_tooltip_configureSettingsForModManager">Настроить параметры для Mod Manager</system:String>
+	<system:String x:Key="string_checkForUpdatesNonWhitelisted">Проверить обновления неразрешенных модов</system:String>
+	<system:String x:Key="string_tooltip_checkForUpdatesNonWhitelisted" xml:space="preserve">Моды, не подключенные к NexusModes Update Service не будут автоматически проверять обновления во избежание зацикливания.&#10;Данная проверка обновлений проверит моды, не подключенные к обновлениям</system:String>
+	<system:String x:Key="string_showWhichModsCanCheckForUpdates">Показать моды с возможностью проверки обновлений</system:String>
+	<system:String x:Key="string_tooltip_showWhichModsCanCheckForUpdates" xml:space="preserve">Добавляет к модам в библиотеке иконку, показывающую возможность проверки обновлений.&#10;Отображение будет работать только в текущей сессии</system:String>
+	<system:String x:Key="string_searchModLibrary">Поиск в библиотеке модов</system:String>
+	<system:String x:Key="string_tooltip_searchModLibrary">Фильтр модов по имени, отображемом в библиотеке модов</system:String>
+	<system:String x:Key="string_tooltip_installMemFiles" xml:space="preserve">Установка текстурных модов из файлов .mem&#10;Текстурные моды ДОЛЖНЫ устанавливаться ПОСЛЕ всех других контент-модов</system:String>
+	<system:String x:Key="string_tooltip_installHeadmorphMenu">Установка файлов .ron, .me2headmorph, и .me3headmorph в сохранения</system:String>
+	<system:String x:Key="string_tooltip_conflictDetector">Просмотр переопределений файлов в DLC-модах</system:String>
+	<system:String x:Key="string_tooltip_officialConfigurationTool">Запускает официальный интрумент настройки игры</system:String>
+	<system:String x:Key="string_tooltip_starterKit">Starter Kit создает пустой, полностью работающий DLC-мод, в качестве готовой базы для дальнейшего создания вашего мода</system:String>
+	<system:String x:Key="string_tooltip_binkBypass" xml:space="preserve">Bink-байпасы позволяют использовать дополнительные функции моддинга для игр, в которые они установлены.&#10;По умолчанию они включают консоль по клавише Tab или Тильда; для изменения используйте Console Key Keybinder</system:String>
+	<system:String x:Key="string_tooltip_autoTOC" xml:space="preserve">AutoTOC обновляет все файлы Table Of Contents, где перечислены все файлы, которые может загружать игра.&#10;Вам не требуется делать это вручную, Mod Manager сделает это по необходимости</system:String>
+	<system:String x:Key="string_targetMerge">Целевой Merge</system:String>
+	<system:String x:Key="string_tooltip_targetMerge" xml:space="preserve">Целевой Merge запускает все merge-операции для всех DLC-модов, прозводя их синхронизацию.&#10;Вам не требуется делать это вручную, Mod Manager сделает это по необходимости</system:String>
+	<system:String x:Key="string_diagnosticTool_OpenAllPackages">Средство диагностики: Открыть все пакетные файлы из текущей игры</system:String>
+	<system:String x:Key="string_tooltip_diagnosticTool_OpenAllPackages">Заставляет Mod Manager открыть все пакетные файлы из текущей игры и сообщить какие файлы (если есть) имет проблемы с открытием. Может обнаруживать поврежденные пакетные файлы</system:String>
+	<system:String x:Key="string_showModInstallationStatusInLbrary">Beta-параметр: Показать статуст установки мода в библиотеке</system:String>
+	<system:String x:Key="string_tooltip_notReliableForAllMods">ВНИМАНИЕ: ЭТО НЕ ОБЕСПЕЧИВАЕТСЯ ДЛЯ ВСЕХ МОДОВ</system:String>
+	<system:String x:Key="string_suppressTargetMerges">Beta-параметр ТЕКУЩЕЙ СЕССИИ: Подавление целевых merge</system:String>
+	<system:String x:Key="string_tooltip_suppressTargetMerges">ОПАСНОСТЬ: НЕ ВКЛЮЧАЙТЕ ЭТО, ЕСЛИ НЕ ЗНАЕТЕ, ЧТО ЭТО ОЗНАЧАЕТ. ВЫ НАЛОМАЕТЕ ДРОВ</system:String>
+	<system:String x:Key="string_runDetermineIfInstalled">Запустить DetermineIfInstalled</system:String>
+	<system:String x:Key="string_tooltip_introTutorial">Показывает обучение работе с Mod Manager, отображаемое при первом запуске Mod Manager</system:String>
+	<system:String x:Key="string_tooltip_launchConfig">Позволяет вам то, как Mod Manager запускает выбранную игру</system:String>
+	<system:String x:Key="string_tooltip_autobootSave">Позволяет вам автоматически загрузить любое сохрание при старте игры</system:String>
+	<system:String x:Key="string_tooltip_generationOT">Нажмите для включения/отключения функций Оригинальной Трилогии в Mod Manager</system:String>
+	<system:String x:Key="string_tooltip_generationLE">Нажмите для включения/отключения функций Legendary Edition в Mod Manager</system:String>
+	<system:String x:Key="string_typeToSearch">Введите для поиска</system:String>
+	<system:String x:Key="string_tooltip_endorseThisModOnNexusMods">Одобрить данный мод на NexusMods</system:String>
+	<system:String x:Key="string_interp_errorMerging2DAX">Возникла ошибка объединения таблиц 2DA: {0}</system:String>
+	<system:String x:Key="string_interp_mergemodAssetIsZeroBytes">Размер ресурсного файла mergemod ноль байт: {0}. Ресурсные файлы не могут быть пустыми.</system:String>
 	<system:String x:Key="string_dialog_missingConfigFileForMEIM">Файл настроек Mass Effect {0}.ini отсутствует. Он должен находиться в {1}. Пожалуйста, хотя бы однократно запустите игру, чтобы сгенерировать файлы по умолчанию.</system:String>
 	<system:String x:Key="string_interp_dialogConfigDirectoryMissing">Директория Mass Effect Config отсутствует. Она должна находиться в {0}. Пожалуйста, хотя бы однократно запустите игру, чтобы сгенерировать файлы по умолчанию.</system:String>
 	<system:String x:Key="string_cannotRunMassEffectIniModder">Невозможно запустить Mass Effect Ini Modder</system:String>
@@ -1186,12 +1317,15 @@
 	<system:String x:Key="string_viewInformationInTheVanillaDatabaseUsedForBackupVerification">Просмотр информации из базы данных оригиналов игр для верификации архивов</system:String>
 	<system:String x:Key="string_textureExportsNotListedInThisMemFile">[экспорты текстур, не указанные в данном файле .mem]</system:String>
 	<system:String x:Key="string_textureModsMustBeImportedBeforeUse">Текстурные моды должны быть импортированы перед тем как могут быть использованы</system:String>
+	<system:String x:Key="string_dialog_mergeModFeatureLevel1">Будет ли компилируемый вами mergemod использоваться в моде с использованием ModDesc 8.2 или ниже?</system:String>
+	<system:String x:Key="string_useEnhancedFeaturesQuestion">Использовать продвинутые функции?</system:String>
+	<system:String x:Key="string_dialog_unsupportedMergemodVersionMayBeTooNew">Неподдерживаемая версия mergemod, он может быть слишком новым для данной версии Mod Manager.</system:String>
 	<system:String x:Key="string_mergeModFileDoesNotHaveCorrectMagicHeader">В файле merge-мода отсутствует корректный magic-заголовок</system:String>
-	<system:String x:Key="string_interp_unsupportedMergeModVersionVersionX">Неподдерживаемая Версия Merge Mod: {0}</system:String>
-	<system:String x:Key="string_interp_invalidMergeModManifestReason" xml:space="preserve">Недопустимый манифест merge-мода:\n{0}</system:String>
+	<system:String x:Key="string_interp_unsupportedMergeModVersionVersionX">Неподдерживаемая версия mergemod: {0}</system:String>
+	<system:String x:Key="string_interp_invalidMergeModManifestReason" xml:space="preserve">Недопустимый манифест mergemod:\n{0}</system:String>
 	<system:String x:Key="string_filenameCannotBeNullInAMergeManifestFile">'filename' не может быть нулевым в файле merge-манифеста!</system:String>
 	<system:String x:Key="string_interp_targetingNonStartupFile">Объединение с незагрузочным файлом в данный момент невозможно: {0}</system:String>
-	<system:String x:Key="string_error_mergefile_badMagic">У ресурса Merge Mod V1 отсутствует magic-префикс - данный файл собран некорректно!</system:String>
+	<system:String x:Key="string_error_mergefile_badMagic">У ресурса Mergemod V1 отсутствует magic-префикс - данный файл собран некорректно!</system:String>
 	<system:String x:Key="string_interp_error_mergefile_assetNotFoundX">Ресурсный файл отсутствует в папке: {0}</system:String>
 	<system:String x:Key="string_interp_error_mergefile_scriptNotFoundX">Скриптовый файл отсутствует в папке: {0}</system:String>
 	<system:String x:Key="string_interp_mergefile_couldNotFindExportInPackage">Экспорт в пакетном файле {0} не найден: {1}! Невозможно применить MergeFileChange1.</system:String>
@@ -1206,11 +1340,14 @@
 	<system:String x:Key="string_interp_fileLibInitMergeMod1Script" xml:space="preserve">Невозможно инициализировать FileLib для обновления скрипта, невозможно объединить скрипт с {0}:\n{1}</system:String>
 	<system:String x:Key="string_interp_mergefile_noLocalizedFiles">Локализованные файлы для объединения с {0} не найдены. В данном объединении 'applytoallapplications' задан как 'true', что приводит к внесению изменений только в локализованные версии файла</system:String>
 	<system:String x:Key="string_interp_mergefile_errorCompilingClassAfterEdit">Ошибка компилирования класса {0} после добавления или замены {1}: {2}</system:String>
-	<system:String x:Key="string_interp_mergefile_serialSizeMismatch">Некорректная длина merge-мода; чтение идет с позиции {0}, но merge-мод имеет длину {1} байт</system:String>
+	<system:String x:Key="string_interp_mergefile_serialSizeMismatch">Некорректная длина mergemod; чтение идет с позиции {0}, но merge-мод имеет длину {1} байт</system:String>
 	<system:String x:Key="string_interp_propertyNotFoundX">Свойство не найдено: {0}</system:String>
 	<system:String x:Key="string_interp_errorCompilingPropertyXinYZ" xml:space="preserve">Ошибка компиляции свойства '{0}' в {1}:\n{2}</system:String>
 	<system:String x:Key="string_interp_incompleteStaticArrayIndex">Неполный индекс статического массива в propertyname: {0}</system:String>
 	<system:String x:Key="string_interp_updatingX">Обновление {0}</system:String>
+	<system:String x:Key="string_interp_mergeModAssetsSingleFolder">Все ресурсные файлы mergemod должны содержаться в одной папке. Недопустимое имя ресурса: {0}</system:String>
+	<system:String x:Key="string_interp_classUpdateCannotNestMoreThanOne">Ошибка валидации на {0} {1}: класс не может располагаться глубще одного пакетного файла</system:String>
+	<system:String x:Key="string_interp_classUpdateCannotUpdateVanillaClass">Ошибка валидации на {0} {1}: ClassUpdate не может быть использован для модификации любых исходных классов</system:String>
 	<system:String x:Key="string_no">Нет</system:String>
 	<system:String x:Key="string_ok">OK</system:String>
 	<system:String x:Key="string_yes">Да</system:String>
@@ -1222,16 +1359,24 @@
 	<system:String x:Key="string_deployment_sqmIssuesFound">Обнаружены проблемы Squadmate Outfit Merge</system:String>
 	<system:String x:Key="string_deployment_sqmIssuesFoundTooltip">Преобразование выявило проблемы с файлами Squadmate Outfit Merge</system:String>
 	<system:String x:Key="string_deployment_sqmIssueReferencedPackageNotFound">Пакетный файл Squadmate Outfit '{0}' не устанавливается вместе с модом.</system:String>
-	<system:String x:Key="string_deployment_sqmIssueOutfitLocalizationMissing">Локализация '{0}' для пакетного файла сопартийца {1} отсутствует.</system:String>
+	<system:String x:Key="string_deployment_sqmIssueOutfitLocalizationMissing">Локализация '{0}' для пакетного файла напарника {1} отсутствует.</system:String>
 	<system:String x:Key="string_deployment_sqmIssueInvalidOutfitImageReferenceType">Недопустимое значение '{0}': Тип экспорта должен быть 'Texture2D', но ссылка идет на тип '{1}'.</system:String>
 	<system:String x:Key="string_deployment_sqmIssueCouldntFindOutfitImage">Недопустимое значение '{0}': Ни одна устанавливаемая версия '{1}' не содержит экспорта с указанным полным путем '{0}'.</system:String>
-	<system:String x:Key="string_deployment_sqmIssueHenchImagePackageNotFound">Пакетный файл изображений сопартийца не найден. Имя файла должно иметь формат SFXHenchImages_[DLC_MOD_YourModName].</system:String>
+	<system:String x:Key="string_deployment_sqmIssueHenchImagePackageNotFound">Пакетный файл изображений напарника не найден. Имя файла должно иметь формат SFXHenchImages_[DLC_MOD_YourModName].</system:String>
 	<system:String x:Key="string_deployment_sqmIssueInvalidHenchId">Неизвестный 'henchname': {0}. Значения чувствительны к регистру.</system:String>
 	<system:String x:Key="string_deployment_basegameFullFileWarning">Мод потенциально устанавливает файл, используемые merge-модами: {0}. Рекомендуется перенастроить мод с применением mergemods к данному файлу для большей совместимости с остальными модами.</system:String>
 	<system:String x:Key="string_deployment_unusedExtraFileTypeFound">Вместе с модом может быть установлен {0}-файл: {1}. Данный файл следует удалить, так как он никогда не будет использован игрой. Если вы хотите включать дополнительные файлы типа этого, используйте 'additionaldeploymentfolder' из заголовка [UPDATES].</system:String>
 	<system:String x:Key="string_deployment_nexusUpdaterServiceInfo">{0} ({1}) не внесен в список разрешений NexusMods Updater Service. Данный мод должен быть в списке для возможности проверки обновлений (в силу архитектуры NexusMods API). Вы можете внести данный мод в список через ME3TweaksDiscord, в канале #nexusupdate-rules.</system:String>
 	<system:String x:Key="string_interp_compressedTlkDataInfo">Данный мод использует заголовок задания {0}. Была обнаружена сжатая версия xml-файлов ({1}); при преобразовании будет использован этот файл вместо отдельных xml-файлов. Если вы не предусматривали это, удалите сжатый файл и Mod Manager создаст новый при преобразовании.</system:String>
 	<system:String x:Key="string_interp_exceptionValidatingOutfitManifestMergeManifest">Ошибка валидации манифеста костюма: {0}: {1}</system:String>
+	<system:String x:Key="string_interp_modWithDifferentNameInTPMI">Мод с именем папки '{0}' уже существует в Third Party Identification Service как '{1}'. Это ваш мод? Если нет, ваш мод, вероятно, в черном списке - моды не могут использовать одинаковые имена папок в одной игре.</system:String>
+	<system:String x:Key="string_guidanceAvailable">Доступно руководство</system:String>
+	<system:String x:Key="string_tooltip_guidanceAvailable">Mod Manager содержит общее руководство, доступное для вашего мода</system:String>
+	<system:String x:Key="string_dialog_guidanceAvailable">Следующее общее руководство доступно для вашего мода.</system:String>
+	<system:String x:Key="string_miscellaneousGuidance">Дополнительное руководство</system:String>
+	<system:String x:Key="string_interp_modsDontMixAutoloadAndM3DA">Моды не должны комбинировать использование записей 2DA Autoload.ini и использование LE1 2DA Merge (.m3da) во избежание проблем. Autoload: {0}</system:String>
+	<system:String x:Key="string_interp_mergeModFeatureLevelIncompatible">MergeMod {0} был скопилирован на уровне функций V {1}, что требует cmmver минимум {2}. Необходимо перекомпилировать файл mergemod.</system:String>
+	<system:String x:Key="string_interp_mergeModFailedToLoadUnknownFeatureLevel">Ошибка загрузки MergeMod {0}. Он может быть несовместим с cmmver {1}</system:String>
 	<system:String x:Key="string_interp_appliesToX">Применяется к файлу {0}</system:String>
 	<system:String x:Key="string_interp_partOfX">Часть {0}</system:String>
 	<system:String x:Key="string_interp_versionX">Версия {0}</system:String>
@@ -1274,7 +1419,7 @@
 	<system:String x:Key="string_selectModsToImportIntoModManagerLibrary">Выбрать моды для импорта в библиотеку Mod Manager</system:String>
 	<system:String x:Key="string_noCompatibleModsFoundInArchive">В архиве не обнаружено совместимых модов</system:String>
 	<system:String x:Key="string_executableModsMustBeValidatedByME3Tweaks" xml:space="preserve">Моды в формате установочного файла должны пройти валидацию ME3Tweaks перед импортом в Mod Manager. Это сделано для предотвращения повреждения сторонних модов.\n\nЭтот установщик не прошел валидацию. Проверьте наличие совместимой с ME3Tweaks Mod Manager версии на странице мода или обратитесь за необходимой версией к разработчику.</system:String>
-	<system:String x:Key="string_noCompatibleModsFoundInArchiveOTExtended">В архиве не обнаружено совместимых модов. Если это текстурны моды, его требуется устанавливать через ALOT Installer. Если это известный мод для Mod Manager, пожалуйста обратитесь на ME3Tweaks Discord через меню Справка.</system:String>
+	<system:String x:Key="string_noCompatibleModsFoundInArchiveOTExtended">В архиве не обнаружено совместимых модов. Если это текстурный мод, его требуется устанавливать через ALOT Installer. Если это известный мод для Mod Manager, пожалуйста обратитесь на ME3Tweaks Discord через меню Справка.</system:String>
 	<system:String x:Key="string_noCompatibleModsFoundInArchiveLEExtended">В архиве не обнаружено совместимых модов. Если это текстурный мод, его требуется устанавливать через Mass Effect Modder. Если это известный мод для Mod Manager, пожалуйста обратитесь на ME3Tweaks Discord через меню Справка.</system:String>
 	<system:String x:Key="string_noCompatibleModsFoundInArchiveBothGensExtended">В архиве не обнаружено совместимых модов. Если это текстурны моды, его требуется устанавливать через ALOT Installer (OT) или Mass Effect Modder (LE). Если это известный мод для Mod Manager, пожалуйста обратитесь на ME3Tweaks Discord через меню Справка.</system:String>
 	<system:String x:Key="string_interp_scanningX">Сканирование {0}</system:String>
@@ -1318,10 +1463,19 @@
 	<system:String x:Key="string_description_blacklistedMod" xml:space="preserve">Разработчики ME3Tweaks Mod Manager внесли данный файл в черный список по одной из следующих причин:\n - Мод(ы) в данном файле не работает или заброшен\n - Мод(ы) в данном файле повреждает игру у конечных пользователей</system:String>
 	<system:String x:Key="string_interp_errorCreatingModFolderX">Произошла ошибка создания папки для данного мода: {0}</system:String>
 	<system:String x:Key="string_invalidServerModdesc">Для данного архива был предоставлен недопустимый moddesc сервера, пожалуйста отправьте Mgamerz ссылку на данный файл и сообщение об ошибке.</system:String>
+	<system:String x:Key="string_description_invalidBatchQueueArchive">Batch-группы установки должны быть преобразованы посредством ME3Tweaks Mod Manager для возможности их импортирования. Свяжитесь с разработчиком данного файла.</system:String>
+	<system:String x:Key="string_dialog_biqAlreadyExists">Группа установки с именем {0} уже существует. Импортирование данной группы перезапишет существующую.</system:String>
+	<system:String x:Key="string_installGroupAlreadyExists">Группа установки уже существует</system:String>
+	<system:String x:Key="string_interp_importingX">Импортирование {0}</system:String>
+	<system:String x:Key="string_importInstallGroup">Импорт группы установки</system:String>
+	<system:String x:Key="string_preparingToImportMods">Подготовка к импорту модов</system:String>
 	<system:String x:Key="string_dialog_mustBePremiumUserToDownload">Невозможно скачать файл: Необходимо иметь премиум-подписку NexusMods для использования прямых ссылок.</system:String>
 	<system:String x:Key="string_dialog_cannotDownloadDeletedFile">Невозможно скачать файл: Удалено с NexusMods</system:String>
 	<system:String x:Key="string_interp_errorDownloadingModX">Ошибка загрузки мода: {0}</system:String>
 	<system:String x:Key="string_interp_dialog_modNotForThisModManager" xml:space="preserve">Данный мод предназначен для '{0}', который не поддерживается ME3Tweaks Mod Manager. Вероятно, ожидалось использование другого менеджера модов, но в связи с тем как инструменты используют протокол nxm://, может запуститься неверное приложение.\n\nЗапустите менеджер модов, с помощью которого вы желаете загрузить данный мод по ссылкам nxm://. После открытия, попробуйте загрузить мод снова.</system:String>
+	<system:String x:Key="string_interp_startingDownloadAttemptX">Старт загрузки (попытка #{0})</system:String>
+	<system:String x:Key="string_startingDownload">Старт загруки</system:String>
+	<system:String x:Key="string_downloadComplete">Загрузка завершена</system:String>
 	<system:String x:Key="string_modDownloader">Mod Downloader</system:String>
 	<system:String x:Key="string_initializing">Инициализация</system:String>
 	<system:String x:Key="string_cancelDownload">Отмена загрузки</system:String>
@@ -1348,7 +1502,7 @@
 	<system:String x:Key="string_dialogOutdatedDLCFooter" xml:space="preserve">\n\nНажмите Да для продолжения установки {0}, или нажмите Нет для отмены.</system:String>
 	<system:String x:Key="string_outdatedDLCDetected">Обнаружено устаревшее DLC</system:String>
 	<system:String x:Key="string_dialogIncompatibleDLCDetectedHeader" xml:space="preserve">Следующие DLC указаны как несовместимые с {0}:\n</system:String>
-	<system:String x:Key="string_dialogIncompatibleDLCDetectedFooter" xml:space="preserve">\n\nЧтобы установить {0}, Custom DLC-моды должны быть предварительно удалены.\nВы можете управлять установленными Custom DLC, нажав кнопку Детали Установки.</system:String>
+	<system:String x:Key="string_dialogIncompatibleDLCDetectedFooter" xml:space="preserve">\n\nЧтобы установить {0}, вышеуказанные Custom DLC-моды должны быть предварительно удалены.\nВы можете управлять установленными Custom DLC, нажав кнопку Настройка Игры.</system:String>
 	<system:String x:Key="string_incompatibleDLCDetected">Обнаружено несовместимое DLC</system:String>
 	<system:String x:Key="string_dialogNoWritePermissions">У текущего пользователя отсутствуют права на запись в директорию игры. Вы можете добавить права, используя пункт "Дать права на запись в директории игры" в меню Инструменты.</system:String>
 	<system:String x:Key="string_cannotWriteToGameDirectory">Запись в директорию игры невозможна</system:String>
@@ -1374,7 +1528,7 @@
 	<system:String x:Key="string_interp_errorWhileExtractingArchiveInstall" xml:space="preserve">Возникла ошибка распаковки архивного файла для установки:\n\n{0}\n\nМод мог быть частично установлен.</system:String>
 	<system:String x:Key="string_errorExtractingMod">Ошибка распаковки мода</system:String>
 	<system:String x:Key="string_interp_dialog_errorOccuredDuringInstallation" xml:space="preserve">Возникла ошибка при установке мода:\n{0}\n\nМод мог быть установлен некорректно. Заходите на ME3Tweaks Discord, если вам нужна помощь.</system:String>
-	<system:String x:Key="string_dialog_appAboutToCrashYouFoundBug">Вы вызвали баг/падение установщика модов Mod Manager, который в настоящий момент исследуется и требует больше информации! Пожалуйста, зайдите на ME3Tweaks Discord и сообщите увиденное в данном сообщении в #enduser_support, где вам смогут помочь разобраться с данной проблемой. (Приложение сейчас вылетит)</system:String>
+	<system:String x:Key="string_dialog_appAboutToCrashYouFoundBug">Вы вызвали баг/падение установщика модов Mod Manager. Пожалуйста, зайдите на ME3Tweaks Discord и сообщите увиденное в данном сообщении в #enduser_support, где вам смогут помочь разобраться с данной проблемой. (Приложение сейчас вылетит)</system:String>
 	<system:String x:Key="string_appCrash">Вылет приложения</system:String>
 	<system:String x:Key="string_interp_dialog_errorCopyingFilesToTarget" xml:space="preserve">Возникла ошибка при копировании файлов мода в игру:\n\n{0}Мод может быть установлен частично.</system:String>
 	<system:String x:Key="string_errorInstallingMod">Ошибка установки мода.</system:String>
@@ -1392,18 +1546,22 @@
 	<system:String x:Key="string_tooltip_targetThatTheModWillBeInstalledTo">Указывать путь установки мода в</system:String>
 	<system:String x:Key="string_tooltip_modinstaller_compressPackages" xml:space="preserve">Сжатие пакетных файлов уменьшит занимаемое дисковое пространство для большинства модов.&#10;Сжатие увеличивает время установки мода</system:String>
 	<system:String x:Key="string_interp_error_singleRequiredDlcMissing">{0} требует наличия установки хотя бы одного из следующих DLC:{1}</system:String>
-	<system:String x:Key="string_warningTexturesAreInstalled" xml:space="preserve">Текстуры установлены и данный мод устанавливает или модифицирует пакетные файлы. Вы можете продолжить установку данного мода, но новые файлы не будут содержать обновленные текстуры, установленные ранее. Mass Effect Modder также больше не работает с данной целевой игрой.\n\nТекстурные моды следует устанавливать после установки всех модов в пакетных файлах.\n\nПродолжить установку?</system:String>
+	<system:String x:Key="string_warningTexturesAreInstalled" xml:space="preserve">Текстуры установлены и данный мод устанавливает или модифицирует пакетные файлы. Вы можете продолжить установку данного мода, но новые файлы не будут содержать обновленные текстуры, установленные ранее. Вы не сможете больше устанавливать текстуры в данную целевую игру.\n\nТекстурные моды следует устанавливать после установки всех модов в пакетных файлах.\n\nПродолжить установку?</system:String>
 	<system:String x:Key="string_warningTextureModsAreInstalled">Внимание: Установлены текстурные моды</system:String>
-	<system:String x:Key="string_interp_errorApplyingMergeModXY">Возникла ошибка объединения модов {0}</system:String>
+	<system:String x:Key="string_interp_errorApplyingMergeModXY">Возникла ошибка применения mergemod {0}: {1}.</system:String>
 	<system:String x:Key="string_updatingTLKFiles">Обновление TLK-файлов</system:String>
 	<system:String x:Key="string_applyingMergemods">Применение mergemods</system:String>
-	<system:String x:Key="string_interp_minVersionAppend">(минимальная версия: {0})</system:String>
 	<system:String x:Key="string_notice_directModsDontGoToLibrary">Моды, установленные напрямую из архива не появятся в библиотеке модов</system:String>
 	<system:String x:Key="string_interp_errorInstallingBinkBypassX">Возникла ошибка установки байпаса bink, необходимого для полноценной поддержки моддинга: {0}</system:String>
 	<system:String x:Key="string_title_errorInstallingBinkBypass">Ошибка установки байпаса bink</system:String>
 	<system:String x:Key="string_interp_errorInstallingTLKMergesX">Возникла ошибка установки TLK-merge: {0}</system:String>
 	<system:String x:Key="string_title_errorInstallingTLKMerge">Ошибка установки TLK-merge</system:String>
 	<system:String x:Key="string_modRequiresAMDProcessor">Данный мод может быть установлен только на систему с процессором AMD.</system:String>
+	<system:String x:Key="string_oodleNotFound">Библиотека сжатия для открытия и сохрания пакетных файлов Legendary Edition не обнаружена.</system:String>
+	<system:String x:Key="string_ensureGameIsValidDiscord">Удостоверьтесь, что ваша игра корректно установлена и запущена хотя бы раз. Если проблемы продолжатся, пожалуйста, обратитесь на ME3Tweaks Discord.</system:String>
+	<system:String x:Key="string_trackingMergemodChanges">Отслеживание изменений mergemod</system:String>
+	<system:String x:Key="string_tooltip_optionNotApplicable">Исходя из условий, поставленных разработчиком мода, данная опция не применима в текущей конфигурации вашей игры</system:String>
+	<system:String x:Key="string_tooltip_optionForceApplied">Исходя из условий, поставленных разработчиком мода, данная опция должна быть применена в текущей конфигурации вашей игры</system:String>
 	<system:String x:Key="string_addSelectedModsToDeployment">Добавить выбранные моды к преобразованию</system:String>
 	<system:String x:Key="string_description_addSelectedModsToDeployment">Выбрать моды для добавления к преобразованию. Вы можете выбрать несколько модов, зажав Control или Shift.</system:String>
 	<system:String x:Key="string_addModsToDeployment">Добавить моды к преобразованию</system:String>
@@ -1426,6 +1584,7 @@
 	<system:String x:Key="string_requiresBackup">Требует наличия архива</system:String>
 	<system:String x:Key="string_tooltip_downloadAll">Скачать обновления для модов, поддерживающих прямые обновления</system:String>
 	<system:String x:Key="string_downloadAll">Скачать все</system:String>
+	<system:String x:Key="string_interp_checkingForModUpdatesX">Проверка обновлений мода ({0})</system:String>
 	<system:String x:Key="string_interp_decompressedFileNotCorrectSize">Некорректный размер распакованного файла ({0}). Ожидалось: {1}, получено: {2}</system:String>
 	<system:String x:Key="string_interp_decompressedFileWrongHash">Неверный хэш распакованного файла ({0}). Ожидалось: {1}, получено: {2}</system:String>
 	<system:String x:Key="string_applying">Применение</system:String>
@@ -1438,6 +1597,7 @@
 	<system:String x:Key="string_interp_XfilesWillBeDownloaded">Будет загружено файлов: {0} ({1})</system:String>
 	<system:String x:Key="string_interp_indexingForUpdatesXY">Индексация {0} для обновлений {1}%</system:String>
 	<system:String x:Key="string_interp_calculatingUpdateDeltaXY">Вычисление дельты обновления для {0} {1}%</system:String>
+	<system:String x:Key="string_inRestoreMode">В режиме восстановления</system:String>
 	<system:String x:Key="string_interp_compressingX">Сжатие {0}</system:String>
 	<system:String x:Key="string_interp_compressedX">Сжатие {0} завершено</system:String>
 	<system:String x:Key="string_interp_vPatchingIntoAlternate">Применение VPatch в alternate: {0}</system:String>
@@ -1541,7 +1701,13 @@
 	<system:String x:Key="string_mod_modReferencesTextureFiles">Данный мод ссылается на файлы текстурного мода, которые могут быть установлены после всех остальных модов:</system:String>
 	<system:String x:Key="string_mod_modReferencesHeadmorphFiles">Данный мод может устанавливать следующие файлы headmoprh:</system:String>
 	<system:String x:Key="string_interp_validation_modparsing_unsupportedModdescVersion">Указанный в данном моде cmmver ({0}) выше версии, поддерживаемой данной сборкой ME3Tweaks Mod Manager ({1}). Рекомендуется обновить Mod Manager для загрузки данного мода.</system:String>
-	<system:String x:Key="string_mod_validation_basegameMergeModsWithoutModDir">[BASEGAME] 'mergemods' был указан, но 'moddir' нет - вы собирались задать 'moddir' как '.'? Объединенные моды не будут работать без указания moddir, используйте значение '.' если у вас нет других файлов для замены или удалите mergemods из данного заголовка задания.</system:String>
+	<system:String x:Key="string_mod_validation_basegameMergeModsWithoutModDir">[BASEGAME] 'mergemods' был указан, но 'moddir' нет - вы собирались задать 'moddir' как '.'? Mergemods не будут работать без указания moddir, используйте значение '.' если у вас нет других файлов для замены или удалите mergemods из данного заголовка задания.</system:String>
+	<system:String x:Key="string_installsTheFollowingASIMods">Устанавливает следующие ASI-моды:</system:String>
+	<system:String x:Key="string_invalid">Недопустимо</system:String>
+	<system:String x:Key="string_interp_validation_altSpecifiesValueFolderDoesntExist">В Alternate {0} задано значение '{1}', которое ссылается на несуществующую папку в {2}</system:String>
+	<system:String x:Key="string_validation_mergeModVersionUnsupported">Ошибка загрузки mergemod: Неподдерживаемая версия</system:String>
+	<system:String x:Key="string_interp_validation_mergeModCompilerTooNew">Mergemod {0} был собран компилятором, требующим версии cmmver {1} или выше. Перекомпилируйте mergemod или обновите cmmver</system:String>
+	<system:String x:Key="string_interp_errorReadingMergeMod">При чтении связанного mergemod '{0}' возникла ошибка {1}. Подробнее смотрите в логах.</system:String>
 	<system:String x:Key="string_interp_tlkmerge_couldNotFindExportInPackage">Экспорт для объединения TLK в пакетном файле {0} не найден. Данное объединение будет пропущено.</system:String>
 	<system:String x:Key="string_copiedModdesciniContentsToClipboard">Содержимое moddesc.ini скопировано в буфер</system:String>
 	<system:String x:Key="string_interp_failedToCopyModdescini">Не удалось скопировать содержимое moddesc.ini в буфер</system:String>
@@ -1549,7 +1715,6 @@
 	<system:String x:Key="string_interp_savedModdsecini">moddesc.ini был обновлен для {0}. Перезагрузите библиотеку для применения изменений.</system:String>
 	<system:String x:Key="string_interp_couldNotSaveModdescini">Невозможно сохранить moddesc.ini: {0}</system:String>
 	<system:String x:Key="string_modLoadedSuccessfully">Мод успешно загружен</system:String>
-	<system:String x:Key="string_moddesciniEdsitor">Редактор moddesc.ini</system:String>
 	<system:String x:Key="string_openModdesciniDocumentation">Открыть документацию moddesc.ini</system:String>
 	<system:String x:Key="string_serialize">Сериализация</system:String>
 	<system:String x:Key="string_metadata">Метаданные</system:String>
@@ -1635,8 +1800,22 @@
 	<system:String x:Key="string_mde_description_alternatefiles_officialdlc">Alternate Files позволяют указать alternate-опции установки для этого задания. Данные опции будут представлены пользователю до начала установки.</system:String>
 	<system:String x:Key="string_mde_description_cmmverUpgradeWarning">Значение cmmver вашего мода будет обновлено при сериализации. Это может потребовать дополнительных изменений для корректной работы.</system:String>
 	<system:String x:Key="string_mde_interp_removeHeadmorphReferenceX">Удалить ссылку на headnoprh '{0}'?</system:String>
-	<system:String x:Key="string_toolUnderDevelopment">Данный инструмент находится в разработке и может работать нестабильно. Используйте на свой страх и риск!</system:String>
-	<system:String x:Key="string_underDevelopment">В разработке</system:String>
+	<system:String x:Key="string_mde_cloneAlternate">Клонирует данный alternate, располагая копию сразу под ним</system:String>
+	<system:String x:Key="string_mde_description_asimods">Моды, требующие дополнительный нативный код для корректной работы могут запрашивать его установку через Mod Manager посредством настроек на данной странице.</system:String>
+	<system:String x:Key="string_mde_warning_asimods">НЕ ИЗМЕНЯЙТЕ НАСТРОЙКИ НА ДАННОЙ СТРАНИЦЕ, ЕСЛИ ВАШ МОД НЕ ТРЕБУЕТ ASI-МОДОВ. ASI-МОДЫ МОГУТ ЛЕГКО СДЕЛАТЬ ИГРУ НЕСТАБИЛЬНОЙ. МОДЫ, ДОБАВЛЯЮЩИЕ ИХ БЕЗ ПРИЧИНЫ МОГУТ БЫТЬ ИСКЛЮЧЕНЫ ИЗ ИМПОРТА.</system:String>
+	<system:String x:Key="string_addASIMod">Добавить ASI-мод</system:String>
+	<system:String x:Key="string_tooltip_removeASIFromThisMod">Удалить ASI из данного мода</system:String>
+	<system:String x:Key="string_asiMod">ASI-мод</system:String>
+	<system:String x:Key="string_groupID">ID Группы</system:String>
+	<system:String x:Key="string_version">Версия</system:String>
+	<system:String x:Key="string_useLatestVersion">Использовать последнюю версию</system:String>
+	<system:String x:Key="string_dialog_deleteMultilistConfirm">Удалить multilist {0}? Это переиндексирует все multilist. Удостоверьтесь, что все ссылки на ваши multilist проверены и обновлены.</system:String>
+	<system:String x:Key="string_tooltip_deleteMultilist">Удалить multilist</system:String>
+	<system:String x:Key="string_tooltip_deleteFileFromMultilist">Удалить файл из multilist</system:String>
+	<system:String x:Key="string_tooltip_mde_serialize">Конвертирует данные из этого редактора в файл moddesc.ini</system:String>
+	<system:String x:Key="string_tooltip_mde_saveToMod">Сохраняет текст moddesc.ini для вашего мода. Архивная копия существующего файла будет создана на случай необходимости отката</system:String>
+	<system:String x:Key="string_closeTheEditorForThisMod">Закрыть редактор для данного мода?</system:String>
+	<system:String x:Key="string_haveYouSavedChanges">Вы сохранили изменения?</system:String>
 	<system:String x:Key="string_interp_validation_modjob_replacementFileSpecifiedByJobDoesntExist">Не удалось добавить файл для замены при настройке мода: {0} не существует, но указан в задании.</system:String>
 	<system:String x:Key="string_validation_modjob_exeFilesNotAllowed">.exe не резрешены в модах Mod Manager.</system:String>
 	<system:String x:Key="string_validation_modjob_dllFilesNotAllowed">.dll не разрешены в модах Mod Manager.</system:String>
@@ -1711,7 +1890,7 @@
 	<system:String x:Key="string_nexusModsDirections">Выполните вход в NexusMods, нажав "Авторизоваться на NexusMods" внизу.  авторизуйте ME3Tweaks Mod Manager. Альтернативно, вы можете авторизоваться вручную, вставив ваш API-ключ NexusMods после выбора "Ввести API-ключ вручную". Ваш API-ключ можно найти в настройках аккаунта NexusMods.</system:String>
 	<system:String x:Key="string_caution">Внимание</system:String>
 	<system:String x:Key="string_doNotShareAPIKeyWarning">Не показывайте никому свой API-ключ (даже на скриншотах)! API-ключ позволяет любому человеку выполнять определенные действия от вашего имени и должен быть защищен так же надежно, как и пароль.</system:String>
-	<system:String x:Key="string_unlinkModManagerFromNexusMods">Отключить Mod Manager от NexusMods</system:String>
+	<system:String x:Key="string_unlinkModManagerFromNexusMods">Выйти из NexusMods</system:String>
 	<system:String x:Key="string_pasteYourAPIKeyHere">Вставьте сюда ваш API-ключ</system:String>
 	<system:String x:Key="string_manuallyEnterAPIKey">Ввести API-ключ вручную</system:String>
 	<system:String x:Key="string_yourAPIKeyWillAppearHere">Ваш API-ключ появится здесь</system:String>
@@ -1745,15 +1924,15 @@
 	<system:String x:Key="string_legendaryEditionOptions">Настройки Legendary Edition</system:String>
 	<system:String x:Key="string_description_leOptions">Данные настроки применяются только при работе с Mass Effect Legendary Edition</system:String>
 	<system:String x:Key="string_launcherAutobootSelectedGame">Лончер: Автозагрузка выбранной игры</system:String>
-	<system:String x:Key="string_description_autobootLE">При нажатии 'Запуск игры' лончер будет пропущенен и вместо этого загрузится выбранная игра.</system:String>
-	<system:String x:Key="string_description_me3tweaksModmaker">Данные настройки применяются только к ME3Tweaks ModMaker, веб-приложение для создания геймплейных модов Mass Effect 3</system:String>
+	<system:String x:Key="string_description_autobootLE">При нажатии 'Запуск игры' лончер будет пропущен и вместо этого загрузится выбранная игра. Для загрузки в лончер, выберите целевую игру для лончера и нажмите Запуск Игры.</system:String>
+	<system:String x:Key="string_description_me3tweaksModmaker">Данные настройки применяются только к ME3Tweaks ModMaker, веб-приложению для создания геймплейных модов Mass Effect 3</system:String>
 	<system:String x:Key="string_textureLODUpdates">Обновления LOD текстур</system:String>
-	<system:String x:Key="string_description_textureLODs">Данные настройки определяют какой уровень детализации текстур будет установлен при выборе 'Запуск игры', если обнаружен установленный текстурный мод. Можно отключить данную функцию не выбирая ни один из вариантов. Если текстурный мод не обнаружен, будет установлен использованы исходные LOD. Данные настройки применяются только к Оригинальной Трилогии, моддинг текстур Legendary Edition не использует текстурные LOD.</system:String>
+	<system:String x:Key="string_description_textureLODs">Данные настройки определяют какой уровень детализации текстур будет установлен при выборе 'Запуск Игры', если обнаружен установленный текстурный мод. Можно отключить данную функцию не выбирая ни один из вариантов. Если текстурный мод не обнаружен, будет установлен использованы исходные LOD. Данные настройки применяются только к Оригинальной Трилогии, моддинг текстур Legendary Edition не использует текстурные LOD.</system:String>
 	<system:String x:Key="string_logging">Логирование</system:String>
 	<system:String x:Key="string_description_logging">Логирование может снизить производительность программы, но полезно для отладки.</system:String>
 	<system:String x:Key="string_applicationTheme">Тема оформления</system:String>
 	<system:String x:Key="string_doubleClickModInLibraryToInstall">Установите мод в библиотеку двойным кликом</system:String>
-	<system:String x:Key="string_description_doubleClickModInLibraryToInstall">Двойной клик по моду в библиотеке действует аналогично нажатию 'Применить Мод'. Если соответствующаяя моду игра не выбрана в качестве целевой, будет использована текущая подходящая. Для модов без опций это немедленно запустит установку.</system:String>
+	<system:String x:Key="string_description_doubleClickModInLibraryToInstall">Двойной клик по моду в библиотеке действует аналогично нажатию 'Применить Мод'. Если соответствующая моду игра не выбрана в качестве целевой, будет использована текущая. Для модов без опций это немедленно запустит установку.</system:String>
 	<system:String x:Key="string_nexusModsDownloadFolder">Папка загрузки NexusMods</system:String>
 	<system:String x:Key="string_description_nexusModsDownloadFolder">Вы можете выбрать пользовательский путь для хранения загруженных архивов модов. Эти архивы не требуется хранить после импорта мода в библиотеку модов. Если путь не указан, будет использована временная папка на диске C:\ и загруженные файлы модов будут удаляться при закрытии программы.</system:String>
 	<system:String x:Key="string_defaultTemporaryDownloadCache">По умолчанию: Временный кэш загрузки</system:String>
@@ -1764,24 +1943,16 @@
 	<system:String x:Key="string_temporaryCache">Временный кэш</system:String>
 	<system:String x:Key="string_selectNexusModsDownloadDirectory">Выбрать папку загрузки NexusMods</system:String>
 	<system:String x:Key="string_lE1EnableCoalescedMerge">LE1: Включить Coalesced Merge</system:String>
-	<system:String x:Key="string_description_le1CoalescedMergeOption">Выключение данной опции позволит редактировать файл Coalesced вручную и предотвратит слияние файлов .m3cd с Coalesced базовой игры. Это может повредить некоторые моды. Не выключайте ее, если не знаете что это означает.</system:String>
-	<system:String x:Key="string_overlayDisablerInstalled">Выключатель оверлея установлен</system:String>
-	<system:String x:Key="string_uninstallDisabler">Удалить выключатель</system:String>
-	<system:String x:Key="string_otherD3d9dllInstalledOverlayDisabled">Установлен другой d3d9.dll, оверлей отключен</system:String>
-	<system:String x:Key="string_cannotUninstallOtherD3d9File">Невозможно удалить другой файл d3d9</system:String>
-	<system:String x:Key="string_overlayDisablerNotInstalled">Выключатель оверлея не установлен</system:String>
-	<system:String x:Key="string_installDisabler">Установить выключатель</system:String>
-	<system:String x:Key="string_noTargetSelected">Целевая игра не выбрана</system:String>
-	<system:String x:Key="string_noOriginBasedGameTargets">Целевые игры Origin отсутствуют</system:String>
-	<system:String x:Key="string_origin">Origin</system:String>
-	<system:String x:Key="string_oigPanelHeader" xml:space="preserve">Внутриигровой оверлей Origin является известной причиной значительной потери производительности в играх Mass Effect. Хотя он может быть отключен в настройках Origin, это не работает для Steam-версии Mass Effect 3. Вы можете установить d3d9-прокси, принудительно отключающий оверлей в целевой игре.&#10;&#10;Использование других d3d9-прокси, таких как Reshade, также отключит оверлей.</system:String>
-	<system:String x:Key="string_noOriginBasedTargetsInstalledForThisGame">Целевые игры Origin данного типа не установлены</system:String>
+	<system:String x:Key="string_description_le1CoalescedMergeOption">Выключение данной опции позволит редактировать файл Coalesced вручную и предотвратит слияние файлов .m3cd с Coalesced базовой игры. Это повредит некоторые моды. Не выключайте ее, если не знаете что это означает.</system:String>
+	<system:String x:Key="string_standardOptionsForME3TweaksModManager">Стандартные опции для ME3Tweaks Mod Manager</system:String>
+	<system:String x:Key="string_LE1Enable2DAMerge">LE1: Включить 2DA Merge</system:String>
+	<system:String x:Key="string_description_LE1Enable2DAMerge">Выключение данной функции позволит вам вручную редактирова таблицы 2DA в исходных файлах LE1, и предотвратит слияние файлов .m3da с исходными таблицами 2DA. Это повредит некоторые моды. Не выключайте ее, если не знаете что это означает.</system:String>
+	<system:String x:Key="string_logAllFilesCopiedDuringRestore">Логировать все файлы, скопированные при восстановлении</system:String>
+	<system:String x:Key="string_description_logOptionLotsa">Это создаст большое количество логов. Включайте только при необходимости.</system:String>
+	<system:String x:Key="string_localLibraryWatermark">По умолчанию: Локальная библиотек (папка 'mods')</system:String>
 	<system:String x:Key="string_deployment_mergemodPackageCheckingReferences">Проверка ссылок в mergemods [{0}/{1}]</system:String>
 	<system:String x:Key="string_interp_lecCouldNotResolveImport">Legendary Explorer Core не может совершить импорт: {0} {1} в {2}</system:String>
 	<system:String x:Key="string_syncingPlotManager">Синхронизация Plot Manager</system:String>
-	<system:String x:Key="string_interp_plotManagerSyncForX">Синхронизация PlotManager для {0}</system:String>
-	<system:String x:Key="string_interp_errorCompilingFunctionReason" xml:space="preserve">Ошибка компиляции функции {0}: {1}</system:String>
-	<system:String x:Key="string_interp_fileLibInitFailedPlotManager">Не удалось инициализировать FileLib для PLotManager: {0}</system:String>
 	<system:String x:Key="string_anUpdateToME3TweaksModManagerIsAvailable">Доступно обновление ME3Tweaks Mod Manager.</system:String>
 	<system:String x:Key="string_downloadingUpdate">Загрузка обновления</system:String>
 	<system:String x:Key="string_preparingToApplyUpdate">Подготовка к установке обновления</system:String>
@@ -1816,29 +1987,18 @@
 	<system:String x:Key="string_restoringMovies">Восстановление Movies</system:String>
 	<system:String x:Key="string_restoringBasegame">Восстановление Базовой игры</system:String>
 	<system:String x:Key="string_restoringGame">Восстановление игры</system:String>
-	<system:String x:Key="string_dialogCouldNotCreateGameDirectoryAfterDeletion">Невозможно создать директорию игры после удаления из-за ошибки. Вы можете попробовать указать путь вручную, чтобы выбрать исходную папку для восстановления архива. Подробности можно посмотреть в логах в меню Справка.</system:String>
-	<system:String x:Key="string_errorRestoringGame">Ошибка восстановления игры</system:String>
-	<system:String x:Key="string_dialogcouldNotFullyDeleteGameDirectory">Невозможно полностью удалить директорию игры. Возможно некоторые файлы или папки внутри нее заняты другими процессами. Игра могла быть частично удалена, но вы можете попробовать использовать опцию восстановления в указанное место после удаления оставшихся папок игры. Посмотрите логи в меню Справка для подробной информации.</system:String>
-	<system:String x:Key="string_dialogErrorOccuredDeletingGameDirectory">Во время удаления директории игры произошла ошибка. Подробности содержатся в логах, доступных через меню Справка.</system:String>
 	<system:String x:Key="string_selectNewRestoreDestination">Выбрать новый путь восстановления</system:String>
-	<system:String x:Key="string_dialogDirectoryIsNotEmptyLocationToRestoreToMustBeEmpty">Папка не пуста. Место для восстановления должно быть пустым.</system:String>
-	<system:String x:Key="string_cannotRestoreToThisLocation">Невозможно восстановить в указанное место</system:String>
 	<system:String x:Key="string_restoreThisTarget">Восстановить данную игру</system:String>
 	<system:String x:Key="string_selectTarget">Выберите игру</system:String>
 	<system:String x:Key="string_noBackup">Архив отсутствует</system:String>
-	<system:String x:Key="string_error">Ошибка!</system:String>
 	<system:String x:Key="string_fullGameRestore">Полное восстановление игры</system:String>
 	<system:String x:Key="string_restoringTextureLODs">Восстановление из архива сбросит ваши настройки качества текстур на значения по умолчанию. Удостоверьтесь, что запускаете игру через ModManager для установки корректного уровня детализации текстур.</system:String>
 	<system:String x:Key="string_entireGameDirectoryWillBeDeletedOT">Директория игры будет сброшена для соответствия директории архивов, так же как и настройки LOD текстур. Если вы пытаетесь сделать частичное восстановление, включая удаление DLC-модов или восстановление отдельных файлов/SFAR, используйте вместо этого опции восстановления из окна Настройка Игры.</system:String>
 	<system:String x:Key="string_entireGameDirectoryWillBeDeletedLE">Директория игры будет сброшена для соответствия директории архивов. Если вы пытаетесь сделать частичное восстановление, включая удаление DLC-модов или восстановление отдельных файлов, используйте вместо этого опции восстановления из окна Настройка Игры.</system:String>
-	<system:String x:Key="string_youMaySeeElevationPromptOnRestore">При попытке восстановления игры может появиться всплывающее сообщение. Это индикация того,  ME3Tweaks Mod Manager дает вашей учетной записи правда доступа в новой директории игры после удаления старой.</system:String>
-	<system:String x:Key="string_dialog_restoringXWillDeleteGameDir" xml:space="preserve">Восстановление {0} полностью удалит директорию игры и затем скопирует содержимое архива по исходному пути.\n\nУдалить данную игру и восстановить ее из архива?</system:String>
-	<system:String x:Key="string_gameTargetWillBeDeleted">Указанная игра будет удалена</system:String>
-	<system:String x:Key="string_beta_useNewRestoreMethod">Использовать новый экспериментальный метод восстановления? Он быстрее, но еще не был протестирован на практике.</system:String>
 	<system:String x:Key="string_useBetaFeatureQuestion">Использовать бета-функцию?</system:String>
 	<system:String x:Key="string_interp_copyingX">Копирование {0}</system:String>
-	<system:String x:Key="string_interp_directoryNotEmptyWillDeleteEverything">Выбранная директория не пуста: {0}. ВСЕ НЕИГРОВЫЕ ФАЙЛЫ И ПАПКИ В ЭТОЙ ДИРЕКТОРИИ БУДУТ УДАЛЕНЫ. Вы уверены, что хотите продолжить?</system:String>
 	<system:String x:Key="string_interp_failedToRestoreGameDueToErrorX">Не удалось восстановить игру из-за ошибки: {0}</system:String>
+	<system:String x:Key="string_errorRestoringGame">Ошибка восстановления игры</system:String>
 	<system:String x:Key="string_tooltip_loadAllSaves" xml:space="preserve">Парсинг все сохранений из всех карьер; это может потребовать большого объема памяти при наличии многочисленных файлов сохранений.&#10;По умолчанию не выбрано, таким образом грузятся только последние 50 сохранений из каждой карьеры</system:String>
 	<system:String x:Key="string_loadAllSavesMayUseALotOfMemory">Загрузить все сохранения (может потребоваться много памяти)</system:String>
 	<system:String x:Key="string_selectThisSave">Выбор данного сохранения</system:String>
@@ -1852,6 +2012,7 @@
 	<system:String x:Key="string_selectASaveFile">Выберите файл сохранения</system:String>
 	<system:String x:Key="string_interp_unknownMapX">Неизвестная карта: {0}</system:String>
 	<system:String x:Key="string_saveSelector">Выбор Сохранения</system:String>
+	<system:String x:Key="string_xSaves">Сохранений: {0}</system:String>
 	<system:String x:Key="string_autoSave">Автосохранение</system:String>
 	<system:String x:Key="string_quickSave">Быстрое Сохранение</system:String>
 	<system:String x:Key="string_restartMission">Перезапуск Миссии</system:String>
@@ -1861,15 +2022,8 @@
 	<system:String x:Key="string_interp_unknownSaveTypeX">Неизвестный тип сохранения: {0}</system:String>
 	<system:String x:Key="string_interp_noBackupMessage">Отсутствуют доступные архивы {0}. Если продолжить, вы не сможете создать архив игры, так как игра будет модифицирована. Вы уверены, что хотите сделать это?</system:String>
 	<system:String x:Key="string_backupWarning">Предупреждение архивации</system:String>
-	<system:String x:Key="string_interp_invalidHenchNameSquadmateNameValueIsCaseSensitive">Неверное имя сопартийца: {0}. Значение чувствительно к регистру.</system:String>
-	<system:String x:Key="string_interp_errorCompilingConditionalFunction">Ошибка компиляции функции условия {0}: {1}</system:String>
-	<system:String x:Key="string_synchronizingSquadmateOutfits">Синхронизация костюмов сопартийцев</system:String>
-	<system:String x:Key="string_synchronizedSquadmateOutfits">Костюмы сопартийцев синхронизированы</system:String>
-	<system:String x:Key="string_synchronizingSquadmateOutfitFiles">Синхронизация файлов костюмов сопартийцев</system:String>
-	<system:String x:Key="string_errorReadingSquadmateOutfitManifestFileSeeLogs">Ошибка чтения файла манифеста костюма сопартийца в некоторых модах, подробнее в логах</system:String>
-	<system:String x:Key="string_someSquadmateOutfitsWereNotMergedSeeLogs">Некоторые костюмы сопартийцев не были добавлены, подробнее в логах</system:String>
-	<system:String x:Key="string_interp_sk_sqmNoBackup">Нет доступного архива для {0}, невозможно сгенерировать файлы squadmate merge</system:String>
-	<system:String x:Key="string_interp_sk_sqmBackupMissingRequiredFile">Требуемый для squadmate merge файл недоступен в архиве: {0}</system:String>
+	<system:String x:Key="string_synchronizedSquadmateOutfits">Костюмы напарников синхронизированы</system:String>
+	<system:String x:Key="string_synchronizingSquadmateOutfitFiles">Синхронизация файлов костюмов напарников</system:String>
 	<system:String x:Key="string_starterKitAddins">Добавления Starter Kit</system:String>
 	<system:String x:Key="string_addStartupFile">Добавление файла запуска</system:String>
 	<system:String x:Key="string_addPlotManagerData">Добавление данных PlotManager</system:String>
@@ -1925,12 +2079,11 @@
 	<system:String x:Key="string_conflictingDLCModuleNumbers">Конфликтующие номера модулей DLC</system:String>
 	<system:String x:Key="string_interp_dialogMountPrioirtyConflicts" xml:space="preserve">Приоритет загрузки DLC для данного мода конфликтует с существующим DLC:{0}\n\nНомера приоритета загрузки используются для определения того, какие файлы использовать в случае неопределенности имен пакетов (одинаково названный файл существует в нескольких местах). Конфликтующие значения вызовут непредсказуемое поведение и должны быть исключены. Выпуск конфликтующих модов, не являющихся частью одной группы модов (например, многовариантный мод) скорее всего приведет к включению вашего мода в черный список средств моддинга.\n\nВсе равно продолжить?</system:String>
 	<system:String x:Key="string_conflictingDLCMountPriorityNumbers">Конфликтующие номера приоритета загрузки DLC</system:String>
-	<system:String x:Key="string_dialog_discourageUseOfSPSaveRequired" xml:space="preserve">Вы сделали этот мод обязательным для сохранений игры. В случае удаления вашего мода (намеренно или при восстановлении игры), сохранения, когда был установлено данное DLC не смогут быть загружены пользователем. В подавляющем большинстве случае это нежелательно для конечного пользователя. Выбирайте эту опцию только если вы действительно знаете, что делаете.\n\nВсе равно использовать этот флаг загрузки?</system:String>
-	<system:String x:Key="string_undesirableMountFlag">Нежелательный флаг загрузки</system:String>
+	<system:String x:Key="string_dialog_discourageUseOfSPSaveRequired" xml:space="preserve">Вы сделали этот мод обязательным для сохранений игры. В случае удаления вашего мода (намеренно или при восстановлении игры), сохранения, когда был установлено данное DLC не смогут быть загружены пользователем. В подавляющем большинстве случае это нежелательно для конечного пользователя. Выбирайте эту опцию только если вы действительно знаете, что делаете.\n\nВсе равно использовать этот флаг подключения?</system:String>
+	<system:String x:Key="string_undesirableMountFlag">Нежелательный флаг подключения</system:String>
 	<system:String x:Key="string_interp_dialogWillDeleteExistingMod" xml:space="preserve">Создание данного мода удалит существующую директорию в библиотеке модов:\n{0}\n\nПродолжить?</system:String>
 	<system:String x:Key="string_dialogErrorDeletingExistingMod">Возникла ошибка при удалении директории существующего мода. Вероятно папка или файл внутри нее заняты внешним процессом. Подробности можно узнать в логах Mod Manager</system:String>
 	<system:String x:Key="string_interp_errorOccuredWhileDeletingExistingModDirectory" xml:space="preserve">Возникла ошибка при удалении директории мода:\n{0}</system:String>
-	<system:String x:Key="string_generatingMod">Создание мода</system:String>
 	<system:String x:Key="string_interp_valueMustBeBetweenXAndY">Значение должно быть между {0} и {1}</system:String>
 	<system:String x:Key="string_dialog_devModeAdvert">Режим Разработчика для ME3Tweaks Mod Manager сейчас отключен. Включите его для доступа у инструментам разработчика в меню, таких как Official DLC Toggler, Преобразование в 7z, Custom DLC Conflict Detector, Backup File Fetcher и другим.\n\nВключить Режим Разработчика?</system:String>
 	<system:String x:Key="string_enableDeveloperFeaturesQuestion">Активировать функционал разработчика?</system:String>
@@ -1952,12 +2105,25 @@
 	<system:String x:Key="string_blank2DAs">Чистые 2DA:</system:String>
 	<system:String x:Key="string_select2DAsToAdd">Выберите 2DA для добавления</system:String>
 	<system:String x:Key="string_errorGeneratingMod">Ошибка генерации мода</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeMiranda">Squadmate Outfit Merge: Миранда</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeJacob">Squadmate Outfit Merge: Джейкоб</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeMordin">Squadmate Outfit Merge: Мордин</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeJack">Squadmate Outfit Merge: Джек</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeGrunt">Squadmate Outfit Merge: Грюнт</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeSamaraMorinth">Squadmate Outfit Merge: Самара/Моринт</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeThane">Squadmate Outfit Merge: Тейн</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeLegion">Squadmate Outfit Merge: Легион</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeKasumi">Squadmate Outfit Merge: Касуми</system:String>
+	<system:String x:Key="string_squadmateOutfitMergeZaeed">Squadmate Outfit Merge: Заид</system:String>
+	<system:String x:Key="string_modNameCannotStartWithSlash">Имя мода не может начинаться с /</system:String>
+	<system:String x:Key="string_sk_modNameTooLong">Имя мода не может быть длиннее 50 символов, иначе оно может не поддерживаться файловыми системами пользователей</system:String>
+	<system:String x:Key="string_sk_modFoldernameTooLong">Имя папки мода не может быть длиннее 25 символов, иначе оно может не поддерживаться файловыми системами пользователей</system:String>
 	<system:String x:Key="string_interp_ssp_unopenedParenthsisFound">Ошибка парсинга списка разделяющих скобок: Обнаружина закрывающая скобка, несоответствующаая открывающей скобке на позиции {0} в строке {1}</system:String>
 	<system:String x:Key="string_interp_ssp_unclosedParenthesisFound">В {0} обнаружена незакрытая открывающая скобка при парсинге списка разделяющих скобок</system:String>
 	<system:String x:Key="string_submitToME3Tweaks">Оправить на ME3Tweaks</system:String>
 	<system:String x:Key="string_submitting">Отправка...</system:String>
 	<system:String x:Key="string_submitted">Отправлено</system:String>
-	<system:String x:Key="string_me1MountFlagsNotSupportedInM3">ME1 в настоящий момент не поддерживает флаги загрузки в Mod Manager</system:String>
+	<system:String x:Key="string_me1MountFlagsNotSupportedInM3">ME1\LE1 не поддерживает флаги подключения</system:String>
 	<system:String x:Key="string_mE3TweaksTPMISubmission">Передача ME3Tweaks TPMI</system:String>
 	<system:String x:Key="string_telemetryPanelHeader">Отправка информации о вашем моде в базу данных Идентификации Сторонних Модов позволяет Mod Manager улучшать свои сервисы для сообщества моддинга. Данная панель предназначена только для отправки первоначальных данных; для исправлений и обновлений, пожалуйста отправьте данные через канал #mod_database_updates на ME3Tweaks Discord</system:String>
 	<system:String x:Key="string_dLCFolderNameColon">Имя папки DLC:</system:String>
@@ -1977,6 +2143,10 @@
 	<system:String x:Key="string_interp_cannotInstallTFCToBasegameLE1">Невозможно установить TLC {0} в /BIOGame/CookedPCConsole в LE1. Дополнительные TFC должны добавляться через папку CustomDLC.</system:String>
 	<system:String x:Key="string_interp_detectedTFCFromAnotherModTPMI">Обнаружен TFC-файл из другого мода: {0} ({1}). Подгрузка TFC из другого мода вызовет сбои во множестве средств моддинга и может исключить ваш мод из списка разрешенных для иморта из-за риска повреждения пользовательских установок. TFC-файлы зачастую исключаются из допустимых обновлений, ваш мод может быть удален с площадок за его включение. Не включайте TFC-файлы других модов в ваш мод.</system:String>
 	<system:String x:Key="string_interp_detectedTFCFromAnotherModUnknown">Обнаружен TFC-файл из другого DLC-мода: {0} ({1}). Подгрузка TFC из другого мода вызовет сбои во множестве средств моддинга и может исключить ваш мод из списка разрешенных для иморта из-за риска повреждения пользовательских установок. TFC-файлы зачастую исключаются из допустимых обновлений, ваш мод может быть удален с площадок за его включение. Не включайте TFC-файлы других модов в ваш мод.</system:String>
+	<system:String x:Key="string_interp_futureModdescRequirementTFCName">Будущие версии moddesc (возможно 9.1 или выше) потребуют включения в имена TFC полных имен папок DLC для обеспечения уникальности имен TLC. Постарайтесь учесть это сейчас, чтобы избежать проблем позднее. Релевантный TFC: {0}</system:String>
+	<system:String x:Key="string_interp_cannotShipMultipleSameTFC">Моды, предназначенные для moddesc 9.0 и выше не поддерживают множество TLC с одинаковыми именами: {0}. Это легко может сломать игру и вызвать проблемы с другими инструментами. Поместите все текстуры для данного мода в один TLC, а затем разбейте пакетные файлы на alternate.</system:String>
+	<system:String x:Key="string_interp_modsShouldNotShipMultipleSameTFCMD8">Модам не следует использовать множество TLC с одинаковыми именами: {0}. Это легко может сломать игру и вызвать проблемы с другими инструментами. Поместите все текстуры для данного мода в один TLC, а затем разбейте пакетные файлы на alternate.</system:String>
+	<system:String x:Key="string_interp_foundTextureModdedPackageCannotShip">Обнаружен пакетный файл, бывший частью установки игры с модифицированными текстурами: {0}. Невозможно использовать данный пакетный файл.</system:String>
 	<system:String x:Key="string_preparingToInstallTextures">Подготовка установки текстур</system:String>
 	<system:String x:Key="string_installingTextureMods">Установка текстурных модов</system:String>
 	<system:String x:Key="string_installedTextureMods">Текстурные моды установлены</system:String>
@@ -1991,13 +2161,16 @@
 	<system:String x:Key="string_dialog_textureInstallErrorsOccurred" xml:space="preserve">Возникли следующие ошибки в процессе установки текстур Mass Effect Modder. Подробности можно узнать в логах Mod Manager.\nВаша игра может быть повреждена из-за данных ошибок.</system:String>
 	<system:String x:Key="string_dialog_textureModPrecheckIssues" xml:space="preserve">Были обнаружены следующие проблемы с вашей игрой перед установкой текстур. Подробности можно узнать в логах Mod Manager.\nИгра не была модифицирована.</system:String>
 	<system:String x:Key="string_dialog_bigScaryTextureInstallWarning" xml:space="preserve">После установки текстур вы не можете больше устанавливать контент-моды без восстановления игры из архива. Это включает и установку обновлений модов. Mod Manager предупредит вас при попытке установки мода, нарушающего данные процедуры для предотвращения нестабильностей в игре.\n\nУДОСТОВЕРЬТЕСЬ, ЧТО ВСЕ НЕТЕКСТУРНЫЕ МОДЫ УЖЕ УСТАНОВЛЕНЫ.\n\n Вы уверены, что хотите продолжить?</system:String>
-	<system:String x:Key="string_noExitCodeBrackets">[без кода]</system:String>
-	<system:String x:Key="string_dialog_memNonZeroExitCode">MassEffectModder вышел с ненулевым кодом: {0}. Это означает, что возникла проблема.</system:String>
+	<system:String x:Key="string_dialog_bigScaryTextureInstallWarningBatch" xml:space="preserve">Данная группа установки содержит текстурные моды. Посли их установки вы не сможете больше устанавливать контент-моды без полного восстановления игры из архива. Это включает как установку обновлений для модов, так и переустановку данной группы. Mod Manager предупредит вас при попытке установить мод, нарушающий данные процедуры, для предотвращения нестабильности работы игры и инструментов.\n\nВы уверены, что хотите продолжить?</system:String>
+	<system:String x:Key="string_noExitCodeBrackets">[нет кода выхода]</system:String>
+	<system:String x:Key="string_dialog_memNonZeroExitCode">MassEffectModder вышел с ненулевым кодом выхода: {0}. Это означает, что возникла проблема.</system:String>
 	<system:String x:Key="string_massEffectModderFiles">Файлы Mass Effect Modder</system:String>
 	<system:String x:Key="string_checkingMassEffectModder">Проверка MassEffectModder</system:String>
 	<system:String x:Key="string_configuringMassEffectModder">Настройка MassEffectModder</system:String>
 	<system:String x:Key="string_preparingForTextureInstall">Подготовка установки текстур</system:String>
 	<system:String x:Key="string_dialog_cannotDownloadMEMCannotProceed">Невозможно загрузить MassEffectModderNoGui - установка текстур не может быть продолжена. Подробнее в логах Mod Manager.</system:String>
+	<system:String x:Key="string_inventoryingGameStateBeforeTextureInstall">Инвентаризация состояния игры перед установкой текстур</system:String>
+	<system:String x:Key="string_inventoryingGameStateAfterTextureInstall">Инвентаризация состояния игры после установки текстур</system:String>
 	<system:String x:Key="string_error_couldNotFetchTextureData">Невозможно выгрузить данные для текстуры {0} из файла {1}</system:String>
 	<system:String x:Key="string_error_me1TextureFileNotFound">Текстурный файл по внешней ссылке отсутствует в игре: {0}.</system:String>
 	<system:String x:Key="string_error_me23TextureTFCNotFound">Текстурный кэш по внешней ссылке не обнаружен: {0}</system:String>
@@ -2006,6 +2179,8 @@
 	<system:String x:Key="string_interp_exceptionOccuredWhileCompilingTLKSubfileTankmaster">Возникло исключение при компиляции подфайла TLK {0}: {1}</system:String>
 	<system:String x:Key="string_interp_exceptionOccuredWhileCompilingTLKFileME3Exp">Возникло исключение при компиляции файла TLK {0}: {1}</system:String>
 	<system:String x:Key="string_extractingTSECLI">Распаковка Trilogy Save Editor (CLI)</system:String>
+	<system:String x:Key="string_toolUnderDevelopment">Данный инструмент находится в разработке и может работать нестабильно. Используйте на свой страх и риск!</system:String>
+	<system:String x:Key="string_underDevelopment">В разработке</system:String>
 	<system:String x:Key="string_updaterService">Updater Service</system:String>
 	<system:String x:Key="string_setChangelog">Настроить список изменений</system:String>
 	<system:String x:Key="string_updaterServiceSettings">Настройки Updater Service</system:String>
@@ -2062,7 +2237,7 @@
 	<system:String x:Key="string_uploadFailed">Загрузка не удалась</system:String>
 	<system:String x:Key="string_manifestUpdatedOnServer">Манифест обновлен на сервере</system:String>
 	<system:String x:Key="string_checkingBackup">Проверка архива</system:String>
-	<system:String x:Key="string_previewPanelTitle">Добро пожаловать в ME3Tweaks Mod Manager</system:String>
+	<system:String x:Key="string_welcomeTo">Добро пожаловать в</system:String>
 	<system:String x:Key="string_selectYourLanguage">Выберите выш язык</system:String>
 	<system:String x:Key="string_howToChangeLanguage">Вы можете в любой момент изменить язык в меню Действия > Настройки. Учтите, что поддержка осуществляется только на английском языке.</system:String>
 	<system:String x:Key="string_previewPanelIntro" xml:space="preserve">Добро пожаловать в ME3Tweaks Mod Manger или M3 для краткости.  Импортируйте моды в ME3Tweaks Mod Manager перетаскивая архивы модов на данное окно после закрытия этого диалога. Посмотреть, что уже установлено, можно нажав кнопку Настройка Игры в правом верхнем углу основного окна &#10;&#10;Если у вас есть любые вопросы или пожелания, пожалуйста заходите на ME3Tweaks Discord по кнопке внизу.</system:String>
@@ -2079,7 +2254,7 @@
 	<system:String x:Key="string_browse">Открыть</system:String>
 	<system:String x:Key="string_changeSettingsInActionsMenu">Вы можете изменить ваши настройки в любое время через меню Действия.</system:String>
 	<system:String x:Key="string_nexusModsIntegration">Интеграция c NexusMods</system:String>
-	<system:String x:Key="string_nexusModsIntegrationDescription">ME3Tweaks Mod Manager может одобрять и снимать одобрение с модов по вашему желанию при авторизации на NexusMods. Таким образов вы показываете свою оценку труда разработчиков. Интеграция с NexusMods опциональна и настраивается в правом верхнем углу окна.</system:String>
+	<system:String x:Key="string_nexusModsIntegrationDescription">ME3Tweaks Mod Manager может одобрять и отзывать одобрение с модов по вашему желанию при авторизации на NexusMods. Таким образов вы показываете свою оценку труда разработчиков. Интеграция с NexusMods опциональна и настраивается в правом верхнем углу окна.</system:String>
 	<system:String x:Key="string_startUsingModManager">Начать использование Mod Manager</system:String>
 	<system:String x:Key="string_additionalOptions">Дополнительные настройки</system:String>
 	<system:String x:Key="string_enableTelemetry">Включить телеметрию</system:String>

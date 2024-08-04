@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using ME3TweaksModManager.modmanager.nexusmodsintegration;
 
 namespace ME3TweaksModManager.modmanager.objects
 {
@@ -47,10 +48,7 @@ namespace ME3TweaksModManager.modmanager.objects
             NexusFileInfo info = new NexusFileInfo();
             if (preknownDomain == null)
             {
-                if (game == MEGame.ME1) info.Domain = @"masseffect";
-                if (game == MEGame.ME2) info.Domain = @"masseffect2";
-                if (game == MEGame.ME3) info.Domain = @"masseffect3";
-                if (game == MEGame.LELauncher || game.IsLEGame()) info.Domain = @"masseffectlegendaryedition";
+                info.Domain = NexusModsUtilities.GetDomainForGame(game);
             }
             else
             {

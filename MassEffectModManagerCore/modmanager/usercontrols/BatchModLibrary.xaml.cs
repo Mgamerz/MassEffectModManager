@@ -1,21 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
+﻿using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.Helpers;
-using ME3TweaksCore.Misc;
 using ME3TweaksCore.Services.FileSource;
-using ME3TweaksCoreWPF;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksCoreWPF.UI;
 using ME3TweaksModManager.modmanager.helpers;
-using ME3TweaksModManager.modmanager.loaders;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.memoryanalyzer;
 using ME3TweaksModManager.modmanager.nexusmodsintegration;
@@ -23,15 +15,11 @@ using ME3TweaksModManager.modmanager.objects;
 using ME3TweaksModManager.modmanager.objects.batch;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.modmanager.objects.mod.texture;
-using ME3TweaksModManager.modmanager.usercontrols.interfaces;
 using ME3TweaksModManager.modmanager.usercontrols.moddescinieditor;
 using ME3TweaksModManager.modmanager.windows;
-using ME3TweaksModManager.modmanager.windows.input;
 using ME3TweaksModManager.ui;
-using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
 using Microsoft.Win32;
-using Newtonsoft.Json;
 using SevenZip;
 
 namespace ME3TweaksModManager.modmanager.usercontrols
@@ -50,6 +38,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             M3MemoryAnalyzer.AddTrackedMemoryItem(@"Batch Mod Installer Panel", this);
             LoadCommands();
         }
+
+        /// <summary>
+        /// If the batch library is loading biq files
+        /// </summary>
+        public bool IsLoading { get; private set; }
         public ICommand CloseCommand { get; private set; }
         public ICommand CreateNewGroupCommand { get; private set; }
         public ICommand InstallGroupCommand { get; private set; }
@@ -64,11 +57,11 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         private void LoadCommands()
         {
             CloseCommand = new GenericCommand(ClosePanel);
-            CreateNewGroupCommand = new GenericCommand(CreateNewGroup);
+            CreateNewGroupCommand = new GenericCommand(CreateNewGroup, () => !IsLoading);
             InstallGroupCommand = new GenericCommand(InstallGroup, CanInstallGroup);
-            EditGroupCommand = new GenericCommand(EditGroup, BatchQueueSelected);
-            DeleteGroupCommand = new GenericCommand(DeleteGroup, BatchQueueSelected);
-            DuplicateGroupCommand = new GenericCommand(DuplicateGroup, BatchQueueSelected);
+            EditGroupCommand = new GenericCommand(EditGroup, CanOperateOnBatchQueue);
+            DeleteGroupCommand = new GenericCommand(DeleteGroup, CanOperateOnBatchQueue);
+            DuplicateGroupCommand = new GenericCommand(DuplicateGroup, CanOperateOnBatchQueue);
             TriggerDataReloadCommand = new GenericCommand(ReloadModData, CanTriggerReload);
             DeployQueueCommand = new GenericCommand(DeployQueue, CanDeployQueue);
         }
@@ -82,7 +75,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         {
             SaveFileDialog d = new SaveFileDialog
             {
-                Title= "Select deployment destination",
+                Title = M3L.GetString(M3L.string_selectDeploymentDestination),
                 Filter = $@"{M3L.GetString(M3L.string_7zipArchiveFile)}|*.7z",
                 FileName = $@"{SelectedBatchQueue.ModName}_installgroup.7z"
             };
@@ -172,7 +165,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             if (newPath != null)
             {
                 //file was saved, reload
-                parseBatchFiles(newPath);
+                Task.Run(() =>
+                {
+                    parseBatchFiles(newPath);
+                });
             }
 
 
@@ -182,14 +178,13 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 #endif
         }
 
-        private bool BatchQueueSelected() => SelectedBatchQueue != null;
+        private bool CanOperateOnBatchQueue() => SelectedBatchQueue != null && !IsLoading;
 
         private void InstallGroup()
         {
             // Has user saved options before?
-            if (SelectedBatchQueue.ModsToInstall.Any(x => x.HasChosenOptions))
+            if (SelectedBatchQueue.ModsToInstall.Any(x => !x.IsStandalone && x.HasChosenOptions))
             {
-
                 if (SelectedBatchQueue.ModsToInstall.Any(x => x.ChosenOptionsDesync || !x.HasChosenOptions))
                 {
                     M3L.ShowDialog(window,
@@ -230,7 +225,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 if (newPath != null)
                 {
                     //file was saved, reload
-                    parseBatchFiles(newPath);
+                    Task.Run(() =>
+                    {
+                        parseBatchFiles(newPath);
+                    });
                 }
             }
         }
@@ -255,16 +253,36 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             }
         }
 
+        public void OnIsLoadingChanged()
+        {
+
+            ClipperHelper.ShowHideVerticalContent(LoadingStatusPanel, IsLoading);
+            if (IsLoading)
+            {
+                SelectedBatchQueue = null;
+            }
+            else if (SelectedBatchQueue == null)
+            {
+                // Select first one to populate the UI.
+                SelectedBatchQueue = AvailableBatchQueues.FirstOrDefault();
+            }
+            Application.Current.Dispatcher.Invoke(CommandManager.InvalidateRequerySuggested); // Refresh bindings... if only you could invoke directly.
+        }
+
         public override void OnPanelVisible()
         {
             InitializeComponent();
+
             if (RefreshContentsOnVisible)
             {
                 ReloadModData();
             }
             else
             {
-                parseBatchFiles();
+                Task.Run(() =>
+                {
+                    parseBatchFiles();
+                });
             }
 
             RefreshContentsOnVisible = false;
@@ -274,24 +292,34 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         {
             IsEnabled = false;
             M3LoadedMods.ModsReloaded += OnModLibraryReloaded;
-            MEGame[] gamesToReload = null;
+            List<string> scopedModsToReload = new List<string>();
+            var libraryRoot = M3LoadedMods.GetCurrentModLibraryDirectory(); // biq2 stores relative to library root. biq stores to library root FOR GAME
+
             if (SelectedBatchQueue != null)
             {
-                gamesToReload = new[] { SelectedBatchQueue.Game };
+                foreach (var bm in SelectedBatchQueue.ModsToInstall)
+                {
+                    var fullModdescPath = Path.Combine(libraryRoot, bm.ModDescPath);
+                    if (File.Exists(fullModdescPath))
+                    {
+                        scopedModsToReload.Add(fullModdescPath);
+                    }
+                }
             }
-            M3LoadedMods.Instance.LoadMods(gamesToLoad: gamesToReload);
+            M3LoadedMods.Instance.LoadMods(scopedModsToReload: scopedModsToReload);
         }
 
         private void OnModLibraryReloaded(object sender, EventArgs e)
         {
             M3LoadedMods.ModsReloaded -= OnModLibraryReloaded;
+            TriggerResize();
 
             var registeredTextureMods = M3LoadedMods.GetAllM3ManagedMEMs();
             foreach (var queue in AvailableBatchQueues)
             {
                 foreach (var mod in queue.ModsToInstall)
                 {
-                    mod.Init();
+                    mod.Init(false);
                 }
 
                 bool rebuildTextureList = false;
@@ -329,6 +357,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private void parseBatchFiles(string pathToHighlight = null)
         {
+            IsLoading = true;
+
             #region MIGRATION
             // Mod Manager 8.0.1 moved these to the mod library
             var batchDirOld = M3LoadedMods.GetBatchInstallGroupsDirectoryPre801();
@@ -349,6 +379,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     }
                 }
             }
+            IsLoading = true;
             #endregion
 
             AvailableBatchQueues.ClearEx();
@@ -362,7 +393,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 {
                     try
                     {
-
                         var queue = BatchLibraryInstallQueue.LoadInstallQueue(file);
                         if (queue != null && queue.Game.IsEnabledGeneration())
                         {
@@ -384,6 +414,8 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     }
                 }
             }
+
+            IsLoading = false;
         }
 
         public GameTargetWPF SelectedGameTarget { get; set; }
@@ -395,7 +427,13 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             InstallationTargetsForGroup.ClearEx();
             if (SelectedBatchQueue != null)
             {
-                InstallationTargetsForGroup.AddRange(mainwindow.InstallationTargets.Where(x => x.Game == SelectedBatchQueue.Game));
+                // Telemetry shows null access here... mainwindow? Is this being called before the panel loads somehow? Or maybe it's during a target reload?
+                // Lock access to installation targets
+                lock (MainWindow.targetRepopulationSyncObj)
+                {
+                    InstallationTargetsForGroup.AddRange(mainwindow.InstallationTargets.Where(x => x.Game == SelectedBatchQueue.Game));
+                }
+
                 if (InstallationTargetsForGroup.Contains(currentTarget))
                 {
                     SelectedGameTarget = currentTarget;
@@ -479,6 +517,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         // SetWebsitePanelVisibility(m); // Show website link
                     }
                 }
+                else if (SelectedModInGroup is BatchGameRestore bgr)
+                {
+                    ModDescriptionText = bgr.UIDescription;
+                }
                 else
                 {
                     ModDescriptionText = @"This batch mod type is not yet implemented"; // This doesn't need localized right now
@@ -510,6 +552,14 @@ namespace ME3TweaksModManager.modmanager.usercontrols
         public void RefreshContentsOnDisplay()
         {
             RefreshContentsOnVisible = true;
+        }
+
+        private void DownloadMod_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (SelectedUnavailableModLink != Mod.DefaultWebsite)
+            {
+                M3Utilities.OpenWebpage(SelectedUnavailableModLink);
+            }
         }
     }
 }

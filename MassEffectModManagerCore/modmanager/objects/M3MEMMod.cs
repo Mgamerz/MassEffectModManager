@@ -1,25 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using LegendaryExplorerCore.Misc;
 using ME3TweaksCore.Helpers;
-using ME3TweaksCore.Localization;
-using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.modmanager.objects.mod.editor;
-using ME3TweaksModManager.modmanager.objects.mod.headmorph;
-using ME3TweaksModManager.modmanager.objects.mod.interfaces;
 using ME3TweaksModManager.modmanager.objects.mod.texture;
 using ME3TweaksModManager.modmanager.usercontrols.interfaces;
 using Newtonsoft.Json;
-using WinCopies.Util;
-using static ME3TweaksModManager.modmanager.objects.alternates.AlternateDLC;
-using static Xceed.Wpf.Toolkit.Calculator;
 
 namespace ME3TweaksModManager.modmanager.objects
 {

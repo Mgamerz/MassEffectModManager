@@ -1,10 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
-using ME3TweaksCore.Services.Backup;
-using ME3TweaksCoreWPF;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksCoreWPF.UI;
 using ME3TweaksModManager.modmanager.helpers;
@@ -58,18 +53,40 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             InitializeComponent();
             if (Settings.GenerationSettingLE)
             {
-                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.LELauncher, targetsList.Where(x=>x.Game == MEGame.LELauncher), mainwindow));
-                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.LE1, targetsList.Where(x => x.Game == MEGame.LE1), mainwindow));
-                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.LE2, targetsList.Where(x => x.Game == MEGame.LE2), mainwindow));
-                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.LE3, targetsList.Where(x => x.Game == MEGame.LE3), mainwindow));
+                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.LELauncher, targetsList.Where(x => x.Game == MEGame.LELauncher), mainwindow, OnRestoreTaskFinished));
+                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.LE1, targetsList.Where(x => x.Game == MEGame.LE1), mainwindow, OnRestoreTaskFinished));
+                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.LE2, targetsList.Where(x => x.Game == MEGame.LE2), mainwindow, OnRestoreTaskFinished));
+                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.LE3, targetsList.Where(x => x.Game == MEGame.LE3), mainwindow, OnRestoreTaskFinished));
             }
 
             if (Settings.GenerationSettingOT)
             {
-                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.ME1, targetsList.Where(x => x.Game == MEGame.ME1), mainwindow));
-                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.ME2, targetsList.Where(x => x.Game == MEGame.ME2), mainwindow));
-                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.ME3, targetsList.Where(x => x.Game == MEGame.ME3), mainwindow));
+                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.ME1, targetsList.Where(x => x.Game == MEGame.ME1), mainwindow, OnRestoreTaskFinished));
+                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.ME2, targetsList.Where(x => x.Game == MEGame.ME2), mainwindow, OnRestoreTaskFinished));
+                GameRestoreControllers.Add(new GameRestoreWrapper(MEGame.ME3, targetsList.Where(x => x.Game == MEGame.ME3), mainwindow, OnRestoreTaskFinished));
             }
+        }
+
+        public override void SignalAppClosing()
+        {
+            if (CanBeForceClosed())
+                return; // Do nothing.
+            if (CanClose()) // This is a race condition check as restore might finish in this sliver of time.
+                ClosePanel();
+
+            // We now wait for restores to finish.
+            HandlingShutdownTasks = true;
+        }
+
+        public override bool CanBeForceClosed()
+        {
+            return CanClose();
+        }
+
+        public void OnRestoreTaskFinished()
+        {
+            if (HandlingShutdownTasks && CanClose())
+                ClosePanel(); // We have finished tasks
         }
     }
 }

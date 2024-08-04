@@ -29,7 +29,7 @@ namespace LocalizationHelper
     public partial class LocalizationTablesUI : Window, INotifyPropertyChanged
     {
         public Visibility LoadingVisibility { get; set; } = Visibility.Visible;
-        private string[] FullySupportedLangs = { "deu", "rus", "pol", "bra", "ita", "fra" };
+        private string[] FullySupportedLangs = { "deu", "rus", /*"pol", "bra",*/ "ita", /*"fra"*/ };
 
         public List<string> GlobalSupportedLanguages = new List<string>();
 
@@ -44,9 +44,9 @@ namespace LocalizationHelper
             // Load official languages
             Languages.Add(new LocalizationLanguage() { Selected = false, LangCode = "deu", FullName = "German" });
             Languages.Add(new LocalizationLanguage() { Selected = false, LangCode = "rus", FullName = "Russian" });
-            Languages.Add(new LocalizationLanguage() { Selected = false, LangCode = "pol", FullName = "Polish" });
+            // Languages.Add(new LocalizationLanguage() { Selected = false, LangCode = "pol", FullName = "Polish" });
             Languages.Add(new LocalizationLanguage() { Selected = false, LangCode = "ita", FullName = "Italian" });
-            Languages.Add(new LocalizationLanguage() { Selected = false, LangCode = "fra", FullName = "French" });
+            // Languages.Add(new LocalizationLanguage() { Selected = false, LangCode = "fra", FullName = "French" });
 
             //Load M3 localizations
             LoadLocalizations(true, @"ME3TweaksModManager", @"MassEffectModManagerCore/modmanager/localizations/", M3LocalizationBranches, M3LocalizationCategories);
@@ -280,7 +280,7 @@ namespace LocalizationHelper
                         continue;
                     }
 
-                    
+
 
                     numBlankLines = 0;
                     var lineInfo = extractInfo(line);
@@ -444,7 +444,7 @@ namespace LocalizationHelper
         private string m3coldBranch = null;
         private Dictionary<string, string> dynamicHelpLocalizations = new Dictionary<string, string>();
         private List<string> nonLocalizedHelpSections = new List<string>();
-         public void OnM3SelectedBranchChanged()
+        public void OnM3SelectedBranchChanged()
         {
             if (m3oldBranch != null)
             {
@@ -864,12 +864,18 @@ namespace LocalizationHelper
                 else
                 {
 #if DEBUG
-                    sb.AppendLine(); //blank line
+                    if (lang == "int")
+                    {
+                        sb.AppendLine(); //blank line
+                    }
 #endif
                 }
 
 #if DEBUG
-                sb.AppendLine($"\t<!-- {cat.CategoryName} -->");
+                if (lang == "int")
+                {
+                    sb.AppendLine($"\t<!-- {cat.CategoryName} -->");
+                }
 #endif
                 foreach (var str in cat.LocalizedStringsForSection)
                 {
@@ -883,12 +889,15 @@ namespace LocalizationHelper
                     line += $">{str.LocalizedStr.Trim()}</system:String>";
                     sb.AppendLine(line);
 #if DEBUG
-                    // This reduces output size for non-english localizations since they are built off the INT version.
-                    // We don't need these comments
-                    if (!string.IsNullOrWhiteSpace(str.notes))
+                    if (lang == "int")
                     {
-                        line = $"\t<!-- {str.notes} -->";
-                        sb.AppendLine(line);
+                        // This reduces output size for non-english localizations since they are built off the INT version.
+                        // We don't need these comments
+                        if (!string.IsNullOrWhiteSpace(str.notes))
+                        {
+                            line = $"\t<!-- {str.notes} -->";
+                            sb.AppendLine(line);
+                        }
                     }
 #endif
                 }

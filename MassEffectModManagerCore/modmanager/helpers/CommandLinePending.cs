@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LegendaryExplorerCore.Packages;
-
-namespace ME3TweaksModManager.modmanager.helpers
+﻿namespace ME3TweaksModManager.modmanager.helpers
 {
     /// <summary>
     /// Class for caching variables used for holding temporary command-line options that need to be processed
@@ -27,11 +20,16 @@ namespace ME3TweaksModManager.modmanager.helpers
         /// 
         /// </summary>
         public static string PendingAutoModInstallPath;
-        
+
         /// <summary>
         /// If game should be booted after all other options have been performed
         /// </summary>
         public static bool PendingGameBoot;
+
+        /// <summary>
+        /// If a target should have M3 DLC merge performed on it
+        /// </summary>
+        public static bool PendingMergeDLCCreation;
 
         /// <summary>
         /// Game for other options
@@ -44,9 +42,24 @@ namespace ME3TweaksModManager.modmanager.helpers
         public static int PendingInstallASIID;
 
         /// <summary>
+        /// The version for an asi to install to the pending game
+        /// </summary>
+        public static int PendingInstallASIVersion;
+
+        /// <summary>
         /// If bink should be installed to the pending game
         /// </summary>
         public static bool PendingInstallBink;
+
+        /// <summary>
+        /// Feature level (typically moddesc version) of an operation
+        /// </summary>
+        public static double PendingFeatureLevel;
+
+        /// <summary>
+        /// Path to a .json file to compile into an m3m
+        /// </summary>
+        public static string PendingMergeModCompileManifest;
 
         /// <summary>
         /// Sets PendingGame to null if there are no items in the pending system that depend on it
@@ -57,13 +70,15 @@ namespace ME3TweaksModManager.modmanager.helpers
             {
                 // Nothing will work that depends on this
                 PendingInstallASIID = 0;
+                PendingInstallASIVersion = 0;
                 PendingGameBoot = false;
                 PendingInstallBink = false;
+                PendingMergeDLCCreation = false;
                 return;
             }
 
             // If nothing else needs done, reset PendingGame
-            if (PendingGameBoot == false && PendingAutoModInstallPath == null && PendingInstallASIID == 0)
+            if (PendingGameBoot == false && PendingAutoModInstallPath == null && PendingInstallASIID == 0 && PendingMergeDLCCreation == false)
                 PendingGame = null;
         }
 
@@ -74,7 +89,13 @@ namespace ME3TweaksModManager.modmanager.helpers
         {
             if (PendingGameBoot == false || PendingGame == null)
                 return false;
-            return PendingAutoModInstallPath != null || PendingInstallASIID > 0 || PendingInstallBink;
+
+            // If stuff is pending you cannot boot the game yet.
+            if (PendingAutoModInstallPath != null || PendingInstallASIID > 0 || PendingInstallBink || PendingMergeDLCCreation)
+                return false;
+
+            // Nothing is pending
+            return true;
         }
     }
 }

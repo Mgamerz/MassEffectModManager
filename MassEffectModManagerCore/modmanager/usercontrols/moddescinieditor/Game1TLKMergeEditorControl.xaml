@@ -23,7 +23,7 @@
             <CheckBox
                 Content="{DynamicResource string_usesFeature}"
                 VerticalAlignment="Top"
-                IsChecked="{Binding UsesFeature}" />
+                IsChecked="{Binding UsesFeature}" Margin="0,5" />
         </DockPanel>
     </ScrollViewer>
 </moddescinieditor:ModdescEditorControlBase>

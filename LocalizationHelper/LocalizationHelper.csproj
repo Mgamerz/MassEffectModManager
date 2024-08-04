@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<!-- Windows 2004 -->
-		<TargetFrameworks>net6.0-windows10.0.19041</TargetFrameworks>
+		<TargetFrameworks>net8.0-windows10.0.19041</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<Authors>Mgamerz</Authors>
 		<Company>ME3Tweaks</Company>
@@ -28,14 +28,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AuthenticodeExaminer" Version="0.3.0" />
-		<PackageReference Include="AvalonEdit" Version="6.2.0.78" />
-		<PackageReference Include="Fody" Version="6.7.0">
+		<PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+		<PackageReference Include="Fody" Version="6.8.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Octokit" Version="5.1.0" />
+		<PackageReference Include="Octokit" Version="12.0.0" />
 		<PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
 	</ItemGroup>
 

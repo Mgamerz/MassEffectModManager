@@ -1315,12 +1315,20 @@ namespace ME3TweaksModManager.modmanager.save.le1
         public string Proxy_TimePlayed => MSaveShared.GetTimePlayed(SecondsPlayed);
         public string Proxy_Difficulty => MSaveShared.GetDifficultyString(PlayerData.GameOptions[0], MEGame.LE1);
         public bool Proxy_IsFemale => PlayerData?.Proxy_IsFemale ?? false;
-        public string Proxy_DebugName => null; // LE1 does not support these
+
+        // 06/13/2024: DropTheSquid made a mod for making these and displaying them in the UI
+        // It is bound to the filename. TSE also can set 'DisplayName', but it appears to have junk data in it.
+        public string Proxy_DebugName => FileDebugName; // If not set will just be blank
         public IPlayerRecord Proxy_PlayerRecord => PlayerData;
         public string Proxy_BaseLevelName => MapName ?? BaseLevelName; // We failover to BaseLevelName if unknown map is found like BIOA_CRD00
         public ESFXSaveGameType SaveGameType { get; set; }
         public uint Version => SaveFormatVersion;
         public int SaveNumber { get; set; }
         public bool IsValid { get; set; }
+
+        /// <summary>
+        /// Custom LE1 extension property: The value between two _ in the filename, as done by DropTheSquid's mod 'Debug Saves'. Can be null.
+        /// </summary>
+        public string FileDebugName { get; set; }
     }
 }

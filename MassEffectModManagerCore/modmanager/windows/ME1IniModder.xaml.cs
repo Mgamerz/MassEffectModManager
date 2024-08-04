@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using Dark.Net;
 using LegendaryExplorerCore.Misc;
 using ME3TweaksCore.Helpers;
+using ME3TweaksModManager.extensions;
 using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.meim;
@@ -20,7 +21,7 @@ namespace ME3TweaksModManager.modmanager.windows
     /// <summary>
     /// Interaction logic for ME1IniModder.xaml
     /// </summary>
-    public partial class ME1IniModder : Window, INotifyPropertyChanged
+    public partial class ME1IniModder : Window, INotifyPropertyChanged, IClosableWindow
     {
         private bool doNotOpen;
 
@@ -33,7 +34,7 @@ namespace ME3TweaksModManager.modmanager.windows
             TelemetryInterposer.TrackEvent(@"Launched MEIM");
             DataContext = this;
             InitializeComponent();
-            DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+            this.ApplyDarkNetWindowTheme();
 
             string configFileFolder = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\BioWare\Mass Effect\Config";
             if (Directory.Exists(configFileFolder))
@@ -250,6 +251,21 @@ public event PropertyChangedEventHandler PropertyChanged;
             {
                 Close();
             }
+        }
+
+        public bool AskToClose()
+        {
+            if (doNotOpen)
+                return true;
+
+            if (M3L.ShowDialog(this, "Close without saving changes?", "Application closing", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes) == MessageBoxResult.Yes)
+            {
+                Close();
+                return true;
+            }
+
+            // Denied closing.
+            return false;
         }
     }
 }

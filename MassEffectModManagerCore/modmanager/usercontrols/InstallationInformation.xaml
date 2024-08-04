@@ -1,4 +1,17 @@
-﻿<usercontrols:MMBusyPanelBase xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:targets="clr-namespace:ME3TweaksCore.Targets;assembly=ME3TweaksCore" xmlns:usercontrols="clr-namespace:ME3TweaksModManager.modmanager.usercontrols" xmlns:converters="clr-namespace:ME3TweaksModManager.modmanager.converters" xmlns:targets1="clr-namespace:ME3TweaksCoreWPF.Targets;assembly=ME3TweaksCoreWPF" xmlns:gametarget="clr-namespace:ME3TweaksModManager.modmanager.objects.gametarget" xmlns:objects="clr-namespace:ME3TweaksCore.Objects;assembly=ME3TweaksCore" xmlns:fa5="http://schemas.fontawesome.com/icons/"
+﻿<usercontrols:MMBusyPanelBase
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    xmlns:targets="clr-namespace:ME3TweaksCore.Targets;assembly=ME3TweaksCore"
+    xmlns:usercontrols="clr-namespace:ME3TweaksModManager.modmanager.usercontrols"
+    xmlns:converters="clr-namespace:ME3TweaksModManager.modmanager.converters"
+    xmlns:targets1="clr-namespace:ME3TweaksCoreWPF.Targets;assembly=ME3TweaksCoreWPF"
+    xmlns:gametarget="clr-namespace:ME3TweaksModManager.modmanager.objects.gametarget"
+    xmlns:objects="clr-namespace:ME3TweaksCore.Objects;assembly=ME3TweaksCore"
+    xmlns:fa5="http://schemas.fontawesome.com/icons/"
     x:Class="ME3TweaksModManager.modmanager.usercontrols.InstallationInformation"
     mc:Ignorable="d"
     d:DesignHeight="550"
@@ -89,16 +102,32 @@
             VerticalAlignment="Stretch">
             <TabItem
                 Name="InstalledDLCMods_Tab"
-                Header="{DynamicResource string_installedDLCmods}"
                 Padding="0"
                 VerticalAlignment="Stretch"
                 Visibility="{Binding Game, Converter={StaticResource InstallationInformationTabVisibilityConverter}, ConverterParameter='DLCMods'}">
+                <TabItem.Header>
+                    <TextBlock
+                        Text="{DynamicResource string_installedDLCmods}"
+                        ToolTip="{DynamicResource string_tooltip_dlcModsTab}" />
+                </TabItem.Header>
                 <DockPanel
                     Margin="-8"
                     VerticalAlignment="Stretch">
                     <DockPanel
                         DockPanel.Dock="Bottom"
                         Background="{DynamicResource {x:Static adonisUi:Brushes.Layer3BackgroundBrush}}">
+                        <Button
+                            Command="{Binding EnableAllDLCModsCommand}"
+                            Content="{DynamicResource string_enableAll}"
+                            HorizontalAlignment="Right"
+                            Margin="4"
+                            Padding="7,3" />
+                        <Button
+                            Command="{Binding DisableAllDLCModsCommand}"
+                            Content="{DynamicResource string_disableAll}"
+                            HorizontalAlignment="Right"
+                            Margin="0,4"
+                            Padding="7,3" />
                         <Button
                             Content="{Binding ShowInstalledOptionsText, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type usercontrols:InstallationInformation}}}"
                             HorizontalAlignment="Right"
@@ -167,7 +196,9 @@
                                                     Width="*" />
                                             </Grid.ColumnDefinitions>
                                             <TextBlock
+                                                TextWrapping="Wrap"
                                                 Grid.Row="0"
+                                                MaxWidth="500"
                                                 Grid.Column="0"
                                                 Foreground="{Binding TextColor}"
                                                 FontWeight="SemiBold"
@@ -237,12 +268,16 @@
                 </DockPanel>
             </TabItem>
             <TabItem
-                Header="{DynamicResource string_modifiedBasegameFiles}"
                 Name="ModifiedBasegameFiles_Tab"
                 Margin="0"
                 Padding="0"
                 VerticalAlignment="Stretch"
                 Visibility="{Binding Game, Converter={StaticResource InstallationInformationTabVisibilityConverter}, ConverterParameter='Basegame'}">
+                <TabItem.Header>
+                    <TextBlock
+                        Text="{DynamicResource string_modifiedBasegameFiles}"
+                        ToolTip="{DynamicResource string_tooltip_modifiedBasegameFilesTab}" />
+                </TabItem.Header>
                 <DockPanel
                     Margin="-8"
                     VerticalAlignment="Stretch">
@@ -324,6 +359,7 @@
                                                 HorizontalAlignment="Stretch"
                                                 Background="Transparent" />
                                             <TextBlock
+                                                TextWrapping="Wrap"
                                                 Grid.Row="1"
                                                 Grid.Column="0"
                                                 FontSize="10"
@@ -366,11 +402,15 @@
                 </DockPanel>
             </TabItem>
             <TabItem
-                Header="{DynamicResource string_modifiedDLCarchivesSFAR}"
                 Name="ModifiedSFARs_Tab"
                 Visibility="{Binding Game, Converter={StaticResource InstallationInformationTabVisibilityConverter}, ConverterParameter='SFAR'}"
                 Margin="0"
                 Padding="0">
+                <TabItem.Header>
+                    <TextBlock
+                        Text="{DynamicResource string_modifiedDLCarchivesSFAR}"
+                        ToolTip="{DynamicResource string_tooltip_modifiedSFARsTab}" />
+                </TabItem.Header>
                 <DockPanel
                     VerticalAlignment="Stretch"
                     Margin="-8">
@@ -484,11 +524,15 @@
                 </DockPanel>
             </TabItem>
             <TabItem
-                Header="{DynamicResource string_officialDLC}"
                 Name="OfficialDLC_Tab"
                 Margin="0"
                 Padding="0"
                 Visibility="{Binding Game, Converter={StaticResource InstallationInformationTabVisibilityConverter}, ConverterParameter='OfficialDLC'}">
+                <TabItem.Header>
+                    <TextBlock
+                        Text="{DynamicResource string_officialDLC}"
+                        ToolTip="{DynamicResource string_tooltip_installedDLCTab}" />
+                </TabItem.Header>
                 <DockPanel
                     VerticalAlignment="Stretch"
                     Margin="-8">
@@ -537,11 +581,15 @@
                 </DockPanel>
             </TabItem>
             <TabItem
-                Header="{DynamicResource string_textures}"
                 Name="Textures_Tab"
                 Margin="0"
                 Padding="0"
                 Visibility="{Binding Game, Converter={StaticResource InstallationInformationTabVisibilityConverter}, ConverterParameter='Textures'}">
+                <TabItem.Header>
+                    <TextBlock
+                        Text="{DynamicResource string_textures}"
+                        ToolTip="{DynamicResource string_tooltip_texturesTab}" />
+                </TabItem.Header>
                 <DockPanel
                     VerticalAlignment="Stretch"
                     Margin="-8">
@@ -664,11 +712,15 @@
                 </DockPanel>
             </TabItem>
             <TabItem
-                Header="{DynamicResource string_other}"
                 Name="Other_Tab"
                 Margin="0"
                 Padding="0"
                 Visibility="{Binding Game, Converter={StaticResource InstallationInformationTabVisibilityConverter}, ConverterParameter='Other'}">
+                <TabItem.Header>
+                    <TextBlock
+                        Text="{DynamicResource string_other}"
+                        ToolTip="{DynamicResource string_tooltip_otherTab}" />
+                </TabItem.Header>
                 <StackPanel
                     VerticalAlignment="Stretch"
                     Margin="-8">

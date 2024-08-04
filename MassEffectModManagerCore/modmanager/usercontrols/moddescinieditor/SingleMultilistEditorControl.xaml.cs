@@ -1,15 +1,13 @@
-﻿using System.ComponentModel;
-using System.Linq;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.ui;
 
 namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
 {
     /// <summary>
     /// Editor control for a multilist
     /// </summary>
-    public partial class SingleMultilistEditorControl : UserControl, INotifyPropertyChanged
+    [AddINotifyPropertyChangedInterface]
+    public partial class SingleMultilistEditorControl : UserControl
     {
         ///// <summary>
         ///// The list index (as in moddesc.ini) of this multilist
@@ -24,6 +22,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
         private void LoadCommands()
         {
             AddFileCommand = new GenericCommand(AddFile);
+            DeleteFileCommand = new RelayCommand(DeleteFile);
         }
 
         private void AddFile()
@@ -38,28 +37,38 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
                     });
                 }
             }
+        }
 
+        private void DeleteFile(object obj)
+        {
+            if (DataContext is MDMultilist ml && obj is SingleMultilistEditorItem smlei)
+            {
+                ml.Files.Remove(smlei);
+                ReindexItems(ml);
+            }
+        }
+
+        private void ReindexItems(MDMultilist ml)
+        {
+            // 1 based indexing (Item 1, Item 2...)
+            for (int i = 0; i < ml.Files.Count; i++)
+            {
+                ml.Files[i].ItemIndex = i + 1;
+            }
         }
 
         public GenericCommand AddFileCommand { get; set; }
+        public RelayCommand DeleteFileCommand { get; set; }
 
         //public ObservableCollectionExtended<SingleMultilistEditorItem> ml.Files { get; } = new ObservableCollectionExtended<SingleMultilistEditorItem>();
-
-        //Fody uses this property on weaving
-#pragma warning disable
-public event PropertyChangedEventHandler PropertyChanged;
-#pragma warning restore
     }
 
-    public class SingleMultilistEditorItem : INotifyPropertyChanged
+    [AddINotifyPropertyChangedInterface]
+    public class SingleMultilistEditorItem
     {
         // The index of the file in the list
         public int ItemIndex { get; set; }
         // The value of the multilist item
         public string Value { get; set; }
-        //Fody uses this property on weaving
-#pragma warning disable
-public event PropertyChangedEventHandler PropertyChanged;
-#pragma warning restore
     }
 }

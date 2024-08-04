@@ -1,15 +1,12 @@
 ﻿using System.Text.RegularExpressions;
 using LegendaryExplorerCore.Misc;
-using ME3TweaksCore.Misc;
-using ME3TweaksCoreWPF.Targets;
 using ME3TweaksCoreWPF.UI;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects.launcher;
 using System.Windows;
 using System.Windows.Controls;
-using Dark.Net;
 using Newtonsoft.Json;
-using Pathoschild.FluentNexus.Models;
+using ME3TweaksModManager.extensions;
 
 namespace ME3TweaksModManager.modmanager.windows
 {
@@ -78,7 +75,7 @@ namespace ME3TweaksModManager.modmanager.windows
             LoadPackage(package);
             LoadCommands();
             InitializeComponent();
-            DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+            this.ApplyDarkNetWindowTheme();
         }
 
         private void LoadPackage(LaunchOptionsPackage package)
@@ -94,65 +91,65 @@ namespace ME3TweaksModManager.modmanager.windows
 
         private void LoadLanguagesAndOptions()
         {
-            CustomOptions.Clear(); 
+            CustomOptions.Clear();
             LanguageOptions.Clear();
             // Global options
             CustomOptions.Add(new LauncherCustomParameter() { DisplayString = M3L.GetString(M3L.string_automaticallyResumeLastSave), ToolTip = M3L.GetString(M3L.string_tooltip_autoResume), CommandLineText = @"-RESUME", SaveKey = LauncherCustomParameter.KEY_AUTORESUME, IsSelected = LaunchPackage.AutoResumeSave });
             CustomOptions.Add(new LauncherCustomParameter() { DisplayString = M3L.GetString(M3L.string_noForceFeedback), ToolTip = M3L.GetString(M3L.string_tooltip_disablesControllerVibration), CommandLineText = @"-NOFORCEFEEDBACK", SaveKey = LauncherCustomParameter.KEY_NOFORCEFEEDBACK, IsSelected = LaunchPackage.NoForceFeedback });
-#if DEBUG
-            CustomOptions.Add(new LauncherCustomParameter() { DisplayString = @"Enable process minidumps", ToolTip = @"This should only be visible in debug builds", CommandLineText = @"-enableminidumps", SaveKey = LauncherCustomParameter.KEY_MINIDUMPS, IsSelected = LaunchPackage.EnableMinidumps });
-#endif
+            CustomOptions.Add(new LauncherCustomParameter() { DisplayString = M3L.GetString(M3L.string_enableProcessMinidumps), ToolTip = M3L.GetString(M3L.string_tooltip_enableMinidumps), CommandLineText = @"-enableminidumps", SaveKey = LauncherCustomParameter.KEY_MINIDUMPS, IsSelected = LaunchPackage.EnableMinidumps });
 
+
+            // Perhaps localize these?
             switch (LaunchPackage.Game)
             {
                 case MEGame.LE1:
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"English", LanguageString = @"INT" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"French", LanguageString = @"FR" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"French text, English voiceover", LanguageString = @"FE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"German", LanguageString = @"DE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"German text, English voiceover", LanguageString = @"GE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Italian", LanguageString = @"IT" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Italian text, English voiceover", LanguageString = @"IE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Spanish text, English voiceover", LanguageString = @"ES" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Japanese text, English voiceover", LanguageString = @"JA" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Polish", LanguageString = @"PLPC" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Polish text, English voiceover", LanguageString = @"PL" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Russian", LanguageString = @"RA" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Russian text, English voiceover", LanguageString = @"RU" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_english), LanguageString = @"INT" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_french), LanguageString = @"FR" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_frenchTextEnglishVoiceover), LanguageString = @"FE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_german), LanguageString = @"DE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_germanTextEnglishVoiceover), LanguageString = @"GE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_italian), LanguageString = @"IT" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_italianTextEnglishVoiceover), LanguageString = @"IE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_spanishTextEnglishVoiceover), LanguageString = @"ES" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_japaneseTextEnglishVoiceover), LanguageString = @"JA" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_polish), LanguageString = @"PLPC" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_polishTextEnglishVoiceover), LanguageString = @"PL" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_russian), LanguageString = @"RA" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_russianTextEnglishVoiceover), LanguageString = @"RU" });
 
                     // Unofficial ones in game files
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Czech text (partial), English voiceover", LanguageString = @"CS" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Hungarian text (partial), English voiceover", LanguageString = @"HU" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_czechTextPartialEnglishVoiceover), LanguageString = @"CS" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_hungarianTextPartialEnglishVoiceover), LanguageString = @"HU" });
 
                     break;
                 case MEGame.LE2:
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"English", LanguageString = @"INT" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"French", LanguageString = @"FRA" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"French text, English voiceover", LanguageString = @"FRE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"German", LanguageString = @"DEU" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"German text, English voiceover", LanguageString = @"DEE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Italian", LanguageString = @"ITA" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Italian text, English voiceover", LanguageString = @"ITE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Spanish text, English voiceover", LanguageString = @"ESN" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Japanese text, English voiceover", LanguageString = @"JPN" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Polish", LanguageString = @"POL" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Polish text, English voiceover", LanguageString = @"POE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Russian text, English voiceover", LanguageString = @"RUS" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_english), LanguageString = @"INT" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_french), LanguageString = @"FRA" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_frenchTextEnglishVoiceover), LanguageString = @"FRE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_german), LanguageString = @"DEU" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_germanTextEnglishVoiceover), LanguageString = @"DEE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_italian), LanguageString = @"ITA" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_italianTextEnglishVoiceover), LanguageString = @"ITE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_spanishTextEnglishVoiceover), LanguageString = @"ESN" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_japaneseTextEnglishVoiceover), LanguageString = @"JPN" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_polish), LanguageString = @"POL" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_polishTextEnglishVoiceover), LanguageString = @"POE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_russianTextEnglishVoiceover), LanguageString = @"RUS" });
 
                     // LE2 has no unofficial localizations.
                     break;
                 case MEGame.LE3:
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"English", LanguageString = @"INT" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"French", LanguageString = @"FRA" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"French text, English voiceover", LanguageString = @"FRE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"German", LanguageString = @"DEU" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"German text, English voiceover", LanguageString = @"DEE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Italian", LanguageString = @"ITA" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Italian text, English voiceover", LanguageString = @"ITE" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Spanish text, English voiceover", LanguageString = @"ESN" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Japanese text, English voiceover", LanguageString = @"JPN" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Polish text, English voiceover", LanguageString = @"POL" });
-                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = @"Russian text, English voiceover", LanguageString = @"RUS" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_english), LanguageString = @"INT" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_french), LanguageString = @"FRA" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_frenchTextEnglishVoiceover), LanguageString = @"FRE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_german), LanguageString = @"DEU" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_germanTextEnglishVoiceover), LanguageString = @"DEE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_italian), LanguageString = @"ITA" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_italianTextEnglishVoiceover), LanguageString = @"ITE" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_spanishTextEnglishVoiceover), LanguageString = @"ESN" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_japaneseTextEnglishVoiceover), LanguageString = @"JPN" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_polishTextEnglishVoiceover), LanguageString = @"POL" });
+                    LanguageOptions.Add(new LauncherLanguageOption { DisplayString = M3L.GetString(M3L.string_russianTextEnglishVoiceover), LanguageString = @"RUS" });
                     break;
 
                     // LE3 has no unofficial localizations.

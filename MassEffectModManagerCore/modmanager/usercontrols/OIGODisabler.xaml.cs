@@ -1,23 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
+﻿using System.ComponentModel;
 using System.IO.Compression;
-using System.Linq;
 using System.Windows.Input;
 using AuthenticodeExaminer;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
 using ME3TweaksCore.GameFilesystem;
 using ME3TweaksCore.Helpers;
-using ME3TweaksCoreWPF;
 using ME3TweaksCoreWPF.Targets;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.localizations;
-using ME3TweaksModManager.modmanager.me3tweaks;
 using ME3TweaksModManager.modmanager.memoryanalyzer;
 using ME3TweaksModManager.ui;
 using Octokit;
@@ -153,7 +145,7 @@ public event PropertyChangedEventHandler PropertyChanged;
                 NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"OIGDisablerThread");
                 nbw.DoWork += async (a, b) =>
                 {
-                    if (!M3Utilities.IsGameRunning(Game))
+                    if (!MUtilities.IsGameRunning(Game))
                     {
                         var d3d9Path = Path.Combine(M3Directories.GetExecutableDirectory(SelectedTarget), @"d3d9.dll");
                         if (!File.Exists(d3d9Path))
@@ -262,9 +254,9 @@ public event PropertyChangedEventHandler PropertyChanged;
         public override void OnPanelVisible()
         {
             InitializeComponent();
-            Games.Add(new OIGGame(MEGame.ME1, mainwindow.InstallationTargets.Where(x => x.Game == MEGame.ME1 && !x.IsCustomOption && x.GameSource != null && x.GameSource.Contains(@"Origin"))));
-            Games.Add(new OIGGame(MEGame.ME2, mainwindow.InstallationTargets.Where(x => x.Game == MEGame.ME2 && !x.IsCustomOption && x.GameSource != null && x.GameSource.Contains(@"Origin"))));
-            Games.Add(new OIGGame(MEGame.ME3, mainwindow.InstallationTargets.Where(x => x.Game == MEGame.ME3 && !x.IsCustomOption && x.GameSource != null && x.GameSource.Contains(@"Origin"))));
+            Games.Add(new OIGGame(MEGame.ME1, mainwindow.InstallationTargets.Where(x => x.Game == MEGame.ME1 && !x.IsCustomOption && x.GameSource != null && x.GameSource.Contains(GameTarget.GAME_SOURCE_EA_APP))));
+            Games.Add(new OIGGame(MEGame.ME2, mainwindow.InstallationTargets.Where(x => x.Game == MEGame.ME2 && !x.IsCustomOption && x.GameSource != null && x.GameSource.Contains(GameTarget.GAME_SOURCE_EA_APP))));
+            Games.Add(new OIGGame(MEGame.ME3, mainwindow.InstallationTargets.Where(x => x.Game == MEGame.ME3 && !x.IsCustomOption && x.GameSource != null && x.GameSource.Contains(GameTarget.GAME_SOURCE_EA_APP))));
         }
     }
 }

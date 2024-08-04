@@ -22,9 +22,9 @@ namespace ME3TweaksModManager.modmanager.objects.deployment
     public class DeploymentValidationTarget
     {
         public MEGame Game { get; }
-        public GameTarget SelectedTarget { get; set; }
+        public GameTargetWPF SelectedTarget { get; set; } // must be WPF for UI binding
         public string HeaderString { get; }
-        public ObservableCollectionExtended<GameTarget> AvailableTargets { get; } = new ObservableCollectionExtended<GameTarget>();
+        public ObservableCollectionExtended<GameTargetWPF> AvailableTargets { get; } = new ObservableCollectionExtended<GameTargetWPF>(); // must be WPF for target UI binding
         public ArchiveDeploymentPanel DeploymentPanelHost { get; set; }
 
         public DeploymentValidationTarget(ArchiveDeploymentPanel deploymentPanelHost, MEGame game, IEnumerable<GameTargetWPF> targets)

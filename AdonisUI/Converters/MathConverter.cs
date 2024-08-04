@@ -161,7 +161,7 @@ namespace AdonisUI.Converters
                     case '+': _operation = (a, b) => (a + b); break;
                     case '-': _operation = (a, b) => (a - b); break;
                     case '*': _operation = (a, b) => (a * b); break;
-                    case '/': _operation = (a, b) => (a / b); break;
+                    case '/': _operation = (a, b) => b == 0 ? 0 : (a / b); break;
                     default: throw new ArgumentException("Invalid operation " + operation);
                 }
             }

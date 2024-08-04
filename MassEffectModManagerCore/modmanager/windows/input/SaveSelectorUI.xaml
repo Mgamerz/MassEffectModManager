@@ -143,7 +143,7 @@
                             Text="{Binding CharacterName}"
                             FontWeight="Bold" />
                         <TextBlock
-                            Text="{Binding SaveFiles.BindableCount, StringFormat=\{0\} save(s)}" />
+                            Text="{Binding SaveFiles.BindableCount, Converter={StaticResource LocalizationConverter}, ConverterParameter='string_xSaves'}" />
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
@@ -169,27 +169,37 @@
             FontSize="16"
             TextAlignment="Center"
             FontWeight="Bold" />
+        <!-- MaxHeight is required or virtualization effectively doesn't work. We bind it to the window height so it never exceeds it -->
         <ListBox
             Visibility="{Binding LoadingSaves, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter='Not'}"
             Grid.Column="2"
             Grid.Row="1"
             VirtualizingStackPanel.VirtualizationMode="Recycling"
+            MaxHeight="{Binding ActualHeight}"
             ItemsSource="{Binding CareerSaveFilesView}"
             SelectedItem="{Binding SelectedSaveFile}"
             AlternationCount="2">
             <ListBox.ItemTemplate>
                 <DataTemplate
                     DataType="{x:Type shared:ISaveFile}">
-                    <StackPanel>
+                    <Grid Height="48">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="16"/>
+                        </Grid.RowDefinitions>
                         <TextBlock
+                            Grid.Row="0"
                             Text="{Binding Converter={StaticResource SaveGameNameConverter}}"
                             FontWeight="Bold" />
                         <TextBlock
+                            Grid.Row="1"
                             Text="{Binding Proxy_TimeStamp}"
                             FontWeight="Bold" />
                         <TextBlock
+                            Grid.Row="2"
                             Text="{Binding Proxy_DebugName}" />
-                    </StackPanel>
+                    </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
@@ -219,6 +229,8 @@
                 TextWrapping="Wrap"
                 Margin="0,10" />
             <Image
+                RenderOptions.BitmapScalingMode="HighQuality"
+                Visibility="{Binding CurrentSaveImage}"
                 Source="{Binding CurrentSaveImage}" />
             <StackPanel
                 Visibility="{Binding SelectedSaveFile, Converter={StaticResource NullVisibility}}">

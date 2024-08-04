@@ -11,7 +11,7 @@ namespace ME3TweaksModManager.modmanager
     /// </summary>
     public static class M3GameTargetExtensions
     {
-        public static bool IsOfficialDLCInstalled(this GameTargetWPF gameTarget,ModJob.JobHeader header)
+        public static bool IsOfficialDLCInstalled(this GameTarget gameTarget,ModJob.JobHeader header)
         {
             if (header == ModJob.JobHeader.BALANCE_CHANGES) return true; //Don't check balance changes
             if (header == ModJob.JobHeader.ME2_RCWMOD) return true; //Don't check

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using ME3TweaksCore.Misc;
-using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.localizations;
+using ME3TweaksModManager.modmanager.nexusmodsintegration;
 using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.modmanager.usercontrols;
+using static ME3TweaksModManager.modmanager.me3tweaks.services.M3OnlineContent;
 using M3OnlineContent = ME3TweaksModManager.modmanager.me3tweaks.services.M3OnlineContent;
 
 namespace ME3TweaksModManager.modmanager.loaders
@@ -29,6 +27,32 @@ namespace ME3TweaksModManager.modmanager.loaders
             }
         }
 
+        internal void CheckNonWhitelistedNexusModsForUpdates()
+        {
+            var nonWhiteListed = M3LoadedMods.Instance.AllLoadedMods.Where(x => x.NexusModID > 0 && !x.IsUpdatable && x.NexusUpdateCheck).ToList();
+            if (nonWhiteListed.Count > 0)
+            {
+                var updates = CheckForModUpdatesAgainstNexusAPI(nonWhiteListed).Distinct().ToList();
+                if (updates.Any())
+                {
+                    Application.Current.Dispatcher.Invoke(delegate
+                    {
+                        var modUpdatesNotificationDialog = new ModUpdateInformationPanel(updates);
+                        modUpdatesNotificationDialog.Close += (sender, args) =>
+                        {
+                            if (!mainWindow.HasQueuedPanel())
+                            {
+                                // No more batch panels so we should handle the result on Release
+                                mainWindow.HandleBatchPanelResult = true;
+                            }
+                            mainWindow.ReleaseBusyControl();
+                        };
+                        mainWindow.ShowBusyControl(modUpdatesNotificationDialog);
+                    });
+                }
+            }
+        }
+
         internal void CheckModsForUpdates(List<Mod> updatableMods, bool restoreMode = false)
         {
             M3Log.Information($@"Checking {updatableMods.Count} eligible mods for updates.");
@@ -38,6 +62,11 @@ namespace ME3TweaksModManager.modmanager.loaders
                 {
                     M3Log.Information($@" >> Checking for updates to {m.Game} {m.ModName} {m.ParsedModVersion}");
                 }
+            }
+
+            foreach (var m in updatableMods)
+            {
+                m.IsCheckingForUpdates = true;
             }
 
             BackgroundTask bgTask = BackgroundTaskEngine.SubmitBackgroundJob(@"ModCheckForUpdates", M3L.GetString(M3L.string_checkingModsForUpdates), M3L.GetString(M3L.string_modUpdateCheckCompleted));
@@ -90,10 +119,10 @@ namespace ME3TweaksModManager.modmanager.loaders
                     {
                         if (Version.TryParse(matchingUpdateInfoForMod.versionstr, out var serverVer))
                         {
-                            if (ProperVersion.IsGreaterThan(serverVer, mm.ParsedModVersion))
+                            if (ProperVersion.IsGreaterThan(serverVer, mm.ParsedModVersion) || restoreMode)
                             {
                                 // We need to make a clone in the event a mod uses duplicate code, such as Project Variety
-                                M3OnlineContent.NexusModUpdateInfo clonedInfo = new M3OnlineContent.NexusModUpdateInfo(matchingUpdateInfoForMod) { mod = mm };
+                                M3OnlineContent.NexusModUpdateInfo clonedInfo = new M3OnlineContent.NexusModUpdateInfo(matchingUpdateInfoForMod) { mod = mm, IsRestoreMode = restoreMode };
                                 updates.Add(clonedInfo);
                                 clonedInfo.SetLocalizedInfo();
                                 M3Log.Information($@"NexusMods mod out of date: {mm.ModName} {mm.ParsedModVersion}, server version: {serverVer}");
@@ -102,7 +131,7 @@ namespace ME3TweaksModManager.modmanager.loaders
                         }
                         else
                         {
-                            M3Log.Error($@"Cannot parse nexusmods version of mod, skipping update check for {mm.ModName}. Server version string is { matchingUpdateInfoForMod.versionstr}");
+                            M3Log.Error($@"Cannot parse nexusmods version of mod, skipping update check for {mm.ModName}. Server version string is {matchingUpdateInfoForMod.versionstr}");
                         }
                     }
                 }
@@ -130,8 +159,50 @@ namespace ME3TweaksModManager.modmanager.loaders
             {
                 bgTask.FinishedUIText = M3L.GetString(M3L.string_errorCheckingForModUpdates);
             }
+            foreach (var m in updatableMods)
+            {
+                m.IsCheckingForUpdates = false;
+            }
+            BackgroundTaskEngine.SubmitJobCompletion(bgTask);
+        }
+
+        public static List<ModUpdateInfo> CheckForModUpdatesAgainstNexusAPI(List<Mod> updatableMods)
+        {
+            BackgroundTask bgTask = BackgroundTaskEngine.SubmitBackgroundJob(@"NexusModCheckForUpdates", M3L.GetString(M3L.string_checkingModsForUpdates), M3L.GetString(M3L.string_modUpdateCheckCompleted));
+            void updateCheckProgressCallback(string newStr)
+            {
+                BackgroundTaskEngine.SubmitBackgroundTaskUpdate(bgTask, newStr);
+            }
+
+            M3Log.Information($@"Checking {updatableMods.Count} non-whitelisted mods for updates.");
+            if (Settings.LogModUpdater)
+            {
+                foreach (var m in updatableMods)
+                {
+                    M3Log.Information($@" >> Checking for updates to {m.Game} {m.ModName} {m.ParsedModVersion}");
+                }
+            }
+
+            foreach (var m in updatableMods)
+            {
+                m.IsCheckingForUpdates = true;
+            }
+
+            var mui = new List<ModUpdateInfo>();
+            var client = NexusModsUtilities.GetClient();
+            foreach (var m in updatableMods)
+            {
+                BackgroundTaskEngine.SubmitBackgroundTaskUpdate(bgTask, M3L.GetString(M3L.string_interp_checkingForModUpdatesX, m.ModName));
+                var updateInfo = NexusModsUtilities.GetLatestVersion(m);
+                if (updateInfo != null)
+                {
+                    mui.Add(updateInfo);
+                }
+                m.IsCheckingForUpdates = false;
+            }
 
             BackgroundTaskEngine.SubmitJobCompletion(bgTask);
+            return mui;
         }
 
         public static void InitializeModUpdater(MainWindow mainWindow)

@@ -1,30 +1,34 @@
 ﻿using System.Windows;
-using Dark.Net;
 using ME3TweaksCoreWPF.UI;
-using ME3TweaksModManager.ui;
+using ME3TweaksModManager.extensions;
 
 namespace ME3TweaksModManager.modmanager.windows
 {
     /// <summary>
     /// Interaction logic for LicenseViewerWindow.xaml
     /// </summary>
-    public partial class LicenseViewerWindow : Window
+    public partial class LicenseViewerWindow : Window, IClosableWindow
     {
         public LicenseViewerWindow(string licenseText)
         {
             LicenseText = licenseText;
             LoadCommands();
             InitializeComponent();
-            DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+            this.ApplyDarkNetWindowTheme();
         }
 
         public string LicenseText { get; set; }
 
         private void LoadCommands()
         {
-            CloseCommand = new GenericCommand(() => Close());
+            CloseCommand = new GenericCommand(Close);
         }
 
         public GenericCommand CloseCommand { get; set; }
+        public bool AskToClose()
+        {
+            Close();
+            return true;
+        }
     }
 }

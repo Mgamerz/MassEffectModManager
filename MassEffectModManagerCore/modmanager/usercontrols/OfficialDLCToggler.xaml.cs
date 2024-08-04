@@ -48,7 +48,10 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         public override void HandleKeyPress(object sender, KeyEventArgs e)
         {
-
+            if (e.Key == Key.Escape)
+            {
+                ClosePanel();
+            }
         }
 
         public void OnSelectedTargetChanged()

@@ -7,16 +7,21 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using LegendaryExplorerCore.Gammtek.Extensions;
 using LegendaryExplorerCore.Misc;
 using ME3TweaksCore.Helpers;
+using ME3TweaksCore.Misc;
 using ME3TweaksModManager.modmanager.diagnostics;
 using ME3TweaksModManager.modmanager.helpers;
+using ME3TweaksModManager.modmanager.me3tweaks.services;
 using ME3TweaksModManager.modmanager.objects;
 using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Ingestion.Models.Serialization;
 using Microsoft.Win32;
 using Pathoschild.FluentNexus;
 using Pathoschild.FluentNexus.Models;
 using WatsonWebsocket;
+using Mod = ME3TweaksModManager.modmanager.objects.mod.Mod;
 
 namespace ME3TweaksModManager.modmanager.nexusmodsintegration
 {
@@ -310,6 +315,23 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
             return await GetDownloadLinkForFile(link.Domain, link.ModId, link.FileId, link.Key, link.KeyExpiry);
         }
 
+        /// <summary>
+        /// Gets the download link (PREMIUM ONLY) for a mod if it has only one file in the main category. Returns null otherwise.
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <param name="modid"></param>
+        /// <returns></returns>
+        public static async Task<ModFileDownloadLink[]> GetDownloadLinkForMod(string domain, int modid)
+        {
+            var mf = await NexusModsUtilities.GetClient().ModFiles.GetModFiles(domain, modid, FileCategory.Main);
+            if (mf != null && mf.Files.Length == 1)
+            {
+                return await GetDownloadLinkForFile(domain, modid, mf.Files[0].FileID);
+            }
+
+            return null;
+        }
+
         public static void SetupNXMHandling()
         {
             // Register app
@@ -322,7 +344,7 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
             protocolKey.SetValue("URL Protocol", "");
             protocolKey.SetValue("", "URL:NXM Protocol");
         }
-        
+
         public static async Task<string> SetupNexusLogin(Action<string> updateStatus)
         {
             // open a web socket to receive the api key
@@ -407,6 +429,97 @@ namespace ME3TweaksModManager.modmanager.nexusmodsintegration
             if (NexusModsUtilities.UserInfo == null) return null;
             var client = NexusModsUtilities.GetClient();
             return client.Mods.GetModsByFileHash(domain, hash).Result;
+        }
+
+        /// <summary>
+        /// Checks NexusAPI for latest version information of a mod. This is a blocking call and may throw exceptions.
+        /// </summary>
+        /// <param name="mod"></param>
+        /// <returns></returns>
+        public static M3OnlineContent.NexusModUpdateInfo GetLatestVersion(Mod mod, NexusClient client = null)
+        {
+            client ??= GetClient();
+            if (client == null)
+                return null; // You cannot check for updates without an API key.
+            if (mod.ParsedModVersion == null)
+                return null; // Developer set their mod up wrong.
+
+            try
+            {
+                var rateLimits = client.GetRateLimits().Result;
+
+                if (rateLimits.IsBlocked())
+                {
+                    M3Log.Error($@"Error checking {mod.ModName} for updates: User has exceeded NexusMods rate limits");
+                    return null; // Cannot make more requests.
+                }
+
+                var domain = GetDomainForGame(mod.Game);
+                var nMod = client.Mods.GetMod(domain, mod.NexusModID).Result;
+                if (ProperVersion.TryParse(nMod.Version, out var actualVersion))
+                {
+                    if (ProperVersion.IsGreaterThan(actualVersion, mod.ParsedModVersion))
+                    {
+                        M3OnlineContent.NexusModUpdateInfo mui = new M3OnlineContent.NexusModUpdateInfo
+                        {
+                            NexusModsId = mod.NexusModID,
+                            GameId = mod.Game.ToGameNum(),
+                            UpdatedTime = nMod.Updated.DateTime,
+                            versionstr = nMod.Version,
+                            mod = mod,
+                        };
+                        var changelogMap = client.Mods.GetModChangeLogs(domain, mod.NexusModID).Result;
+                        if (changelogMap.TryGetValue(nMod.Version, out var logs))
+                        {
+                            if (logs.Any())
+                            {
+                                mui.changelog = @" - " + string.Join("\n - ", logs).Trim(); // do not localize
+                            }
+                        }
+                        mui.SetLocalizedInfo();
+                        return mui;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                M3Log.Error($@"Error checking {mod.ModName} for updates: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the NexusMods domain for a specific ME game
+        /// </summary>
+        /// <param name="game"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static string GetDomainForGame(MEGame game)
+        {
+            if (game == MEGame.ME1) return @"masseffect";
+            if (game == MEGame.ME2) return @"masseffect2";
+            if (game == MEGame.ME3) return @"masseffect3";
+            if (game == MEGame.LELauncher || game.IsLEGame()) return @"masseffectlegendaryedition";
+            throw new Exception($@"Unsupported game: {game}");
+        }
+
+        public static async Task<int?> GetMainFileForMod(string domain, int modid)
+        {
+            try
+            {
+                var mf = await NexusModsUtilities.GetClient().ModFiles.GetModFiles(domain, modid, FileCategory.Main);
+                if (mf != null && mf.Files.Length == 1)
+                {
+                    return mf.Files[0].FileID;
+                }
+            }
+            catch (Exception e)
+            {
+                M3Log.Error($@"Error getting main file for {domain} {modid} mod: {e.Message}");
+            }
+
+            return null;
         }
     }
 }

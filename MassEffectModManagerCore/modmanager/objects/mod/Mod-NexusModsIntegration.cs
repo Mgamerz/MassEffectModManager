@@ -14,6 +14,9 @@ namespace ME3TweaksModManager.modmanager.objects.mod
     public partial class Mod
     {
         private bool checkedEndorsementStatus;
+
+        // This is technically not nexus but it's close enough
+        public bool IsCheckingForUpdates { get; set; }
         public bool IsEndorsed { get; set; }
         public bool IsOwnMod { get; set; }
         public bool CanEndorse { get; set; }

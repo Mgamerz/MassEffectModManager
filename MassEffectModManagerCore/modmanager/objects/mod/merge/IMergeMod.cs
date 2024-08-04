@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using LegendaryExplorerCore.Misc;
-using LegendaryExplorerCore.Packages;
-using ME3TweaksCore.Targets;
-using ME3TweaksModManager.me3tweakscoreextended;
+﻿using LegendaryExplorerCore.Misc;
+using ME3TweaksModManager.modmanager.objects.mod.merge.v1;
+using Newtonsoft.Json;
 
 namespace ME3TweaksModManager.modmanager.objects.mod.merge
 {
@@ -25,12 +22,15 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge
         public CaseInsensitiveDictionary<MergeAsset> Assets { get; set; }
 
         /// <summary>
+        /// The version of this merge mod
+        /// </summary>
+        public int MergeModVersion { get; set; }
+
+        /// <summary>
         /// Applies the merge mod to the target
         /// </summary>
-        /// <param name="associatedMod">The mod that is installing this merge mod</param>
-        /// <param name="target">The target to be applied to</param>
         /// <returns></returns>
-        public bool ApplyMergeMod(Mod associatedMod, GameTarget target, Action<int> mergeWeightDelegate, Action<string, string> addBasegameTrackedFile, CaseInsensitiveConcurrentDictionary<string> originalFileMD5Map);
+        public bool ApplyMergeMod(MergeModPackage mmp, Action<int> mergeWeightDelegate);
         /// <summary>
         /// Get the number of total merge operations this mod can apply
         /// </summary>
@@ -53,5 +53,55 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge
         /// </summary>
         /// <returns></returns>
         IEnumerable<string> GetMergeFileTargetFiles();
+
+        /// <summary>
+        /// Releases memory for loaded assets that were loaded on-disk from m3ms. Does nothing for memory m3ms
+        /// </summary>
+        public void ReleaseAssets();
+
+        /// <summary>
+        /// Gets the list of target exports of this merge mod
+        /// </summary>
+        /// <returns></returns>
+        CaseInsensitiveDictionary<List<string>> GetMergeModTargetExports();
     }
+
+    public interface IMergeModCommentable
+    {
+        /// <summary>
+        /// The comment on this field. Optional.
+        /// </summary>
+        [JsonProperty(@"comment")]
+        public string Comment { get; set; }
+    }
+
+    /// <summary>
+    /// Interface for all merge types
+    /// </summary>
+    public abstract class MergeModUpdateBase : IMergeModCommentable
+    {
+        /// <summary>
+        /// Validation method for update types. Throw an exception if validation fails.
+        /// </summary>
+        public virtual void Validate() { }
+
+        /// <summary>
+        /// The file info that this merge is taking place in
+        /// </summary>
+        [JsonIgnore] 
+        public MergeFileChange1 Parent;
+
+        /// <summary>
+        /// The encompassing merge mod object
+        /// </summary>
+        [JsonIgnore] 
+        public MergeMod1 OwningMM => Parent.OwningMM;
+
+        /// <summary>
+        /// The comment on this field. Optional.
+        /// </summary>
+        [JsonProperty(@"comment")]
+        public string Comment { get; set; }
+    }
+
 }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using LegendaryExplorerCore.Gammtek.Extensions.Collections.Generic;
+﻿using LegendaryExplorerCore.Gammtek.Extensions.Collections.Generic;
 using LegendaryExplorerCore.Helpers;
-using ME3TweaksCoreWPF;
-using ME3TweaksCoreWPF.Targets;
+using ME3TweaksCore.ME3Tweaks.M3Merge;
 using ME3TweaksModManager.modmanager.helpers;
 using ME3TweaksModManager.modmanager.objects.mod;
 
@@ -27,7 +23,7 @@ namespace ME3TweaksModManager.modmanager.objects
         /// <summary>
         /// The last selected target in the panel
         /// </summary>
-        public GameTargetWPF SelectedTarget { get; set; }
+        public GameTarget SelectedTarget { get; set; }
         /// <summary>
         /// Tool to launch after this panel has closed
         /// </summary>
@@ -36,26 +32,26 @@ namespace ME3TweaksModManager.modmanager.objects
         /// <summary>
         /// Targets to plot manager sync after this panel has closed
         /// </summary>
-        public ConcurrentHashSet<GameTargetWPF> TargetsToPlotManagerSync { get; } = new();
+        public ConcurrentHashSet<GameTarget> TargetsToPlotManagerSync { get; } = new();
 
         /// <summary>
         /// LE1 targets to run Coalesced merge on after this panel has been closed
         /// </summary>
-        public ConcurrentHashSet<GameTargetWPF> TargetsToCoalescedMerge { get; } = new();
+        public ConcurrentHashSet<GameTarget> TargetsToLE1Merge { get; } = new();
 
         /// <summary>
         /// Targets to squadmate merge sync when this panel has closed
         /// </summary>
-        public ConcurrentHashSet<GameTargetWPF> TargetsToSquadmateMergeSync { get; } = new();
+        public ConcurrentHashSet<GameTarget> TargetsToSquadmateMergeSync { get; } = new();
         /// <summary>
         /// Targets to email merge sync when this panel has closed
         /// </summary>
-        public ConcurrentHashSet<GameTargetWPF> TargetsToEmailMergeSync { get; } = new();
+        public ConcurrentHashSet<GameTarget> TargetsToEmailMergeSync { get; } = new();
 
         /// <summary>
         /// Targets to TOC after this panel has closed
         /// </summary>
-        public ConcurrentHashSet<GameTargetWPF> TargetsToAutoTOC { get; } = new();
+        public ConcurrentHashSet<GameTarget> TargetsToAutoTOC { get; } = new();
 
         /// <summary>
         /// Mods that should have updates checked for when the panel result is handled
@@ -92,6 +88,11 @@ namespace ME3TweaksModManager.modmanager.objects
         public bool NeedsMergeDLC => TargetsToEmailMergeSync.Any() || TargetsToSquadmateMergeSync.Any();
 
         /// <summary>
+        /// What moddesc files have been modified by this panel
+        /// </summary>
+        public List<string> ModifiedModdescFiles { get; } = new List<string>(0);
+
+        /// <summary>
         /// Merges values from this panel into the specified one
         /// </summary>
         /// <param name="batchPanelResult"></param>
@@ -100,7 +101,7 @@ namespace ME3TweaksModManager.modmanager.objects
             batchPanelResult.TargetsToSquadmateMergeSync.AddRange(TargetsToSquadmateMergeSync);
             batchPanelResult.TargetsToEmailMergeSync.AddRange(TargetsToEmailMergeSync);
             batchPanelResult.TargetsToPlotManagerSync.AddRange(TargetsToPlotManagerSync);
-            batchPanelResult.TargetsToCoalescedMerge.AddRange(TargetsToCoalescedMerge);
+            batchPanelResult.TargetsToLE1Merge.AddRange(TargetsToLE1Merge);
             batchPanelResult.TargetsToAutoTOC.AddRange(TargetsToAutoTOC);
             batchPanelResult.ModsToCheckForUpdates.AddRange(ModsToCheckForUpdates);
             if (SelectedTarget != null) batchPanelResult.SelectedTarget = SelectedTarget;
@@ -108,17 +109,75 @@ namespace ME3TweaksModManager.modmanager.objects
             if (PanelToOpen != null) batchPanelResult.PanelToOpen = PanelToOpen;
             if (ReloadTargets) batchPanelResult.ReloadTargets = ReloadTargets;
             if (ReloadMods) batchPanelResult.ReloadMods = ReloadMods;
+            if (ModifiedModdescFiles.Any())
+            {
+                foreach (var f in ModifiedModdescFiles)
+                {
+                    if (!batchPanelResult.ModifiedModdescFiles.Contains(f, StringComparer.InvariantCultureIgnoreCase))
+                    {
+                        batchPanelResult.ModifiedModdescFiles.Add(f);
+                    }
+                }
+            }
             if (ModToHighlightOnReload != null) batchPanelResult.ModToHighlightOnReload = ModToHighlightOnReload;
             if (ToolToLaunch != null) batchPanelResult.ToolToLaunch = ToolToLaunch;
         }
 
         /// <summary>
-        /// Gets a list of DLC merge mod targets for this result
+        /// Gets a list of targets that have pending items to place into the M3 Merge DLC
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<GameTargetWPF> GetMergeTargets()
+        public IEnumerable<GameTarget> GetMergeTargets()
         {
+            // Only email merge and squadmate merge put into merge dlc right now
             return TargetsToEmailMergeSync.Concat(TargetsToSquadmateMergeSync).Distinct();
+        }
+
+
+        /// <summary>
+        /// If this result will modify the game, e.g. running a merge on game.
+        /// </summary>
+        /// <returns></returns>
+        public bool DoesResultModifyGame()
+        {
+            if (TargetsToAutoTOC.Any()) return true;
+            if (TargetsToEmailMergeSync.Any()) return true;
+            if (TargetsToLE1Merge.Any()) return true;
+            if (TargetsToPlotManagerSync.Any()) return true;
+            if (TargetsToSquadmateMergeSync.Any()) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Adds all relevant game-specific merges for the specified target
+        /// </summary>
+        /// <param name="target"></param>
+        public void AddTargetMerges(GameTarget target)
+        {
+            if (target.Game.SupportsPlotManagerSync())
+            {
+                TargetsToPlotManagerSync.Add(target);
+            }
+
+            if (target.Game == MEGame.LE1)
+            {
+                TargetsToLE1Merge.Add(target);
+            }
+
+            if (target.Game.SupportsAutoTOC())
+            {
+                TargetsToAutoTOC.Add(target);
+            }
+
+            if (target.Game.SupportsSquadmateMerge()) // ME2 is not supported for squadmate merge
+            {
+                TargetsToSquadmateMergeSync.Add(target);
+            }
+
+            if (target.Game.SupportsEmailMerge())
+            {
+                TargetsToEmailMergeSync.Add(target);
+            }
         }
     }
 }

@@ -24,12 +24,31 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor.alternate
         public RelayCommand MoveAlternateDownCommand { get; set; }
         public RelayCommand MoveAlternateUpCommand { get; set; }
         public RelayCommand DeleteAlternateCommand { get; set; }
+        public RelayCommand CloneAlternateCommand { get; set; }
 
         private void LoadCommands()
         {
             DeleteAlternateCommand = new RelayCommand(RemoveAlternate, x => true);
+            CloneAlternateCommand = new RelayCommand(CloneAlternate, x => true);
             MoveAlternateUpCommand = new RelayCommand(MoveAlternateUp, CanMoveAlternateUp);
             MoveAlternateDownCommand = new RelayCommand(MoveAlternateDown, CanMoveAlternateDown);
+        }
+
+        private void CloneAlternate(object obj)
+        {
+            if (obj is AlternateOption option && DataContext is AlternateBuilderBaseControl baseControl)
+            {
+                AlternateOption clonedAlt = null;
+                if (option is AlternateDLC adlc)
+                    clonedAlt = adlc.CopyForEditor();
+                if (option is AlternateFile af)
+                    clonedAlt = af.CopyForEditor();
+
+                if (clonedAlt != null)
+                {
+                    baseControl.Alternates.Insert(baseControl.Alternates.IndexOf(option) + 1, clonedAlt);
+                }
+            }
         }
 
         private void MoveAlternateUp(object obj)

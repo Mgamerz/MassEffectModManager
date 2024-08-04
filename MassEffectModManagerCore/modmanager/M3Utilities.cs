@@ -30,7 +30,7 @@ namespace ME3TweaksModManager.modmanager
     {
         public static string GetMMExecutableDirectory() => Path.GetDirectoryName(App.ExecutableLocation);
 
-        
+
         private static readonly string MEMendFileMarker = "ThisIsMEMEndOfFile";
         /// <summary>
         /// Checks if the specified file has been tagged as part of an ALOT Installation. This is not the version marker.
@@ -126,8 +126,12 @@ namespace ME3TweaksModManager.modmanager
                 return true;
             }
 
+            string exe = null;
             try
             {
+                // Telemetry shows this being in the catch block can crash the app if the directory is not writable. So we put it into the try block instead.
+                exe = M3Filesystem.GetCachedExecutablePath("PermissionsGranter.exe");
+
                 //try first without admin.
                 if (forcePermissions) throw new UnauthorizedAccessException(); //just go to the alternate case.
                 Directory.CreateDirectory(directoryPath);
@@ -135,9 +139,15 @@ namespace ME3TweaksModManager.modmanager
             }
             catch (UnauthorizedAccessException)
             {
+                if (exe == null)
+                {
+                    // We couldn't even get to the permissions granter file
+                    M3Log.Fatal("Error accessing PermissionsGranter folder. App's data folder permissions are messed up, the app is probably going to crash.");
+                    return false;
+                }
+
                 //Must have admin rights.
                 M3Log.Information("We need admin rights to create this directory");
-                string exe = M3Filesystem.GetCachedExecutablePath("PermissionsGranter.exe");
                 try
                 {
                     M3Utilities.ExtractInternalFile("ME3TweaksModManager.modmanager.me3tweaks.PermissionsGranter.exe", exe, true);
@@ -559,64 +569,6 @@ namespace ME3TweaksModManager.modmanager
             }
         }
 
-        public static async Task<bool> DeleteFilesAndFoldersRecursivelyAsync(string targetDirectory, bool throwOnFailed = false)
-        {
-            return await Task.FromResult(DeleteFilesAndFoldersRecursively(targetDirectory, throwOnFailed));
-        }
-
-        public static bool DeleteFilesAndFoldersRecursively(string targetDirectory, bool throwOnFailed = false)
-        {
-            if (!Directory.Exists(targetDirectory))
-            {
-                Debug.WriteLine("Directory to delete doesn't exist: " + targetDirectory);
-                return true;
-            }
-
-            bool result = true;
-            foreach (string file in Directory.GetFiles(targetDirectory))
-            {
-                File.SetAttributes(file, FileAttributes.Normal); //remove read only
-                try
-                {
-                    //Debug.WriteLine("Deleting file: " + file);
-                    File.Delete(file);
-                }
-                catch (Exception e)
-                {
-                    M3Log.Error($"Unable to delete file: {file}. It may be open still: {e.Message}");
-                    if (throwOnFailed)
-                    {
-                        throw;
-                    }
-
-                    return false;
-                }
-            }
-
-            foreach (string subDir in Directory.GetDirectories(targetDirectory))
-            {
-                result &= DeleteFilesAndFoldersRecursively(subDir, throwOnFailed);
-            }
-
-            Thread.Sleep(10); // This makes the difference between whether it works or not. Sleep(0) is not enough.
-            try
-            {
-                Directory.Delete(targetDirectory);
-            }
-            catch (Exception e)
-            {
-                M3Log.Error($"Unable to delete directory: {targetDirectory}. It may be open still or may not be actually empty: {e.Message}");
-                if (throwOnFailed)
-                {
-                    throw;
-                }
-
-                return false;
-            }
-
-            return result;
-        }
-
         /// <summary>
         /// Reads all lines from a file, attempting to do so even if the file is in use by another process
         /// </summary>
@@ -665,82 +617,9 @@ namespace ME3TweaksModManager.modmanager
             }
         }
 
-        // ME2 and ME3 have same exe names.
-        private static (bool isRunning, DateTime lastChecked) le1RunningInfo = (false, DateTime.MinValue.AddSeconds(5));
-        private static (bool isRunning, DateTime lastChecked) me1RunningInfo = (false, DateTime.MinValue.AddSeconds(5));
-        private static (bool isRunning, DateTime lastChecked) me2RunningInfo = (false, DateTime.MinValue.AddSeconds(5));
-        private static (bool isRunning, DateTime lastChecked) me3RunningInfo = (false, DateTime.MinValue.AddSeconds(5));
-        private static (bool isRunning, DateTime lastChecked) leLauncherRunningInfo = (false, DateTime.MinValue.AddSeconds(5));
-
-
-        private static int TIME_BETWEEN_PROCESS_CHECKS = 5;
 
         /// <summary>
-        /// Determines if a specific game is running. This method only updates every 3 seconds due to the huge overhead it has
-        /// </summary>
-        /// <returns>True if running, false otherwise</returns>
-        public static bool IsGameRunning(MEGame gameID)
-        {
-            (bool isRunning, DateTime lastChecked) runningInfo = (false, DateTime.MinValue.AddSeconds(5));
-            switch (gameID)
-            {
-                case MEGame.ME1:
-                    runningInfo = me1RunningInfo;
-                    break;
-                case MEGame.LE1:
-                    runningInfo = le1RunningInfo;
-                    break;
-                case MEGame.LE2:
-                case MEGame.ME2:
-                    runningInfo = me2RunningInfo;
-                    break;
-                case MEGame.LE3:
-                case MEGame.ME3:
-                    runningInfo = me3RunningInfo;
-                    break;
-                case MEGame.LELauncher:
-                    runningInfo = leLauncherRunningInfo;
-                    break;
-            }
-
-            var time = runningInfo.lastChecked.AddSeconds(TIME_BETWEEN_PROCESS_CHECKS);
-            //Debug.WriteLine(time + " vs " + DateTime.Now);
-            if (time > DateTime.Now)
-            {
-                //Debug.WriteLine("CACHED");
-                return runningInfo.isRunning; //cached
-            }
-            //Debug.WriteLine("IsRunning: " + gameID);
-
-            var processNames = MEDirectories.ExecutableNames(gameID).Select(x => Path.GetFileNameWithoutExtension(x));
-            runningInfo.isRunning = Process.GetProcesses().Any(x => processNames.Contains(x.ProcessName));
-            runningInfo.lastChecked = DateTime.Now;
-            switch (gameID)
-            {
-                case MEGame.ME1:
-                    me1RunningInfo = runningInfo;
-                    break;
-                case MEGame.LE1:
-                    le1RunningInfo = runningInfo;
-                    break;
-                case MEGame.ME2:
-                case MEGame.LE2:
-                    me2RunningInfo = runningInfo;
-                    break;
-                case MEGame.ME3:
-                case MEGame.LE3:
-                    me3RunningInfo = runningInfo;
-                    break;
-                case MEGame.LELauncher:
-                    leLauncherRunningInfo = runningInfo;
-                    break;
-            }
-
-            return runningInfo.isRunning;
-        }
-
-        /// <summary>
-        /// Checks if a process is running. This should not be used in bindings, as it's a very expensive call!
+        /// Checks if a process is running. This should not be used for game detection, as it also uses version info.
         /// </summary>
         /// <param name="processName"></param>
         /// <returns></returns>
@@ -1017,91 +896,9 @@ namespace ME3TweaksModManager.modmanager
             }
         }
 
-        //Step 1: https://stackoverflow.com/questions/2435894/net-how-do-i-check-for-illegal-characters-in-a-path
-        private static string RemoveSpecialCharactersUsingCustomMethod(this string expression, bool removeSpecialLettersHavingASign = true, bool allowPeriod = false)
-        {
-            var newCharacterWithSpace = " ";
-            var newCharacter = "";
-
-            // Return carriage handling
-            // ASCII LINE-FEED character (LF),
-            expression = expression.Replace("\n", newCharacterWithSpace);
-            // ASCII CARRIAGE-RETURN character (CR)
-            expression = expression.Replace("\r", newCharacterWithSpace);
-
-            // less than : used to redirect input, allowed in Unix filenames, see Note 1
-            expression = expression.Replace(@"<", newCharacter);
-            // greater than : used to redirect output, allowed in Unix filenames, see Note 1
-            expression = expression.Replace(@">", newCharacter);
-            // colon: used to determine the mount point / drive on Windows;
-            // used to determine the virtual device or physical device such as a drive on AmigaOS, RT-11 and VMS;
-            // used as a pathname separator in classic Mac OS. Doubled after a name on VMS,
-            // indicates the DECnet nodename (equivalent to a NetBIOS (Windows networking) hostname preceded by "\\".).
-            // Colon is also used in Windows to separate an alternative data stream from the main file.
-            expression = expression.Replace(@":", newCharacter);
-            // quote : used to mark beginning and end of filenames containing spaces in Windows, see Note 1
-            expression = expression.Replace(@"""", newCharacter);
-            // slash : used as a path name component separator in Unix-like, Windows, and Amiga systems.
-            // (The MS-DOS command.com shell would consume it as a switch character, but Windows itself always accepts it as a separator.[16][vague])
-            expression = expression.Replace(@"/", newCharacter);
-            // backslash : Also used as a path name component separator in MS-DOS, OS/2 and Windows (where there are few differences between slash and backslash); allowed in Unix filenames, see Note 1
-            expression = expression.Replace(@"\", newCharacter);
-            // vertical bar or pipe : designates software pipelining in Unix and Windows; allowed in Unix filenames, see Note 1
-            expression = expression.Replace(@"|", newCharacter);
-            // question mark : used as a wildcard in Unix, Windows and AmigaOS; marks a single character. Allowed in Unix filenames, see Note 1
-            expression = expression.Replace(@"?", newCharacter);
-            expression = expression.Replace(@"!", newCharacter);
-            // asterisk or star : used as a wildcard in Unix, MS-DOS, RT-11, VMS and Windows. Marks any sequence of characters
-            // (Unix, Windows, later versions of MS-DOS) or any sequence of characters in either the basename or extension
-            // (thus "*.*" in early versions of MS-DOS means "all files". Allowed in Unix filenames, see note 1
-            expression = expression.Replace(@"*", newCharacter);
-            // percent : used as a wildcard in RT-11; marks a single character.
-            expression = expression.Replace(@"%", newCharacter);
-            // period or dot : allowed but the last occurrence will be interpreted to be the extension separator in VMS, MS-DOS and Windows.
-            // In other OSes, usually considered as part of the filename, and more than one period (full stop) may be allowed.
-            // In Unix, a leading period means the file or folder is normally hidden.
-            if (!allowPeriod)
-            {
-                expression = expression.Replace(@".", newCharacter);
-            }
-
-            // space : allowed (apart MS-DOS) but the space is also used as a parameter separator in command line applications.
-            // This can be solved by quoting, but typing quotes around the name every time is inconvenient.
-            //expression = expression.Replace(@"%", " ");
-            expression = expression.Replace(@"  ", newCharacter);
-
-            if (removeSpecialLettersHavingASign)
-            {
-                // Because then issues to zip
-                // More at : http://www.thesauruslex.com/typo/eng/enghtml.htm
-                expression = expression.Replace(@"ê", "e");
-                expression = expression.Replace(@"ë", "e");
-                expression = expression.Replace(@"ï", "i");
-                expression = expression.Replace(@"œ", "oe");
-            }
-
-            return expression;
-        }
-
         internal static void OpenExplorer(string path)
         {
             Process.Start("explorer", path);
-        }
-
-        /// <summary>
-        /// Sanitizes a path by removing disallowed characters
-        /// </summary>
-        /// <param name="path">Path string</param>
-        /// <returns>Sanitized path string</returns>
-        public static string SanitizePath(string path, bool allowPeriod = false)
-        {
-            path = path.RemoveSpecialCharactersUsingCustomMethod(allowPeriod: allowPeriod);
-            if (path.ContainsAnyInvalidCharacters())
-            {
-                path = path.RemoveSpecialCharactersUsingFrameworkMethod();
-            }
-
-            return path;
         }
 
         internal static List<string> GetPackagesInDirectory(string path, bool subdirectories)

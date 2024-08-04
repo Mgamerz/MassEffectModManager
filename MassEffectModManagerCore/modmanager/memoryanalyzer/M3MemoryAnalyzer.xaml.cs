@@ -13,6 +13,7 @@ using Dark.Net;
 using LegendaryExplorerCore.Helpers;
 using LegendaryExplorerCore.Misc;
 using ME3TweaksCoreWPF.UI;
+using ME3TweaksModManager.extensions;
 using ME3TweaksModManager.modmanager.me3tweaks;
 using ME3TweaksModManager.ui;
 
@@ -57,7 +58,7 @@ namespace ME3TweaksModManager.modmanager.memoryanalyzer
             Refresh();
             LoadCommands();
             InitializeComponent();
-            DarkNet.Instance.SetWindowThemeWpf(this, Settings.DarkTheme ? Theme.Dark : Theme.Light);
+            this.ApplyDarkNetWindowTheme();
 
             //  DispatcherTimer setup
             dispatcherTimer = new DispatcherTimer();
@@ -119,8 +120,8 @@ namespace ME3TweaksModManager.modmanager.memoryanalyzer
             LargeFreeStr = FileSize.FormatSize(MixinHandler.MixinMemoryStreamManager.LargePoolFreeSize);
             SmallInUseStr = FileSize.FormatSize(MixinHandler.MixinMemoryStreamManager.SmallPoolInUseSize);
             SmallFreeStr = FileSize.FormatSize(MixinHandler.MixinMemoryStreamManager.SmallPoolFreeSize);
-            MaxBufferSize = FileSize.FormatSize(MixinHandler.MixinMemoryStreamManager.MaximumBufferSize);
-            MemoryBlockSize = FileSize.FormatSize(MixinHandler.MixinMemoryStreamManager.BlockSize);
+            MaxBufferSize = FileSize.FormatSize(MixinHandler.MixinMemoryStreamManager.Settings.MaximumBufferSize);
+            MemoryBlockSize = FileSize.FormatSize(MixinHandler.MixinMemoryStreamManager.Settings.BlockSize);
             //foreach (var item in InstancedTrackedMemoryObjects)
             //{
             //    item.RefreshStatus();

@@ -14,6 +14,43 @@ namespace ME3TweaksModManager.ui
     public static class ClipperHelper
     {
         /// <summary>
+        /// Hides or shows horizontal content, with the assumption the content is closed by default.
+        /// </summary>
+        /// <param name="clippedPanel"></param>
+        /// <param name="show"></param>
+        /// <param name="completionDelegate"></param>
+        /// <param name="isInitial"></param>
+        /// <param name="animTime"></param>
+        public static void ShowHideHorizontalContent(FrameworkElement clippedPanel, bool show, bool isInitial = false, double animTime = 0.15, Action completionDelegate = null)
+        {
+            if (isInitial && !show) return; // Don't do any animation since it's already closed
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (show)
+                {
+                    // Show the panel but set the height to zero
+                    //clippedPanel.Height = 0;
+                    clippedPanel.Visibility = Visibility.Visible;
+                }
+
+                var from = show ? 0.0 : 1.0;
+                var to = show ? 1.0 : 0.0;
+                DoubleAnimation animation = new DoubleAnimation(from, to, new Duration(TimeSpan.FromSeconds(animTime)));
+
+                // We put this here in the event multiple animations play at once
+                // (Such as failed mods panel) as it might make it collapsed due to timing.
+                animation.Completed += (sender, args) =>
+                {
+                    clippedPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed; // Collapse so renderer doesn't try to do anything with it
+                    completionDelegate?.Invoke();
+                };
+
+                clippedPanel.BeginAnimation(Clipper.WidthFractionProperty, animation);
+            });
+        }
+
+
+        /// <summary>
         /// Hides or shows vertical content, with the assumption the content is closed by default.
         /// </summary>
         /// <param name="clippedPanel"></param>
@@ -36,7 +73,7 @@ namespace ME3TweaksModManager.ui
                 var from = show ? 0.0 : 1.0;
                 var to = show ? 1.0 : 0.0;
                 DoubleAnimation animation = new DoubleAnimation(from, to, new Duration(TimeSpan.FromSeconds(animTime)));
-                
+
                 // We put this here in the event multiple animations play at once
                 // (Such as failed mods panel) as it might make it collapsed due to timing.
                 animation.Completed += (sender, args) =>

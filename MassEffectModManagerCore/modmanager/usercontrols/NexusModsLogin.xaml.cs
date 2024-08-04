@@ -109,8 +109,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                 VisibleIcon = true;
                 SpinIcon = true;
                 ActiveIcon = EFontAwesomeIcon.Solid_Spinner;
-                AuthorizeCommand.RaiseCanExecuteChanged();
-                CloseCommand.RaiseCanExecuteChanged();
+                Application.Current.Dispatcher.Invoke(CommandManager.InvalidateRequerySuggested); // Refresh bindings
                 AuthorizeToNexusText = M3L.GetString(M3L.string_pleaseWait);
                 if (!ManualMode)
                 {
@@ -173,8 +172,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     ActiveIcon = EFontAwesomeIcon.Solid_CheckCircle;
                 }
                 SpinIcon = false;
-                AuthorizeCommand.RaiseCanExecuteChanged();
-                CloseCommand.RaiseCanExecuteChanged();
+                CommandManager.InvalidateRequerySuggested();
             };
             nbw.RunWorkerAsync();
         }

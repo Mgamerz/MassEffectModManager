@@ -8,6 +8,7 @@ using LegendaryExplorerCore.Packages;
 using ME3TweaksCoreWPF.UI;
 using ME3TweaksModManager.modmanager.localizations;
 using ME3TweaksModManager.modmanager.objects;
+using ME3TweaksModManager.modmanager.objects.mod;
 using ME3TweaksModManager.modmanager.objects.mod.editor;
 using ME3TweaksModManager.ui;
 
@@ -78,12 +79,12 @@ namespace ME3TweaksModManager.modmanager.usercontrols.moddescinieditor
             {
                 if (Files.Any())
                 {
-                    ini[ConfigJob.Header.ToString()][@"configfiles"] = string.Join(';', Files.Where(x => !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value));
+                    ini[ConfigJob.Header.ToString()][Mod.MODDESC_DESCRIPTOR_ME1CONFIG_CONFIGFILES] = string.Join(';', Files.Where(x => !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value));
                 }
 
                 if (!string.IsNullOrWhiteSpace(ModDir))
                 {
-                    ini[ConfigJob.Header.ToString()][@"moddir"] = ModDir;
+                    ini[ConfigJob.Header.ToString()][Mod.MODDESC_DESCRIPTOR_JOB_DIR] = ModDir;
                 }
             }
         }

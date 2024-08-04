@@ -1,9 +1,15 @@
 ﻿<usercontrols:MMBusyPanelBase
-    x:Class="ME3TweaksModManager.modmanager.usercontrols.FailedModsPanel" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    mc:Ignorable="d" xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    x:Class="ME3TweaksModManager.modmanager.usercontrols.FailedModsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:usercontrols="clr-namespace:ME3TweaksModManager.modmanager.usercontrols"
     xmlns:converters="clr-namespace:ME3TweaksModManager.modmanager.converters"
     xmlns:mm="clr-namespace:ME3TweaksModManager"
+    xmlns:ui="clr-namespace:ME3TweaksModManager.ui"
     d:DesignHeight="450"
     d:DesignWidth="800"
     DataContext="{Binding RelativeSource={RelativeSource Self}}"
@@ -15,51 +21,38 @@
             x:Key="GameToImageIconConverter" />
     </UserControl.Resources>
     <DockPanel>
-        <StackPanel
-            Orientation="Horizontal"
+        <DockPanel
             DockPanel.Dock="Bottom"
-            HorizontalAlignment="Right"
             Margin="0,5,0,0">
             <Button
-                MinWidth="70"
-                Content="{DynamicResource string_debugReload}"
-                Margin="5,0,0,0"
-                Command="{Binding DebugReloadCommand}"
-                Padding="7,4"
-                Visibility="{x:Static mm:App.DebugOnlyVisibility}" />
-            <Button
-                MinWidth="70"
-                Content="{DynamicResource string_deleteFromLibrary}"
-                Margin="5,0,0,0"
-                Command="{Binding DeleteModCommand}"
-                Padding="7,4" />
-            <Button
-                MinWidth="70"
-                Content="{DynamicResource string_openModdesciniFile}"
-                Margin="5,0,0,0"
-                Command="{Binding EditModdescCommand}"
-                Padding="7,4"/>
-            <Button
-                MinWidth="70"
-                ToolTip="{Binding SelectedMod.ModWebsite}"
-                Content="{DynamicResource string_visitWebsite}"
-                Margin="5,0,0,0"
-                Command="{Binding VisitWebsiteCommand}"
-                Padding="7,4" />
-            <Button
-                MinWidth="70"
-                Content="{DynamicResource string_restoreFromME3Tweaks}"
-                Margin="5,0,0,0"
-                Command="{Binding RestoreSelectedModCommand}"
-                Visibility="{Binding IsEnabled, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibilityConverter}}"
-                Padding="7,4" />
-            <Button
+                DockPanel.Dock="Right"
                 MinWidth="70"
                 Content="{DynamicResource string_close}"
                 Margin="5,0,0,0"
                 Click="Close_Clicked"
                 Padding="7,4" />
-        </StackPanel>
+            <Button
+                DockPanel.Dock="Right"
+                MinWidth="70"
+                Content="{DynamicResource string_reloadMod}"
+                Margin="5,0,0,0"
+                Command="{Binding ReloadCommand}"
+                Padding="7,4" />
+            <Button
+                DockPanel.Dock="Right"
+                MinWidth="70"
+                Content="{DynamicResource string_forceUpdateCheck}"
+                Margin="5,0,0,0"
+                Command="{Binding RestoreSelectedModCommand}"
+                Padding="7,4" />
+            <Button
+                HorizontalAlignment="Left"
+                MinWidth="70"
+                Content="{DynamicResource string_deleteFromLibrary}"
+                Margin="5,0,0,0"
+                Command="{Binding DeleteModCommand}"
+                Padding="7,4" />
+        </DockPanel>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
@@ -121,7 +114,7 @@
                 <ListBox
                     Name="ModsList_ListBox"
                     ItemsSource="{Binding FailedMods}"
-                    SelectionChanged="ModsList_ListBox_OnSelectionChanged"
+                    SelectedItem="{Binding SelectedMod}"
                     BorderThickness="1">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
@@ -151,6 +144,56 @@
                     DockPanel.Dock="Top"
                     Text="{DynamicResource string_failureInformation}"
                     FontWeight="Bold" />
+                <ui:Clipper
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Constraint="Width"
+                    DockPanel.Dock="Bottom">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                ui:Clipper.WidthFraction="1"
+                                ui:Clipper.HeightFraction="0"
+                                VerticalAlignment="Bottom"
+                                Name="VisitWebsitePanel">
+                        <TextBlock
+                            ToolTip="{DynamicResource string_tooltip_openModdescIniFile}"
+                            VerticalAlignment="Bottom">
+                            <Hyperlink
+                                Click="EditModdesc">
+                                <TextBlock
+                                    Text="{DynamicResource string_openModdesciniFile}" />
+                            </Hyperlink>
+                        </TextBlock>
+                        <TextBlock 
+                            Text="•"
+                            Margin="5,0"
+                            VerticalAlignment="Bottom"/>
+                        <TextBlock
+                            ToolTip="{Binding SelectedMod.ModPath}"
+                            VerticalAlignment="Bottom">
+                            <Hyperlink
+                                Click="OpenModFolder">
+                                <TextBlock
+                                    Text="{DynamicResource string_Openmodfolder}" />
+                            </Hyperlink>
+                        </TextBlock>
+                        <TextBlock 
+                            Visibility="{Binding SelectedMod.ModWebsite, Converter={StaticResource NullVisibilityConverter}}"
+                            Text="•"
+                            VerticalAlignment="Bottom"
+                            Margin="5,0"/>
+                        <TextBlock
+                            Visibility="{Binding SelectedMod.ModWebsite, Converter={StaticResource NullVisibilityConverter}}"
+                            ToolTip="{Binding SelectedMod.ModWebsite}"
+                            VerticalAlignment="Bottom">
+                            <Hyperlink
+                                RequestNavigate="RequestNavigate"
+                                NavigateUri="{Binding SelectedMod.ModWebsite}">
+                                <TextBlock
+                                    Text="{DynamicResource string_visitWebsite}" />
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </ui:Clipper>
                 <TextBox
                     Name="FailureInformation_TextBox"
                     IsReadOnly="True"

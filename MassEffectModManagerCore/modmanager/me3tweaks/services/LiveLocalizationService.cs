@@ -13,9 +13,9 @@ namespace ME3TweaksModManager.modmanager.me3tweaks.services
     public static class M3Localization
     {
         /// <summary>
-        /// The internal language codes that Mod Manager supports for UI localization (this does not mean they are implemented!)
+        /// The internal language codes that Mod Manager has built in 
         /// </summary>
-        public static string[] SupportedLanguages = { @"int", @"pol", @"rus", @"deu", @"fra", @"bra", @"esn", @"kor", @"ita" };
+        public static string[] SupportedLanguages = { @"int", /*@"pol",*/ @"rus", @"deu", /*@"fra", @"bra", @"esn", @"kor",*/ @"ita" };
 
         /// <summary>
         /// The last merged language dictionary - for removing from merged resources if the language changes
@@ -33,56 +33,69 @@ namespace ME3TweaksModManager.modmanager.me3tweaks.services
         /// <param name="forcedDictionary"></param>
         public static Task InternalSetLanguage(string lang, ResourceDictionary forcedDictionary, bool localAssetsOnly = false)
         {
-            string uriSource = null;
-            if (forcedDictionary == null)
+            try
             {
-                var hasUpdatedLoc = M3OnlineContent.HasUpdatedLocalization(lang);
-                if (hasUpdatedLoc.HasValue)
+                string uriSource = null;
+                if (forcedDictionary == null)
                 {
-                    var hasUpdateOnME3Tweaks = hasUpdatedLoc.Value;
-                    if (hasUpdateOnME3Tweaks && localAssetsOnly)
+                    var hasUpdatedLoc = M3OnlineContent.HasUpdatedLocalization(lang);
+                    if (hasUpdatedLoc.HasValue)
                     {
-                        // Load built-in. Do not use a local one if it exists
-                        uriSource = $@"pack://application:,,,/ME3TweaksModManager;component/modmanager/localizations/{lang}.xaml";
-                    }
-                    else if (!hasUpdateOnME3Tweaks)
-                    {
-                        // We are up to date
-                        uriSource = GetCachedLocalizationFile(lang);
+                        var hasUpdateOnME3Tweaks = hasUpdatedLoc.Value;
+                        if (hasUpdateOnME3Tweaks && localAssetsOnly)
+                        {
+                            // Load built-in. Do not use a local one if it exists
+                            uriSource =
+                                $@"pack://application:,,,/ME3TweaksModManager;component/modmanager/localizations/{lang}.xaml";
+                        }
+                        else if (!hasUpdateOnME3Tweaks)
+                        {
+                            // We are up to date
+                            uriSource = GetCachedLocalizationFile(lang);
+                        }
+                        else
+                        {
+                            uriSource = M3OnlineContent.DownloadLocalization(lang)
+                                ? GetCachedLocalizationFile(lang)
+                                : $@"pack://application:,,,/ME3TweaksModManager;component/modmanager/localizations/{lang}.xaml";
+                        }
                     }
                     else
                     {
-                        uriSource = M3OnlineContent.DownloadLocalization(lang) ? GetCachedLocalizationFile(lang) : $@"pack://application:,,,/ME3TweaksModManager;component/modmanager/localizations/{lang}.xaml";
+                        // Load built-in
+                        uriSource =
+                            $@"pack://application:,,,/ME3TweaksModManager;component/modmanager/localizations/{lang}.xaml";
                     }
                 }
-                else
+
+
+                var resourceDictionary = forcedDictionary ?? new ResourceDictionary
                 {
-                    // Load built-in
-                    uriSource = $@"pack://application:,,,/ME3TweaksModManager;component/modmanager/localizations/{lang}.xaml";
+                    // Pick uri from configuration
+                    Source = new Uri(uriSource, UriKind.Absolute)
+                };
+
+                if (PreviousLocalizationDictionary != null && LastLanguage != null && LastLanguage != @"int")
+                {
+                    // Do not uninstall INT - not sure if this might re-use resources if we re-merge int again 
+                    // but user changing languages is pretty uncommon
+                    M3Log.Information($@"Uninstalling language dictionary {LastLanguage}");
+                    Application.Current.Resources.MergedDictionaries.Remove(PreviousLocalizationDictionary);
                 }
+
+                PreviousLocalizationDictionary = resourceDictionary;
+                LastLanguage = lang;
+
+                M3Log.Information($@"Installing language dictionary {lang}");
+                Application.Current.Resources.MergedDictionaries.Add(resourceDictionary);
+                // Update the core localization.
+                LC.SetLanguage(lang);
+            }
+            catch (Exception e)
+            {
+                M3Log.Exception(e, @"Changing language failed: ");
             }
 
-
-            var resourceDictionary = forcedDictionary ?? new ResourceDictionary
-            {
-                // Pick uri from configuration
-                Source = new Uri(uriSource, UriKind.Absolute)
-            };
-
-            if (PreviousLocalizationDictionary != null && LastLanguage != null && LastLanguage != @"int")
-            {
-                // Do not uninstall INT - not sure if this might re-use resources if we re-merge int again 
-                // but user changing languages is pretty uncommon
-                M3Log.Information($@"Uninstalling language dictionary {LastLanguage}");
-                Application.Current.Resources.MergedDictionaries.Remove(PreviousLocalizationDictionary);
-            }
-            PreviousLocalizationDictionary = resourceDictionary;
-            LastLanguage = lang;
-
-            M3Log.Information($@"Installing language dictionary {lang}");
-            Application.Current.Resources.MergedDictionaries.Add(resourceDictionary);
-            // Update the core localization.
-            LC.SetLanguage(lang);
             return Task.CompletedTask;
         }
 

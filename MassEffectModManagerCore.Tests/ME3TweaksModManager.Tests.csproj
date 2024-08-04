@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<!-- Windows 2004 -->
-		<TargetFrameworks>net6.0-windows10.0.19041</TargetFrameworks>
+		<TargetFrameworks>net8.0-windows10.0.19041</TargetFrameworks>
 		<IsPackable>false</IsPackable>
 		<Platforms>x64</Platforms>
 		<Configurations>Debug;Release;WinAzureTest;WinAzureRelease</Configurations>
@@ -33,14 +33,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="coverlet.msbuild" Version="3.2.0">
+		<PackageReference Include="coverlet.msbuild" Version="6.0.2">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
-		<PackageReference Include="MSTest.TestAdapter" Version="3.0.2" />
-		<PackageReference Include="MSTest.TestFramework" Version="3.0.2" />
-		<PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+		<PackageReference Include="MSTest.TestAdapter" Version="3.4.3" />
+		<PackageReference Include="MSTest.TestFramework" Version="3.4.3" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

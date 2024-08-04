@@ -112,7 +112,7 @@
                                     </TransformGroup>
                                 </Grid.LayoutTransform>
 
-                                <Ellipse x:Name="Circle"
+                                <Rectangle x:Name="Circle"
                                          Stroke="{TemplateBinding BorderBrush}"
                                          HorizontalAlignment="Center"
                                          VerticalAlignment="Center"
@@ -281,7 +281,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Ellipse x:Name="Circle"
+                            <Rectangle x:Name="Circle"
                                      Stroke="{TemplateBinding BorderBrush}"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center"
@@ -293,6 +293,8 @@
                                             Foreground="{TemplateBinding BorderBrush}"
                                             Grid.Column="0"
                                             Focusable="False"
+                                            Width="16"
+                                            Height="16"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             RenderTransformOrigin="0.5 0.5">
@@ -317,7 +319,7 @@
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="Arrow"
                                                          Storyboard.TargetProperty="(FrameworkElement.RenderTransform).(RotateTransform.Angle)"
-                                                         To="-90"
+                                                         To="-180"
                                                          Duration="0:0:0.2"/>
                                     </Storyboard>
                                 </BeginStoryboard>
@@ -342,7 +344,7 @@
     <Style x:Key="StretchyExpander" TargetType="{x:Type Expander}">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"/>
         <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.SlightlyDimmedForegroundBrush}}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource {x:Static adonisUi:Dimensions.BorderThickness}}"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="VerticalContentAlignment" Value="Top"/>
@@ -528,7 +530,7 @@
                         </Trigger>
 
                         <Trigger Property="IsMouseOver" SourceName="HeaderSite" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"/>
                         </Trigger>
 
                     </ControlTemplate.Triggers>

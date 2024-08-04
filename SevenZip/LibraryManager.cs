@@ -48,7 +48,7 @@ namespace SevenZip
         ///     - Built decoders: LZMA, PPMD, BCJ, BCJ2, COPY, AES-256 Encryption, BZip2, Deflate.
         /// 7z.dll (from the 7-zip distribution) supports every InArchiveFormat for encoding and decoding.
         /// </remarks>
-        private static string _libraryFileName = DetermineLibraryFilePath();
+        private static string _libraryFileName;
 
         /// <summary>
         /// Returns the lookup path for the 7z library.
@@ -150,13 +150,18 @@ namespace SevenZip
 
                 if (_modulePtr == IntPtr.Zero)
                 {
-                    // M3: Remove this so it uses native lookup methods
+                    if (_libraryFileName == null)
+                    {
+                        _libraryFileName = DetermineLibraryFilePath();
+                    }
+
+                    // M3: Debugging code
                     //StringBuilder sb = new StringBuilder();
                     //sb.AppendLine($"Launched from {Environment.CurrentDirectory}");
                     //sb.AppendLine($"Physical location {AppDomain.CurrentDomain.BaseDirectory}");
                     //sb.AppendLine($"AppContext.BaseDir {AppContext.BaseDirectory}");
                     //sb.AppendLine($"Runtime Call {Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName)}");
-                    //File.WriteAllText(@"C:\users\mgamerz\desktop\out.txt", sb.ToString());
+
                     if (!File.Exists(_libraryFileName))
                     {
                         throw new SevenZipLibraryException($"7z DLL file does not exist: {_libraryFileName}");
@@ -200,6 +205,11 @@ namespace SevenZip
                 {
                     if (!_modifyCapable.HasValue)
                     {
+                        if (_libraryFileName == null)
+                        {
+                            _libraryFileName = DetermineLibraryFilePath();
+                        }
+
                         FileVersionInfo dllVersionInfo = FileVersionInfo.GetVersionInfo(_libraryFileName);
                         _modifyCapable = dllVersionInfo.FileMajorPart >= 9;
                     }

@@ -283,7 +283,7 @@ namespace LocalizationHelper
                 {
                     var newlines = v.Key.Contains("\n");
                     var text = v.Key.Replace("\r\n", "&#10;").Replace("\n", "&#10;");
-                    sb.AppendLine("\t<system:String" + (newlines ? "xml:space=\"preserve\" " : " ") + "x:Key=\"" + v.Value.Substring(0, "string_".Length) + v.Value.Substring("string_".Length, 1).ToLower() + v.Value.Substring("string_".Length + 1) + "\">" + text + "</system:String>");
+                    sb.AppendLine("\t<system:String" + (newlines ? " xml:space=\"preserve\" " : " ") + "x:Key=\"" + v.Value.Substring(0, "string_".Length) + v.Value.Substring("string_".Length, 1).ToLower() + v.Value.Substring("string_".Length + 1) + "\">" + text + "</system:String>");
                 }
 
                 StringsTextBox.Text = sb.ToString();

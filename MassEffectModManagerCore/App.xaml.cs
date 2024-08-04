@@ -85,19 +85,16 @@ namespace ME3TweaksModManager
         /// <summary>
         /// The highest version of ModDesc that this version of Mod Manager can support.
         /// </summary>
-        public const double HighestSupportedModDesc = 8.1;
+        public const double HighestSupportedModDesc = 9.0;
 
         //Windows 10 1909
-        public static readonly Version MIN_SUPPORTED_OS = new Version(@"10.0.19044");
+        public static readonly Version MIN_SUPPORTED_OS = new Version(@"10.0.19045"); // Windows 10 22H2
 
         internal static readonly string[] SupportedOperatingSystemVersions =
         {
             @"Windows 10 (not EOL versions)",
             @"Windows 11 (not EOL versions)"
         };
-
-        public static string BuildDate;
-        public static bool IsSigned;
 
         /// <summary>
         /// If telemetry has been flushed after checking if it is enabled.
@@ -156,10 +153,14 @@ namespace ME3TweaksModManager
 
                 if (args.Length > 1)
                 {
-                    var result = Parser.Default.ParseArguments<Options>(args);
-                    if (result is Parsed<Options> parsedCommandLineArgs)
+                    var result = Parser.Default.ParseArguments<CLIOptions>(args);
+                    if (result is Parsed<CLIOptions> parsedCommandLineArgs)
                     {
                         //Parsing completed
+                        if (parsedCommandLineArgs.Value.DebugLogging)
+                        {
+                            M3Log.DebugLogging = true;
+                        }
                         if (parsedCommandLineArgs.Value.UpdateBoot)
                         {
                             //Update unpacked and process was run.
@@ -209,9 +210,24 @@ namespace ME3TweaksModManager
                             CommandLinePending.PendingAutoModInstallPath = parsedCommandLineArgs.Value.AutoInstallModdescPath;
                         }
 
-                        if (parsedCommandLineArgs.Value.GameBoot != false)
+                        if (parsedCommandLineArgs.Value.GameBoot)
                         {
                             CommandLinePending.PendingGameBoot = parsedCommandLineArgs.Value.GameBoot;
+                        }
+
+                        if (parsedCommandLineArgs.Value.CreateMergeDLC)
+                        {
+                            CommandLinePending.PendingMergeDLCCreation = parsedCommandLineArgs.Value.CreateMergeDLC;
+                        }
+
+                        if (parsedCommandLineArgs.Value.MergeModManifestToCompile != null)
+                        {
+                            CommandLinePending.PendingMergeModCompileManifest = parsedCommandLineArgs.Value.MergeModManifestToCompile;
+                        }
+
+                        if (parsedCommandLineArgs.Value.FeatureLevel > 0)
+                        {
+                            CommandLinePending.PendingFeatureLevel = parsedCommandLineArgs.Value.FeatureLevel;
                         }
                     }
                     else
@@ -248,32 +264,9 @@ namespace ME3TweaksModManager
                 M3Log.Information(@"Running as " + Environment.UserName);
                 M3Log.Information(@"Executable location: " + ExecutableLocation);
                 M3Log.Information(@"Operating system: " + RuntimeInformation.OSDescription);
-                //Get build date
-                var info = new FileInspector(App.ExecutableLocation);
-                var signTime = info.GetSignatures().FirstOrDefault()?.TimestampSignatures.FirstOrDefault()?.TimestampDateTime?.UtcDateTime;
 
-                if (signTime != null)
-                {
-                    BuildDateTime = signTime.Value;
-                    BuildDate = signTime.Value.ToLocalTime().ToString(@"MMMM dd, yyyy @ hh:mm");
-                    var signer = info.GetSignatures().FirstOrDefault()?.SigningCertificate?.GetNameInfo(X509NameType.SimpleName, false);
-                    if (signer != null && (signer == @"Michael Perez" || signer == @"ME3Tweaks"))
-                    {
-                        IsSigned = true;
-                        M3Log.Information(@"Build signed by ME3Tweaks. Build date: " + BuildDate);
-                    }
-                    else
-                    {
-                        M3Log.Warning(@"Build signed, but not by ME3Tweaks");
-                    }
-                }
-                else
-                {
-                    BuildDate = @"WARNING: This build is not signed by ME3Tweaks";
-#if !DEBUG
-                    M3Log.Warning(@"This build is not signed by ME3Tweaks. This may not be an official build.");
-#endif
-                }
+                //Get build date
+                BuildHelper.ReadRuildInfo(new BuildHelper.BuildSigner[] { new BuildHelper.BuildSigner() { SigningName = @"Michael Perez", DisplayName = @"ME3Tweaks" } });
 
                 if (args.Length > 0)
                 {
@@ -332,7 +325,7 @@ namespace ME3TweaksModManager
                             });
 
                             M3Log.Information(@"Deleting old data directory: " + oldDir);
-                            M3Utilities.DeleteFilesAndFoldersRecursively(oldDir);
+                            MUtilities.DeleteFilesAndFoldersRecursively(oldDir);
                             M3Log.Information(@"Migration from pre 104 settings to 104+ settings completed");
                         }
                         catch (Exception e)
@@ -385,11 +378,11 @@ namespace ME3TweaksModManager
                 M3Log.Information(@"Deleting temp files (if any)");
                 try
                 {
-                    M3Utilities.DeleteFilesAndFoldersRecursively(M3Filesystem.GetTempPath());
+                    MUtilities.DeleteFilesAndFoldersRecursively(MCoreFilesystem.GetTempDirectory());
                 }
                 catch (Exception e)
                 {
-                    M3Log.Exception(e, $@"Unable to delete temporary files directory {M3Filesystem.GetTempPath()}:");
+                    M3Log.Exception(e, $@"Unable to delete temporary files directory {MCoreFilesystem.GetTempDirectory()}:");
                 }
 
 
@@ -468,20 +461,20 @@ namespace ME3TweaksModManager
             }
 
             // These localizations have been abandoned; if they are updated serverside, they can be dynamically re-enabled, for the most part
-            if (lang == @"pol") // Localization was abandoned
-            {
-                // This may not be available on first load
-                ServerManifest.TryGetBool(ServerManifest.LOCALIZATION_ENABLED_POL, out var enabled, false);
-                return enabled;
-            }
+            //if (lang == @"pol") // Localization was abandoned
+            //{
+            //    // This may not be available on first load
+            //    ServerManifest.TryGetBool(ServerManifest.LOCALIZATION_ENABLED_POL, out var enabled, false);
+            //    return enabled;
+            //}
 
 
-            if (lang == @"bra") // Localization was abandoned
-            {
-                // This may not be available on first load
-                ServerManifest.TryGetBool(ServerManifest.LOCALIZATION_ENABLED_BRA, out var enabled, false);
-                return enabled;
-            }
+            //if (lang == @"bra") // Localization was abandoned
+            //{
+            //    // This may not be available on first load
+            //    ServerManifest.TryGetBool(ServerManifest.LOCALIZATION_ENABLED_BRA, out var enabled, false);
+            //    return enabled;
+            //}
 
             if (lang == @"int") return true; // Just in case
             return false;
@@ -640,7 +633,13 @@ namespace ME3TweaksModManager
         /// <summary>
         /// The executable location for this application
         /// </summary>
-        public static string ExecutableLocation { get; private set; }
+        public static string ExecutableLocation { 
+            get;
+#if !AZURE
+            private 
+#endif
+            set;
+        }
 
         public static List<NexusDomainHandler> NexusDomainHandlers { get; } = new();
 
@@ -700,15 +699,20 @@ namespace ME3TweaksModManager
             {
                 if (!SingleInstanceExit)
                 {
-                    try
+                    if (Settings.ModDownloadCacheFolder == null)
                     {
-                        M3Utilities.DeleteFilesAndFoldersRecursively(M3Filesystem.GetModDownloadCacheDirectory(), false);
-                        M3Log.Information(@"Deleted mod download cache");
+                        try
+                        {
+                            MUtilities.DeleteFilesAndFoldersRecursively(M3Filesystem.GetModDownloadCacheDirectory(),
+                                false);
+                            M3Log.Information(@"Deleted mod download cache");
+                        }
+                        catch
+                        {
+                            // Don't care
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($@"EXCEPTION DELETING THE DOWNLOAD CACHE!: {ex.Message}");
-                    }
+
                     M3Log.Information(@"Application exiting normally");
                 }
                 else
@@ -745,7 +749,7 @@ namespace ME3TweaksModManager
 #endif
     }
 
-    class Options
+    class CLIOptions
     {
         public string UpdateDest { get; set; }
 
@@ -780,11 +784,26 @@ namespace ME3TweaksModManager
         [Option(@"installasi", HelpText = "Instructs Mod Manager to automatically install the ASI with the specified group ID to the specified game")]
         public int AutoInstallASIGroupID { get; set; }
 
+        [Option(@"asiversion", HelpText = "Chooses a specific version of an ASI when paired with --installasi")]
+        public int AutoInstallASIVersion { get; set; }
+
         [Option(@"installbink", HelpText = "Instructs Mod Manager to automatically install the bink asi loader to the specified game")]
         public bool AutoInstallBink { get; set; }
 
+        [Option(@"createmergedlc", HelpText = "Instructs Mod Manager to automatically (re)create a merge DLC for the given game")]
+        public bool CreateMergeDLC { get; set; }
+
         [Option(@"m3link", HelpText = "Instructs Mod Manager to perform a task based on the contents of a me3tweaksmodmanager:// link")]
         public string M3Link { get; set; }
+        
+        [Option(@"debuglogging", HelpText = "Enables verbose debug logs")]
+        public bool DebugLogging { get; set; }
 
+
+        [Option(@"compilemergemod", HelpText = "Instructs Mod Manager to compile a mergemod manifest file. Requires providing a moddesc version with the 'featurelevel' option")]
+        public string MergeModManifestToCompile { get; set; }
+
+        [Option(@"featurelevel", HelpText = "Indicates the feature level a command line operation uses")]
+        public double FeatureLevel { get; set; }
     }
 }

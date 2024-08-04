@@ -43,9 +43,9 @@ namespace ME3TweaksModManager.modmanager.usercontrols
             AvailableLogs.ClearEx();
             var directory = new DirectoryInfo(MCoreFilesystem.GetLogDir());
             var logfiles = directory.GetFiles(@"modmanagerlog*.txt").OrderByDescending(f => f.LastWriteTime).ToList();
-            AvailableLogs.Add(new LogItem(M3L.GetString(M3L.string_selectAnApplicationLog)) { Selectable = false });
+            AvailableLogs.Add(new LogItem(M3L.GetString(M3L.string_noApplicationLog)) { Selectable = false });
             AvailableLogs.AddRange(logfiles.Select(x => new LogItem(x.FullName) { IsActiveLog = x.FullName.Equals(M3Log.CurrentLogFilePath, StringComparison.InvariantCultureIgnoreCase) }));
-            SelectedLog = AvailableLogs.FirstOrDefault();
+            SelectedLog = AvailableLogs.FirstOrDefault(x => x.IsActiveLog);
             var targets = mainwindow.InstallationTargets.Where(x => x.Selectable);
             DiagnosticTargets.Add(new GameTargetWPF(MEGame.Unknown, M3L.GetString(M3L.string_selectAGameTargetToGenerateDiagnosticsFor), false, true));
             DiagnosticTargets.AddRange(targets.Where(x => x.Game != MEGame.LELauncher));
@@ -88,6 +88,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
 
         private bool CanSelectSave()
         {
+            if (UploadingLog) return false;
             if (SelectedDiagnosticTarget == null) return false;
             return SelectedDiagnosticTarget.Game.IsLEGame();
         }
@@ -152,11 +153,6 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     UpdateProgressCallback = updateProgressCallback,
                     SelectedSaveFilePath = SelectedSaveFile?.SaveFilePath,
                     UpdateStatusCallback = updateStatusCallback,
-#if DEBUG
-                    UploadEndpoint = @"https://me3tweaks.com/modmanager/logservice/logupload2"
-#else
-                    UploadEndpoint = @"https://me3tweaks.com/modmanager/logservice/logupload"
-#endif
                 };
 
                 b.Result = LogCollector.SubmitDiagnosticLog(package);

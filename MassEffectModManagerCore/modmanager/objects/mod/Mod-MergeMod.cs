@@ -19,7 +19,7 @@ namespace ME3TweaksModManager.modmanager.objects.mod
 
                 // Load from archive
                 sourceStream = new MemoryStream();
-                Archive.ExtractFile(fullPath, sourceStream);
+                Archive.ExtractFile(fullPath, sourceStream, false);
                 sourceStream.Position = 0;
             }
             else
@@ -34,12 +34,23 @@ namespace ME3TweaksModManager.modmanager.objects.mod
                 // if modpath = "" there is no starting /
                 int extraLen = ModPath.Length > 0 ? 2 : 1;
                 mm = MergeModLoader.LoadMergeMod(sourceStream, fullPath.Substring(ModPath.Length + extraLen + Mod.MergeModFolderName.Length), IsInArchive);
+                if (mm == null)
+                {
+                    M3Log.Error($@"Error loading {fullPath}: Loader returned null. The version is likely unsupported by this version of mod manager");
+                    throw new Exception(M3L.GetString(M3L.string_validation_mergeModVersionUnsupported));
+                }
+
+                if (ModDescTargetVersion < MergeModLoader.GetMinimumCmmVerRequirement(mm.MergeModVersion))
+                {
+                    M3Log.Error($@"Error loading {fullPath}: Merge mod was built against a newer version of cmmver than this mod. The mergemod must be updated or the cmmver upgraded to at least {MergeModLoader.GetMinimumCmmVerRequirement(mm.MergeModVersion)}");
+                    throw new Exception(M3L.GetString(M3L.string_interp_validation_mergeModCompilerTooNew, fullPath, MergeModLoader.GetMinimumCmmVerRequirement(mm.MergeModVersion)));
+                }
             }
             catch (Exception e)
             {
                 M3Log.Error($@"Exception loading merge mod {fullPath}: {e.Message}");
                 M3Log.Error(e.StackTrace);
-                LoadFailedReason = $@"An error occurred reading referenced merge mod '{fullPath}': {e.Message}. See the logs for more information.";
+                LoadFailedReason = M3L.GetString(M3L.string_interp_errorReadingMergeMod, fullPath, e.Message);
                 return null;
             }
             finally
