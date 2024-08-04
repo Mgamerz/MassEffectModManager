@@ -13,6 +13,7 @@ using ME3TweaksCore.Helpers;
 using ME3TweaksCore.Misc;
 using ME3TweaksModManager.modmanager.localizations;
 using Newtonsoft.Json;
+using ME3TweaksCore.Targets;
 
 namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
 {
@@ -152,16 +153,22 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
             ClassUpdate?.Validate();
         }
 
-        public static FileLib GetFileLibForMerge(IMEPackage package, string targetEntry, MergeAssetCache1 assetsCache, GameTarget gameTarget)
+        public static FileLib GetFileLibForMerge(IMEPackage package, string targetEntry, MergeAssetCache1 assetsCache, GameTarget gameTarget, UnrealScriptOptionsPackage usop)
         {
             if (assetsCache.FileLibs.TryGetValue(package.FilePath, out FileLib fl))
             {
-                ReInitializeFileLib(package, fl, targetEntry);
+                ReInitializeFileLib(package, fl, targetEntry, usop);
             }
             else
             {
+                usop ??= new UnrealScriptOptionsPackage()
+                {
+                    Cache = new TargetPackageCache { RootPath = gameTarget.GetBioGamePath() },
+                    GamePathOverride = gameTarget.TargetPath
+                };
+
                 fl = new FileLib(package);
-                bool initialized = fl.Initialize(new TargetPackageCache { RootPath = gameTarget.GetBioGamePath() }, gameTarget.TargetPath);
+                bool initialized = fl.Initialize(usop);
                 if (!initialized)
                 {
                     M3Log.Error($@"FileLib loading failed for package {package.FilePath}:");
@@ -178,9 +185,9 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
             return fl;
         }
 
-        public static void ReInitializeFileLib(IMEPackage package, FileLib fl, string targetExport)
+        public static void ReInitializeFileLib(IMEPackage package, FileLib fl, string targetExport, UnrealScriptOptionsPackage usop)
         {
-            bool reInitialized = fl.ReInitializeFile();
+            bool reInitialized = fl.ReInitializeFile(usop);
             if (!reInitialized)
             {
                 M3Log.Error($@"FileLib re-initialization failed for package {package.FilePath}:");
@@ -329,9 +336,10 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
                     break;
                 case @"ArrayProperty":
                     {
-                        FileLib fl = MergeFileChange1.GetFileLibForMerge(package, targetExport.InstancedFullPath, assetCache, gameTarget);
+                        UnrealScriptOptionsPackage usop = new UnrealScriptOptionsPackage() { GamePathOverride = gameTarget.TargetPath };
+                        FileLib fl = MergeFileChange1.GetFileLibForMerge(package, targetExport.InstancedFullPath, assetCache, gameTarget, usop);
                         var log = new MessageLog();
-                        Property prop = UnrealScriptCompiler.CompileProperty(PropertyName, PropertyValue, targetExport, fl, log);
+                        Property prop = UnrealScriptCompiler.CompileProperty(PropertyName, PropertyValue, targetExport, fl, log, usop);
                         if (prop is null || log.HasErrors)
                         {
                             M3Log.Error($@"Error compiling property '{PropertyName}' in {targetExport.InstancedFullPath}:");
@@ -409,8 +417,10 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
                 }
             }
 
-            FileLib fl = MergeFileChange1.GetFileLibForMerge(package, Parent.ExportInstancedFullPath, assetsCache, gameTarget);
-            (_, MessageLog log) = UnrealScriptCompiler.CompileClass(package, classText, fl, export: package.FindExport(Parent.ExportInstancedFullPath, @"Class"), parent: container, intendedClassName: GetClassName());
+            UnrealScriptOptionsPackage usop = new UnrealScriptOptionsPackage() { GamePathOverride = gameTarget.TargetPath };
+            FileLib fl = MergeFileChange1.GetFileLibForMerge(package, Parent.ExportInstancedFullPath, assetsCache, gameTarget, usop);
+
+            (_, MessageLog log) = UnrealScriptCompiler.CompileClass(package, classText, fl, usop, export: package.FindExport(Parent.ExportInstancedFullPath, @"Class"), parent: container, intendedClassName: GetClassName());
             if (log.HasErrors)
             {
                 M3Log.Error($@"Error compiling class {Parent.ExportInstancedFullPath}:");
@@ -617,8 +627,9 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
 
         public bool ApplyUpdate(IMEPackage package, ExportEntry targetExport, MergeAssetCache1 assetsCache, Mod installingMod, GameTarget gameTarget, Action<int> addMergeWeightCompleted)
         {
-            FileLib fl = MergeFileChange1.GetFileLibForMerge(package, targetExport.InstancedFullPath, assetsCache, gameTarget);
-            (_, MessageLog log) = UnrealScriptCompiler.CompileFunction(targetExport, GetScriptText(), fl);
+            UnrealScriptOptionsPackage usop = new UnrealScriptOptionsPackage() { GamePathOverride = gameTarget.TargetPath };
+            FileLib fl = MergeFileChange1.GetFileLibForMerge(package, targetExport.InstancedFullPath, assetsCache, gameTarget, usop);
+            (_, MessageLog log) = UnrealScriptCompiler.CompileFunction(targetExport, GetScriptText(), fl, usop);
             if (log.HasErrors)
             {
                 M3Log.Error($@"Error compiling function {targetExport.InstancedFullPath}:");
@@ -663,12 +674,12 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
 
         public bool ApplyUpdate(IMEPackage package, ExportEntry targetExport, MergeAssetCache1 assetsCache, GameTarget gameTarget, Action<int> addMergeWeightCompleted)
         {
-            FileLib fl = MergeFileChange1.GetFileLibForMerge(package, targetExport.InstancedFullPath, assetsCache, gameTarget);
-
+            UnrealScriptOptionsPackage usop = new UnrealScriptOptionsPackage() { GamePathOverride = gameTarget.TargetPath };
+            FileLib fl = MergeFileChange1.GetFileLibForMerge(package, targetExport.InstancedFullPath, assetsCache, gameTarget, usop);
             for (int i = 0; i < ScriptFileNames.Length; i++)
             {
                 Debug.WriteLine(M3L.GetString(M3L.string_interp_updatingX, targetExport.InstancedFullPath));
-                MessageLog log = UnrealScriptCompiler.AddOrReplaceInClass(targetExport, GetScriptText(ScriptFileNames[i]), fl, gameRootOverride: gameTarget.TargetPath);
+                MessageLog log = UnrealScriptCompiler.AddOrReplaceInClass(targetExport, GetScriptText(ScriptFileNames[i]), fl, usop);
 
                 if (log.HasErrors)
                 {
@@ -684,7 +695,7 @@ namespace ME3TweaksModManager.modmanager.objects.mod.merge.v1
                 //Doing so can catch errors that are caused if this class was changed in a way that breaks others that depend on it.
                 try
                 {
-                    MergeFileChange1.ReInitializeFileLib(package, fl, targetExport.InstancedFullPath);
+                    MergeFileChange1.ReInitializeFileLib(package, fl, targetExport.InstancedFullPath, usop);
                 }
                 catch
                 {

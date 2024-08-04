@@ -514,7 +514,7 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                         var decomp = CoalescedConverter.DecompileLE1LE2ToMemory(fs, "");
                         fs.Dispose();
                         SetIniBasedKeybinds(decomp[@"BIOInput.ini"], consoleKeyStr, typeKeyStr);
-                        CoalescedConverter.CompileLE1LE2FromMemory(decomp).WriteToFile(fname);
+                        CoalescedConverter.CompileLE1LE2FromMemory(decomp, lang.Localization).WriteToFile(fname);
 
                         if (!IsResettingKeybinds && Game == MEGame.LE1)
                         {

@@ -467,6 +467,7 @@ namespace ME3TweaksModManager.modmanager.windows
 
             var sko = new StarterKitOptions
             {
+                Target = MainWindow.Instance.GetCurrentTarget(Game),
                 ModName = ModName,
                 ModDescription = ModDescription,
                 ModDeveloper = ModDeveloper,

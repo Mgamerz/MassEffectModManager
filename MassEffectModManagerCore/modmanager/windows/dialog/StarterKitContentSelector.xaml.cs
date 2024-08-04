@@ -78,11 +78,11 @@ namespace ME3TweaksModManager.modmanager.windows.dialog
                 List<Action<DuplicatingIni>> moddescAddinDelegates = new List<Action<DuplicatingIni>>();
                 if (SelectedMod.Game == MEGame.LE1)
                 {
-                    StarterKitAddins.AddLE1ModSettingsMenu(SelectedMod, SelectedMod.Game, Path.Combine(SelectedMod.ModPath, dlcFolderPath), moddescAddinDelegates);
+                    StarterKitAddins.AddLE1ModSettingsMenu(SelectedMod, MainWindow.Instance.GetCurrentTarget(SelectedMod.Game), Path.Combine(SelectedMod.ModPath, dlcFolderPath), moddescAddinDelegates);
                 }
                 else if (SelectedMod.Game == MEGame.LE3)
                 {
-                    StarterKitAddins.AddLE3ModSettingsMenu(SelectedMod, SelectedMod.Game, Path.Combine(SelectedMod.ModPath, dlcFolderPath), moddescAddinDelegates);
+                    StarterKitAddins.AddLE3ModSettingsMenu(SelectedMod, MainWindow.Instance.GetCurrentTarget(SelectedMod.Game), Path.Combine(SelectedMod.ModPath, dlcFolderPath), moddescAddinDelegates);
                 }
 
                 if (moddescAddinDelegates.Any())
@@ -165,7 +165,7 @@ namespace ME3TweaksModManager.modmanager.windows.dialog
             Task.Run(() =>
             {
                 OperationInProgress = true;
-                StarterKitAddins.GeneratePlotData(SelectedMod.Game, Path.Combine(SelectedMod.ModPath, dlcFolderPath));
+                StarterKitAddins.GeneratePlotData(MainWindow.Instance.GetCurrentTarget(SelectedMod.Game), Path.Combine(SelectedMod.ModPath, dlcFolderPath));
             }).ContinueWithOnUIThread(x =>
             {
                 OperationInProgress = false;
