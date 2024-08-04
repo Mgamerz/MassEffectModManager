@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using Dark.Net;
@@ -182,6 +183,7 @@ namespace ME3TweaksModManager.modmanager.windows
 
 #if DEBUG
             //Uncomment this to debug serializer
+            Debug.WriteLine(ini);
             // Clipboard.SetText(ini.ToString());
 #endif
             // Load the moddesc.ini as if it was in the library at the original mod folder location
