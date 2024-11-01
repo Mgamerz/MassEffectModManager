@@ -200,15 +200,11 @@ namespace Xceed.Wpf.Toolkit
       object result = null;
       var sourceType = source.GetType();
 
-      if( source is Array )
+      if( source is Array array)
       {
-        using( var stream = new MemoryStream() )
-        {
-          var formatter = new BinaryFormatter();
-          formatter.Serialize( stream, source );
-          stream.Seek( 0, SeekOrigin.Begin );
-          result = ( Array )formatter.Deserialize( stream );
-        }
+        // ME3Tweaks: Partial port of .NET 8 support commit
+        // https://github.com/dotnetprojects/WpfExtendedToolkit/commit/4a5185c63caa77b3cfe41d52c8877fdc850956c8
+        result = array.Clone();
       }
       // For IDictionary, we need to create EditableKeyValuePair to edit the Key-Value.
       else if( ( this.ItemsSource is IDictionary )
