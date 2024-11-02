@@ -3883,6 +3883,8 @@ namespace ME3TweaksModManager
                         }
                     }
 
+                    // Install-ASI is its own command
+                    CommandLinePending.PendingGame = null;
                     CommandLinePending.PendingInstallASIID = 0;
                     CommandLinePending.ClearGameDependencies();
                 }
