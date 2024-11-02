@@ -842,14 +842,15 @@ namespace ME3TweaksModManager.modmanager.usercontrols
                     Version = InstallOptionsPackage.ModBeingInstalled.ModVersionString,
                     InstallTime = DateTime.Now,
                     NexusUpdateCode = InstallOptionsPackage.ModBeingInstalled.NexusModID,
-                    OptionKeysSelectedAtInstallTime = alternates.Select(x => x.OptionKey).ToList()
+                    OptionKeysSelectedAtInstallTime = alternates.Select(x => x.OptionKey).ToList(),
+                    ModDescFeatureLevel = InstallOptionsPackage.ModBeingInstalled.ModDescTargetVersion,
+                    RequiresEnhancedBink = InstallOptionsPackage.ModBeingInstalled.RequiresEnhancedBink
                 };
 
                 // Metacmm uses observable collections because in some apps it's binded to the interface
                 metacmm.RequiredDLC.ReplaceAll(InstallOptionsPackage.ModBeingInstalled.RequiredDLC);
                 metacmm.IncompatibleDLC.ReplaceAll(InstallOptionsPackage.ModBeingInstalled.IncompatibleDLC);
                 metacmm.OptionsSelectedAtInstallTime.ReplaceAll(optionsChosen);
-                metacmm.RequiresEnhancedBink = InstallOptionsPackage.ModBeingInstalled.RequiresEnhancedBink;
 
                 // Write it out to disk
                 metacmm.WriteMetaCMM(metacmmPath, App.BuildNumber.ToString());
