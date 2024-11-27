@@ -47,6 +47,7 @@ namespace ME3TweaksModManager.modmanager.me3tweaks
                 CanFetchContentThrottleCheck = M3OnlineContent.CanFetchContentThrottleCheck,
                 LECPackageSaveFailedCallback = x => M3Log.Error($@"Error saving package: {x}"),
                 CreateLogger = M3Log.CreateLogger,
+                GetLogger = M3Log.GetLogger,
                 GenerateInstalledDlcModDelegate = M3InstalledDLCMod.GenerateInstalledDLCMod,
                 GenerateInstalledExtraFileDelegate = InstalledExtraFileWPF.GenerateInstalledExtraFileWPF,
                 GenerateSFARObjectDelegate = SFARObjectWPF.GenerateSFARObjectWPF,
