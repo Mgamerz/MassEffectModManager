@@ -139,5 +139,14 @@ namespace ME3TweaksModManager.modmanager.diagnostics
 
             return loggerConfig.CreateLogger();
         }
+
+        /// <summary>
+        /// Returns the current logger.
+        /// </summary>
+        /// <returns></returns>
+        public static ILogger GetLogger()
+        {
+            return Log.Logger;
+        }
     }
 }

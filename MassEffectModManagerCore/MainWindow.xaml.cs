@@ -16,6 +16,8 @@ using System.Windows.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using AdonisUI;
+using CliWrap;
+using CliWrap.EventStream;
 using CommandLine;
 using FontAwesome5;
 using LegendaryExplorerCore;
@@ -136,7 +138,7 @@ namespace ME3TweaksModManager
 #if LEGACY
             @".par",
 #endif
-            @".m3m", @".json", @".extractedbin", @".m3za"
+            @".m3m", @".json", @".extractedbin", @".m3za", @".hlsl"
         };
 
         public string ApplyModButtonText { get; set; } = M3L.GetString(M3L.string_applyMod);
@@ -3881,6 +3883,8 @@ namespace ME3TweaksModManager
                         }
                     }
 
+                    // Install-ASI is its own command
+                    CommandLinePending.PendingGame = null;
                     CommandLinePending.PendingInstallASIID = 0;
                     CommandLinePending.ClearGameDependencies();
                 }
@@ -3894,7 +3898,7 @@ namespace ME3TweaksModManager
                         // Todo: This might need to be put into a run and done to ensure it executes in-order
                         var result = new PanelResult();
                         result.AddTargetMerges(t);
-                        
+
                         // Handle the panel result
                         HandlePanelResult(result);
                         CommandLinePending.PendingMergeDLCCreation = false;
@@ -4287,16 +4291,20 @@ namespace ME3TweaksModManager
                         case @".7z":
                         case @".zip":
                         case @".exe":
-                            TelemetryInterposer.TrackEvent(@"User opened mod archive for import", new Dictionary<string, string>
-                            {
-                                { @"Method", @"Drag & drop" },
-                                { @"Filename", Path.GetFileName(file) }
-                            });
+                            TelemetryInterposer.TrackEvent(@"User opened mod archive for import",
+                                new Dictionary<string, string>
+                                {
+                                    { @"Method", @"Drag & drop" },
+                                    { @"Filename", Path.GetFileName(file) }
+                                });
                             openModImportUI(file);
                             break;
                         // Must come before .mem general case
-                        case @".mem" when ModFileFormats.GetGameMEMFileIsFor(file) is var memGame && memGame.IsLEGame(): // For LE
-                            App.SubmitAnalyticTelemetryEvent(@"User dropped LE mem file", new Dictionary<string, string> { { @"Filename", Path.GetFileName(file) } });
+                        case @".mem"
+                            when ModFileFormats.GetGameMEMFileIsFor(file) is var memGame &&
+                                 memGame.IsLEGame(): // For LE
+                            App.SubmitAnalyticTelemetryEvent(@"User dropped LE mem file",
+                                new Dictionary<string, string> { { @"Filename", Path.GetFileName(file) } });
 
                             continueLoop = false; // Do not parse other files in drop, we handle them here
                             var memFiles = new List<string>(files.Length);
@@ -4312,28 +4320,26 @@ namespace ME3TweaksModManager
                             }
 
 
-                            var impInstallCancel = M3L.ShowDialog(this, M3L.GetString(M3L.string_importOrInstallTheseMemFilesQuestion)
+                            var impInstallCancel = M3L.ShowDialog(this,
+                                M3L.GetString(M3L.string_importOrInstallTheseMemFilesQuestion)
                                 + "\n\n" // do not localize
                                 + string.Join("\n - ", memFiles.Select(Path.GetFileName)), // do not localize
                                 M3L.GetString(M3L.string_importOrInstall),
-                                  MessageBoxButton.YesNoCancel,
-                                  MessageBoxImage.Question,
-                                  MessageBoxResult.Yes,
-                                  yesContent: M3L.GetString(M3L.string_import),
-                                  noContent: M3L.GetString(M3L.string_install));
+                                MessageBoxButton.YesNoCancel,
+                                MessageBoxImage.Question,
+                                MessageBoxResult.Yes,
+                                yesContent: M3L.GetString(M3L.string_import),
+                                noContent: M3L.GetString(M3L.string_install));
 
                             if (impInstallCancel == MessageBoxResult.Cancel)
                                 return;
                             if (impInstallCancel == MessageBoxResult.Yes)
                             {
-                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TextureImport", M3L.GetString(M3L.string_importingTextureModsToLibrary), M3L.GetString(M3L.string_importedTextureMods));
-                                Task.Run(() =>
-                                {
-                                    ModArchiveImport.ImportTextureFiles(memFiles, memGame);
-                                }).ContinueWithOnUIThread(x =>
-                                {
-                                    BackgroundTaskEngine.SubmitJobCompletion(task);
-                                });
+                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TextureImport",
+                                    M3L.GetString(M3L.string_importingTextureModsToLibrary),
+                                    M3L.GetString(M3L.string_importedTextureMods));
+                                Task.Run(() => { ModArchiveImport.ImportTextureFiles(memFiles, memGame); })
+                                    .ContinueWithOnUIThread(x => { BackgroundTaskEngine.SubmitJobCompletion(task); });
                             }
 
                             if (impInstallCancel == MessageBoxResult.No)
@@ -4365,12 +4371,16 @@ namespace ME3TweaksModManager
                         case @".tpf":
                         case @".mod":
                         case @".mem":
-                            App.SubmitAnalyticTelemetryEvent(@"User redirected to MEM/ALOT Installer", new Dictionary<string, string> { { @"Filename", Path.GetFileName(file) } });
-                            M3L.ShowDialog(this, M3L.GetString(M3L.string_interp_dialog_installingTextureMod, ext), M3L.GetString(M3L.string_nonModManagerModFound), MessageBoxButton.OK, MessageBoxImage.Warning);
+                            App.SubmitAnalyticTelemetryEvent(@"User redirected to MEM/ALOT Installer",
+                                new Dictionary<string, string> { { @"Filename", Path.GetFileName(file) } });
+                            M3L.ShowDialog(this, M3L.GetString(M3L.string_interp_dialog_installingTextureMod, ext),
+                                M3L.GetString(M3L.string_nonModManagerModFound), MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
                             break;
 
                         case @".me2mod":
-                            App.SubmitAnalyticTelemetryEvent(@"User opened me2mod file", new Dictionary<string, string> { { @"Filename", Path.GetFileName(file) } });
+                            App.SubmitAnalyticTelemetryEvent(@"User opened me2mod file",
+                                new Dictionary<string, string> { { @"Filename", Path.GetFileName(file) } });
                             openModImportUI(file);
                             break;
                         case @".xaml":
@@ -4389,7 +4399,9 @@ namespace ME3TweaksModManager
                                 //{
 
                                 NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"Coalesced Compiler");
-                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"CoalescedCompiler", M3L.GetString(M3L.string_compilingCoalescedFile), M3L.GetString(M3L.string_compiledCoalescedFile));
+                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"CoalescedCompiler",
+                                    M3L.GetString(M3L.string_compilingCoalescedFile),
+                                    M3L.GetString(M3L.string_compiledCoalescedFile));
                                 nbw.DoWork += (a, b) =>
                                 {
                                     var dest = Path.Combine(Directory.GetParent(file).FullName, File.ReadAllLines(file)[0]);
@@ -4408,14 +4420,18 @@ namespace ME3TweaksModManager
                                 using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
                                 var magic = fs.ReadInt32();
                                 fs.Dispose();
-                                if (magic is 0x666D726D or 0x1B or 0x1C or 0x1E) //fmrm (backwards) (ME3), 0x1B (LE1), 0x1C (LE2 count or something...) 0x1E (LE2) (sigh)
+                                if (magic is 0x666D726D or 0x1B or 0x1C
+                                    or 0x1E) //fmrm (backwards) (ME3), 0x1B (LE1), 0x1C (LE2 count or something...) 0x1E (LE2) (sigh)
                                 {
 
                                     NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"Coalesced Decompiler");
-                                    var task = BackgroundTaskEngine.SubmitBackgroundJob(@"CoalescedDecompile", M3L.GetString(M3L.string_decompilingCoalescedFile), M3L.GetString(M3L.string_decompiledCoalescedFile));
+                                    var task = BackgroundTaskEngine.SubmitBackgroundJob(@"CoalescedDecompile",
+                                        M3L.GetString(M3L.string_decompilingCoalescedFile),
+                                        M3L.GetString(M3L.string_decompiledCoalescedFile));
                                     nbw.DoWork += (a, b) =>
                                     {
-                                        var dest = Path.Combine(Directory.GetParent(file).FullName, Path.GetFileNameWithoutExtension(file));
+                                        var dest = Path.Combine(Directory.GetParent(file).FullName,
+                                            Path.GetFileNameWithoutExtension(file));
                                         M3Log.Information($@"Decompiling coalesced file: {file} -> {dest}");
                                         CoalescedConverter.Convert(CoalescedConverter.CoalescedType.Binary, file, dest);
                                         M3Log.Information(@"Decompiled coalesced file");
@@ -4472,16 +4488,21 @@ namespace ME3TweaksModManager
                                             Application.Current.Dispatcher.Invoke(delegate
                                             {
                                                 failedToCompileCoalesced = true;
-                                                M3L.ShowDialog(this, message, M3L.GetString(M3L.string_errorCompilingCoalesced), MessageBoxButton.OK, MessageBoxImage.Error);
+                                                M3L.ShowDialog(this, message,
+                                                    M3L.GetString(M3L.string_errorCompilingCoalesced), MessageBoxButton.OK,
+                                                    MessageBoxImage.Error);
                                             });
                                         }
 
                                         //Coalesced manifest
                                         NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"Coalesced Compiler");
-                                        var task = BackgroundTaskEngine.SubmitBackgroundJob(@"CoalescedCompile", M3L.GetString(M3L.string_compilingCoalescedFile), M3L.GetString(M3L.string_compiledCoalescedFile));
+                                        var task = BackgroundTaskEngine.SubmitBackgroundJob(@"CoalescedCompile",
+                                            M3L.GetString(M3L.string_compilingCoalescedFile),
+                                            M3L.GetString(M3L.string_compiledCoalescedFile));
                                         nbw.DoWork += (a, b) =>
                                         {
-                                            var dest = Path.Combine(Directory.GetParent(file).FullName, rootElement.Attribute(@"name").Value);
+                                            var dest = Path.Combine(Directory.GetParent(file).FullName,
+                                                rootElement.Attribute(@"name").Value);
                                             M3Log.Information($@"Compiling coalesced file: {file} -> {dest}");
                                             try
                                             {
@@ -4492,12 +4513,15 @@ namespace ME3TweaksModManager
                                             {
                                                 M3Log.Error($@"Error compiling Coalesced file: {e.Message}:");
                                                 M3Log.Error(App.FlattenException(e));
-                                                errorCompilingCoalesced(M3L.GetString(M3L.string_interp_exceptionOccuredWhileCompilingCoalsecedFileX, e.Message));
+                                                errorCompilingCoalesced(M3L.GetString(
+                                                    M3L.string_interp_exceptionOccuredWhileCompilingCoalsecedFileX,
+                                                    e.Message));
                                             }
                                         };
                                         nbw.RunWorkerCompleted += (a, b) =>
                                         {
-                                            if (failedToCompileCoalesced) task.FinishedUIText = M3L.GetString(M3L.string_errorCompilingCoalesced);
+                                            if (failedToCompileCoalesced)
+                                                task.FinishedUIText = M3L.GetString(M3L.string_errorCompilingCoalesced);
                                             BackgroundTaskEngine.SubmitJobCompletion(task);
                                         };
                                         nbw.RunWorkerAsync();
@@ -4511,7 +4535,8 @@ namespace ME3TweaksModManager
                                         Application.Current.Dispatcher.Invoke(delegate
                                         {
                                             failedToCompileTLK = true;
-                                            M3L.ShowDialog(this, message, M3L.GetString(M3L.string_errorCompilingTLK), MessageBoxButton.OK, MessageBoxImage.Error);
+                                            M3L.ShowDialog(this, message, M3L.GetString(M3L.string_errorCompilingTLK),
+                                                MessageBoxButton.OK, MessageBoxImage.Error);
                                         });
                                     }
 
@@ -4528,12 +4553,19 @@ namespace ME3TweaksModManager
                                              * Folder with same name
                                              * |-> TLK.xml files
                                              */
-                                            NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"TLKTranspiler - CompileTankmaster");
-                                            var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TranspilerCompile", M3L.GetString(M3L.string_compilingTLKFile), M3L.GetString(M3L.string_compiledTLKFile));
-                                            nbw.DoWork += (a, b) => { TLKTranspiler.CompileTLKManifest(file, rootElement, errorCompilingTLK); };
+                                            NamedBackgroundWorker nbw =
+                                                new NamedBackgroundWorker(@"TLKTranspiler - CompileTankmaster");
+                                            var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TranspilerCompile",
+                                                M3L.GetString(M3L.string_compilingTLKFile),
+                                                M3L.GetString(M3L.string_compiledTLKFile));
+                                            nbw.DoWork += (a, b) =>
+                                            {
+                                                TLKTranspiler.CompileTLKManifest(file, rootElement, errorCompilingTLK);
+                                            };
                                             nbw.RunWorkerCompleted += (a, b) =>
                                             {
-                                                if (failedToCompileTLK) task.FinishedUIText = M3L.GetString(M3L.string_compilingFailed);
+                                                if (failedToCompileTLK)
+                                                    task.FinishedUIText = M3L.GetString(M3L.string_compilingFailed);
                                                 BackgroundTaskEngine.SubmitJobCompletion(task);
                                             };
                                             nbw.RunWorkerAsync();
@@ -4541,12 +4573,20 @@ namespace ME3TweaksModManager
                                         else
                                         {
                                             //Is this a straight up TLK?
-                                            NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"TLKTranspiler - CompileTankmaster");
-                                            var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TranspilerCompile", M3L.GetString(M3L.string_compilingTLKFile), M3L.GetString(M3L.string_compiledTLKFile));
-                                            nbw.DoWork += (a, b) => { TLKTranspiler.CompileTLKManifestStrings(file, rootElement, errorCompilingTLK); };
+                                            NamedBackgroundWorker nbw =
+                                                new NamedBackgroundWorker(@"TLKTranspiler - CompileTankmaster");
+                                            var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TranspilerCompile",
+                                                M3L.GetString(M3L.string_compilingTLKFile),
+                                                M3L.GetString(M3L.string_compiledTLKFile));
+                                            nbw.DoWork += (a, b) =>
+                                            {
+                                                TLKTranspiler.CompileTLKManifestStrings(file, rootElement,
+                                                    errorCompilingTLK);
+                                            };
                                             nbw.RunWorkerCompleted += (a, b) =>
                                             {
-                                                if (failedToCompileTLK) task.FinishedUIText = M3L.GetString(M3L.string_compilingFailed);
+                                                if (failedToCompileTLK)
+                                                    task.FinishedUIText = M3L.GetString(M3L.string_compilingFailed);
                                                 BackgroundTaskEngine.SubmitJobCompletion(task);
                                             };
                                             nbw.RunWorkerAsync();
@@ -4554,12 +4594,19 @@ namespace ME3TweaksModManager
                                     }
                                     else if (rootElement.Name == @"tlkFile") //ME3Explorer style
                                     {
-                                        NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"TLKTranspiler - CompileME3Exp");
-                                        var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TranspilerCompile", M3L.GetString(M3L.string_compilingTLKFile), M3L.GetString(M3L.string_compiledTLKFile));
-                                        nbw.DoWork += (a, b) => { TLKTranspiler.CompileTLKME3Explorer(file, rootElement, errorCompilingTLK); };
+                                        NamedBackgroundWorker nbw =
+                                            new NamedBackgroundWorker(@"TLKTranspiler - CompileME3Exp");
+                                        var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TranspilerCompile",
+                                            M3L.GetString(M3L.string_compilingTLKFile),
+                                            M3L.GetString(M3L.string_compiledTLKFile));
+                                        nbw.DoWork += (a, b) =>
+                                        {
+                                            TLKTranspiler.CompileTLKME3Explorer(file, rootElement, errorCompilingTLK);
+                                        };
                                         nbw.RunWorkerCompleted += (a, b) =>
                                         {
-                                            if (failedToCompileTLK) task.FinishedUIText = M3L.GetString(M3L.string_compilingFailed);
+                                            if (failedToCompileTLK)
+                                                task.FinishedUIText = M3L.GetString(M3L.string_compilingFailed);
                                             BackgroundTaskEngine.SubmitJobCompletion(task);
                                         };
                                         nbw.RunWorkerAsync();
@@ -4568,7 +4615,9 @@ namespace ME3TweaksModManager
                                 catch (Exception ex)
                                 {
                                     M3Log.Error(@"Error loading XML file that was dropped onto UI: " + ex.Message);
-                                    M3L.ShowDialog(this, M3L.GetString(M3L.string_interp_errorReadingXmlFileX, ex.Message), M3L.GetString(M3L.string_errorReadingXmlFile), MessageBoxButton.OK, MessageBoxImage.Error);
+                                    M3L.ShowDialog(this, M3L.GetString(M3L.string_interp_errorReadingXmlFileX, ex.Message),
+                                        M3L.GetString(M3L.string_errorReadingXmlFile), MessageBoxButton.OK,
+                                        MessageBoxImage.Error);
                                 }
                             }
                             break;
@@ -4576,10 +4625,13 @@ namespace ME3TweaksModManager
                             {
                                 //Break down into xml file
                                 NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"TLK decompiler");
-                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TLKDecompile", M3L.GetString(M3L.string_decompilingTLKFile), M3L.GetString(M3L.string_decompiledTLKFile));
+                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"TLKDecompile",
+                                    M3L.GetString(M3L.string_decompilingTLKFile),
+                                    M3L.GetString(M3L.string_decompiledTLKFile));
                                 nbw.DoWork += (a, b) =>
                                 {
-                                    var dest = Path.Combine(Directory.GetParent(file).FullName, Path.GetFileNameWithoutExtension(file) + @".xml");
+                                    var dest = Path.Combine(Directory.GetParent(file).FullName,
+                                        Path.GetFileNameWithoutExtension(file) + @".xml");
                                     M3Log.Information($@"Decompiling TLK file: {file} -> {dest}");
                                     var tf = new ME2ME3TalkFile(file);
                                     tf.SaveToXML(dest);
@@ -4613,7 +4665,10 @@ namespace ME3TweaksModManager
                             catch (Exception ex)
                             {
                                 M3Log.Error($@"Error decompiling m3m mod file: {ex.Message}");
-                                M3L.ShowDialog(this, M3L.GetString(M3L.string_interp_errorDecompilingM3MMessage, ex.Message), M3L.GetString(M3L.string_errorDecompilingM3m), MessageBoxButton.OK, MessageBoxImage.Error);
+                                M3L.ShowDialog(this,
+                                    M3L.GetString(M3L.string_interp_errorDecompilingM3MMessage, ex.Message),
+                                    M3L.GetString(M3L.string_errorDecompilingM3m), MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
                             }
 
                             break;
@@ -4622,34 +4677,123 @@ namespace ME3TweaksModManager
                             {
                                 NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"M3ZA decompressor");
                                 var fname = Path.GetFileName(file);
-                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"M3ZADecompress", M3L.GetString(M3L.string_interp_decompressingFname, fname), M3L.GetString(M3L.string_interp_decompressedFname, fname));
+                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"M3ZADecompress",
+                                    M3L.GetString(M3L.string_interp_decompressingFname, fname),
+                                    M3L.GetString(M3L.string_interp_decompressedFname, fname));
                                 nbw.DoWork += (a, b) =>
                                 {
                                     void progress(int done, int total)
                                     {
                                         int percent = (int)Math.Round(done * 100.0f / total);
-                                        BackgroundTaskEngine.SubmitBackgroundTaskUpdate(task, M3L.GetString(M3L.string_interp_decompressingFnamePercent, fname, percent));
+                                        BackgroundTaskEngine.SubmitBackgroundTaskUpdate(task,
+                                            M3L.GetString(M3L.string_interp_decompressingFnamePercent, fname, percent));
                                     }
 
                                     using var f = File.OpenRead(file);
                                     var archive = CompressedTLKMergeData.ReadCompressedTlkMergeFile(f, true);
-                                    var completed = archive.DecompressArchiveToDisk(Directory.GetParent(file).FullName, archive.LoadedCompressedData, progress);
+                                    var completed = archive.DecompressArchiveToDisk(Directory.GetParent(file).FullName,
+                                        archive.LoadedCompressedData, progress);
                                     if (!completed)
                                     {
-                                        task.FinishedUIText = M3L.GetString(M3L.string_interp_failedToDecompressFname, fname);
+                                        task.FinishedUIText = M3L.GetString(M3L.string_interp_failedToDecompressFname,
+                                            fname);
                                     }
                                 };
-                                nbw.RunWorkerCompleted += (a, b) =>
-                                {
-
-                                    BackgroundTaskEngine.SubmitJobCompletion(task);
-                                };
+                                nbw.RunWorkerCompleted += (a, b) => { BackgroundTaskEngine.SubmitJobCompletion(task); };
                                 nbw.RunWorkerAsync();
 
                             }
                             catch (Exception ex2)
                             {
                                 M3Log.Exception(ex2, $@"Error decompressing {file}:");
+                            }
+
+                            break;
+                        case @".hlsl":
+                            try
+                            {
+                                var fxc = Environment.GetEnvironmentVariable("WindowsSdkVerBinPath") + @"x86\fxc.exe";
+                                if (!File.Exists(fxc))
+                                {
+                                    fxc = Environment.GetEnvironmentVariable("WindowsSdkVerBinPath") +
+                                          Environment.GetEnvironmentVariable("WindowsSDKVersion") + @"x86\fxc.exe";
+                                }
+
+                                if (!File.Exists(fxc))
+                                {
+                                    fxc = Environment.GetEnvironmentVariable("WindowsSdkDir") + @"bin\" +
+                                          Environment.GetEnvironmentVariable("WindowsSDKVersion") + @"x86\fxc.exe";
+                                }
+
+                                if (!File.Exists(fxc))
+                                {
+                                    fxc = Environment.GetEnvironmentVariable("WindowsSdkDir_80") + @"bin\x86\fxc.exe";
+                                }
+
+                                if (!File.Exists(fxc))
+                                {
+                                    M3Log.Warning("Could not find fxc - install a Windows SDK that contains FXC");
+                                    M3L.ShowDialog(this,
+                                        "Could not find a copy of fxc.exe. You will need to install a Windows SDK that contains the D3D11 compiler.",
+                                        "FXC not found", MessageBoxButton.OK, MessageBoxImage.Error);
+                                    return;
+                                }
+
+                                NamedBackgroundWorker nbw = new NamedBackgroundWorker(@"Shader Compiler");
+                                var fname = Path.GetFileName(file);
+                                var task = BackgroundTaskEngine.SubmitBackgroundJob(@"ShaderCompile",
+                                    "Compiling shaders",
+                                    "Compiled shaders");
+                                nbw.DoWork += async (a, b) =>
+                                {
+                                    void progress(int done, int total)
+                                    {
+                                        int percent = (int)Math.Round(done * 100.0f / total);
+                                        BackgroundTaskEngine.SubmitBackgroundTaskUpdate(task,
+                                            $"Compiling shaders {percent}%");
+                                    }
+
+                                    int total = files.Length;
+                                    int done = 0;
+                                    foreach (var f in files)
+                                    {
+                                        var isPixelShader = f.Contains("PixelShader",
+                                            StringComparison.OrdinalIgnoreCase);
+                                        var typeParam = isPixelShader ? "ps_5_0" : "vs_5_0";
+                                        var outPath = Path.Combine(Directory.GetParent(file).FullName, Path.GetFileNameWithoutExtension(f) + @".m3gs");
+                                        var cmd = Cli.Wrap(fxc)
+                                            .WithArguments($"/T {typeParam} /Fo \"{outPath}\" \"{f}\"")
+                                            .WithValidation(CommandResultValidation.None); // do not localize
+                                        await foreach (var cmdEvent in cmd.ListenAsync())
+                                        {
+                                            switch (cmdEvent)
+                                            {
+                                                case StartedCommandEvent started:
+                                                    M3Log.Information($@"FXC: Process started with id {started.ProcessId}");
+                                                    break;
+                                                case StandardOutputCommandEvent stdOut:
+                                                    M3Log.Information($@"FXC: {stdOut.Text}");
+                                                    break;
+                                                case StandardErrorCommandEvent stdErr:
+                                                    M3Log.Error($@"FXC: {stdErr.Text}");
+                                                    break;
+                                                case ExitedCommandEvent exited:
+                                                    M3Log.Information($@"FXC: Process exited with code {exited.ExitCode}");
+                                                    break;
+                                            }
+                                        }
+
+                                        done++;
+                                        progress(done, total);
+                                    }
+                                };
+                                    nbw.RunWorkerCompleted += (a, b) => { BackgroundTaskEngine.SubmitJobCompletion(task); };
+                                    nbw.RunWorkerAsync();
+                                }
+                            catch (Exception ex)
+                            {
+                                // Show dialog or something.
+                                M3Log.Exception(ex, $@"Error compiling shaders:");
                             }
 
                             break;
